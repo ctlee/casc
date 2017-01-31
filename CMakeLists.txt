@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
 
-project(GAMer VERSION 1.0.0)
-
-option(BUILD_STATIC_LIB "Build the static libraries" OFF)
-# BUILD_BLENDER will build static libraries as well
-option(BUILD_BLENDER "Build the GAMer addon for Blender" OFF)
+project(CASC VERSION 1.0.0)
 
 option(BUILD_TESTS "Build the test scripts" OFF)
 
@@ -40,8 +36,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(TEST_DATA_PATH ${PROJECT_SOURCE_DIR}/data)
 
-add_subdirectory(libraries)
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(include)
 
@@ -50,56 +44,6 @@ get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTO
 foreach(dir ${dirs})
     message(STATUS "dir='${dir}'")
 endforeach()
-
-# Change this to not use GLOB
-#file(GLOB SOURCES "src/*.C")
-list(APPEND SOURCES 
-    "src/CorrectNormals.C"
-    "src/GemMesh.C"
-    "src/GenerateSphereMesh.C"
-    "src/MarchingCube.C"
-    "src/OFF_SurfaceMesh.C"
-    "src/OBJ_SurfaceMesh.C"
-    "src/PDB2Mesh.C"
-    "src/PDB2Volume.C"
-    "src/ReadLattice.C"
-    "src/ReadWriteMesh.C"
-    "src/RegionGrowing.C"
-    "src/SurfaceMesh.C"
-    "src/SurfaceMeshOld.C"
-    "src/SurfExtract.C"
-    "src/SurfRefine.C"
-    "src/SurfSmooth.C"
-    "src/Triangulate.C"
-    "src/Vertex.C"
-    "src/WrapSimplicialComplex.C"
-    "src/WrapSurfaceMesh.C"
-)
-
-add_library(gamershared SHARED ${SOURCES})
-
-message(STATUS "SOURCES: ${SOURCES}")
-
-set_target_properties(gamershared PROPERTIES COMPILE_FLAGS "-std=c++14")
-target_link_libraries(gamershared tetshared trishared)
-# TODO: populate the list of headers to install...
-#install(FILES gamer.h DESTINATION include/gamer)
-install(TARGETS gamershared DESTINATION lib/gamer)
-
-if(BUILD_BLENDER OR BUILD_STATIC_LIB)
-    add_library(gamerstatic STATIC ${SOURCES})
-    
-    set_target_properties(gamerstatic PROPERTIES COMPILE_FLAGS "-std=c++14")
-    target_link_libraries(gamerstatic tetstatic tristatic)
-    install(TARGETS gamerstatic DESTINATION lib/gamer)
-endif(BUILD_BLENDER OR BUILD_STATIC_LIB)
-
-if(BUILD_BLENDER)
-    # build swig wrapper for python
-    add_subdirectory(swig)
-endif(BUILD_BLENDER)
-
-add_subdirectory(tools)
 
 if(BUILD_TESTS)
     add_subdirectory(tests)
