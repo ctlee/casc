@@ -20,10 +20,10 @@ endif()
 
 # Define where to put the libraries and binaries
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-set(TEST_DATA_PATH ${PROJECT_SOURCE_DIR}/data)
+# set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+# set(TEST_DATA_PATH ${PROJECT_SOURCE_DIR}/data)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(include)
 
 # List the include directories...
@@ -36,13 +36,15 @@ if(BUILD_TESTS)
     add_subdirectory(tests)
 endif(BUILD_TESTS)
 
+#install(DIRECTORY include DESTINATION include/casc FILES_MATCHING PATTERN "*.h")
+
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen)
 
 message(STATUS "Doxygen ${DOXYGEN_EXECUTABLE}")
 if(DOXYGEN_FOUND)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-    add_custom_target(doc
+    add_custom_target(casc_doc
         ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating API documentation with Doxygen" VERBATIM

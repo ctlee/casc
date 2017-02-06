@@ -8,12 +8,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
-#include "ASCFunctions.h"
-#include "stringutil.h"
-#include "SurfaceMesh.h"
+#include "SimplicialComplex.h"
 #include "SimplicialComplexVisitors.h"
-#include "Vertex.h"
 
 int  main(int argc, char *argv[])
 {
