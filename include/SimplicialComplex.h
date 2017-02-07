@@ -14,7 +14,8 @@
 #include <unordered_map>
 #include <utility>
 #include "util.h"
-
+#include <assert.h>
+#include "index_tracker.h"
 //using Simplex = unsigned int;
 
 namespace detail {
@@ -390,7 +391,7 @@ public:
 	simplicial_complex()
 		: node_count(0)
 	{
-		_root = create_node<0>();
+		_root = create_node(std::integral_constant<std::size_t,0>());
 		for(auto& x : level_count)
 		{
 			x = 0;
@@ -416,6 +417,10 @@ public:
 	template <size_t n>
 	void insert(const KeyType (&s)[n])
 	{
+		for(const KeyType* p = s; p < s + n; ++p)
+		{
+			unused_vertices.remove(*p);
+		}
 		insert_full<0,n>::apply(this, _root, s);	
 		//insert_for<0,n,false>::apply(this, _root, s);
 	}
@@ -431,6 +436,10 @@ public:
 	template <size_t n>
 	void insert(const KeyType (&s)[n], const NodeData<n>& data)
 	{
+		for(const KeyType* p = s; p < s + n; ++p)
+		{
+			unused_vertices.remove(*p);
+		}
 		Node<n>* rval = insert_full<0,n>::apply(this, _root, s);
 		rval->_data = data;
 	}
@@ -445,7 +454,11 @@ public:
 	template <size_t n>
 	void insert(const std::array<KeyType,n>& s)
 	{
-		insert_full<0,n>::apply(this, _root, s.data());	
+		for(KeyType x : s)
+		{
+			unused_vertices.remove(x);
+		}
+		insert_full<0,n>::apply(this, _root, s.data());
 	}
 
 	/**
@@ -459,8 +472,19 @@ public:
 	template <size_t n>
 	void insert(const std::array<KeyType,n>& s, const NodeData<n>& data)
 	{
+		for(KeyType x : s)
+		{
+			unused_vertices.remove(x);
+		}
 		Node<n>* rval = insert_full<0,n>::apply(this, _root, s.data());
 		rval->_data = data;
+	}
+
+	KeyType add_vertex()
+	{
+		KeyType v[1] = {unused_vertices.pop()};
+		insert<1>(v);
+		return v[0];
 	}
 
 	/**
@@ -1053,7 +1077,7 @@ private:
 			auto iter = root->_up.find(v);
 			if(iter == root->_up.end())
 			{
-				nn = that->create_node<level+1>();
+				nn = that->create_node(std::integral_constant<std::size_t,level+1>());
 
 				nn->_down[v] = root;
 				root->_up[v] = nn;
@@ -1100,17 +1124,20 @@ private:
 	}
 
 	template <size_t level>
-	Node<level>* create_node()
+	Node<level>* create_node(std::integral_constant<std::size_t,level> x)
 	{
 		auto p = new Node<level>(node_count++);
 		++(level_count[level]);
 	    
 	    bool ret = std::get<level>(levels).insert(
 	    		std::pair<size_t,NodePtr<level>>(node_count-1, p)).second; // node_count-1 to match the id's correctly
+	    assert(ret);
+	    /*
         // sanity check to make sure there aren't duplicate keys... 
         if (ret==false) {
             std::cout << "Error: Node '" << node_count << "' already existed with value " << *p << std::endl;
         }
+        */
 		return p;
 	}
 
@@ -1127,6 +1154,23 @@ private:
 		}
 		--(level_count[level]);
 		std::get<level>(levels).erase(p->_node);
+		delete p;
+	}
+
+	void remove_node(Node<1>* p)
+	{
+		// This for loop should only have a single iteration.
+		for(auto curr = p->_down.begin(); curr != p->_down.end(); ++curr)
+		{
+			unused_vertices.insert(curr->first);
+			curr->second->_up.erase(curr->first);
+		}
+		for(auto curr = p->_up.begin(); curr != p->_up.end(); ++curr)
+		{
+			curr->second->_down.erase(curr->first);
+		}
+		--(level_count[1]);
+		std::get<1>(levels).erase(p->_node);
 		delete p;
 	}
 
@@ -1157,6 +1201,7 @@ private:
 	std::array<size_t,numLevels> level_count;
 	using NodePtrLevel = typename util::int_type_map<std::size_t, std::tuple, LevelIndex, NodePtr>::type;
 	typename util::type_map<NodePtrLevel, detail::map>::type levels;
+	index_tracker<KeyType> unused_vertices;
 };
 
 template <typename KeyType, typename... Ts>

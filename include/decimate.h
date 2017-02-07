@@ -48,7 +48,7 @@ namespace decimation_detail
         GetCompleteNeighborhoodHelper(SimplexSet* p) : pLevels(p) {}
 
         template <std::size_t level>
-        bool visit(const Complex& F, typename Complex::template SimplexID<level> s)
+        bool visit(Complex& F, typename Complex::template SimplexID<level> s)
         {
             if(std::get<level>(*pLevels).find(s) == std::get<level>(*pLevels).end())
             {
@@ -76,12 +76,12 @@ namespace decimation_detail
         GetCompleteNeighborhood(SimplexSet* p) : pLevels(p) {}
 
         template <std::size_t level>
-        bool visit(const Complex& F, typename Complex::template SimplexID<level> s)
+        bool visit(Complex& F, typename Complex::template SimplexID<level> s)
         {
             return true;
         }
 
-        bool visit(const Complex& F, typename Complex::template SimplexID<1> s)
+        bool visit(Complex& F, typename Complex::template SimplexID<1> s)
         {
             visit_node_up(GetCompleteNeighborhoodHelper<Complex>(pLevels), F, s);
             return false;
@@ -100,7 +100,7 @@ namespace decimation_detail
         GrabVisitor(SimplexSet* p, SimplexSet* grab) : pLevels(p), pGrab(grab) {}
 
         template <std::size_t level>
-        bool visit(const Complex& F, typename Complex::template SimplexID<level> s)
+        bool visit(Complex& F, typename Complex::template SimplexID<level> s)
         {
             if(std::get<level>(*pLevels).find(s) != std::get<level>(*pLevels).end())
             {
@@ -137,7 +137,7 @@ namespace decimation_detail
             constexpr static std::size_t NewLevel = OldLevel - BaseLevel + 1;
             static void apply(Callback<Complex>* callback,
                         ReturnValues* data,
-                        const Complex& F,
+                        Complex& F,
                         const std::array<KeyType,OldLevel>& old_name,
                         const std::array<KeyType,NewLevel>& new_name,
                         const SimplexSet& merged)
@@ -153,7 +153,7 @@ namespace decimation_detail
             constexpr static std::size_t NewLevel = OldLevel - BaseLevel + 1;
             static void apply(Callback<Complex>* callback,
                         ReturnValues* data,
-                        const Complex& F,
+                        Complex& F,
                         const std::array<KeyType,OldLevel>& old_name,
                         const std::array<KeyType,NewLevel>& new_name,
                         const SimplexSet& merged)
@@ -167,7 +167,7 @@ namespace decimation_detail
             : pLevels(p), simplex(s), new_point(np), callback(c), data(rv) {}
 
         template <std::size_t OldLevel>
-        bool visit(const Complex& F, typename Complex::template SimplexID<OldLevel> s)
+        bool visit( Complex& F, typename Complex::template SimplexID<OldLevel> s)
         {
             constexpr std::size_t NewLevel = OldLevel - BaseLevel + 1;
 
@@ -181,7 +181,7 @@ namespace decimation_detail
                 std::size_t j = 0; // old_name
                 std::size_t k = 0; // base_name
 
-                new_name[i++] = new_point;
+                new_name[i++] = F.add_vertex();//new_point;
 
                 while(i < NewLevel)
                 {
@@ -222,7 +222,7 @@ namespace decimation_detail
             : pLevels(p), callback(c), new_point(np), data(rv) {}
 
         template <std::size_t level>
-        bool visit(const Complex& F, typename Complex::template SimplexID<level> s)
+        bool visit(Complex& F, typename Complex::template SimplexID<level> s)
         {
             visit_node_up(InnerVisitor<Complex,level,Callback>(pLevels,s,new_point,data,callback), F, s);
             return true;
@@ -352,7 +352,7 @@ namespace DecimateExample {
         using KeyType = typename Complex::KeyType;
 
         template <std::size_t OldLevel, std::size_t NewLevel>
-        void operator()(const Complex& F,
+        void operator()(Complex& F,
                         const std::array<KeyType,OldLevel>& old_name,
                         const std::array<KeyType,NewLevel>& new_name,
                         const SimplexSet& merged)
@@ -361,7 +361,7 @@ namespace DecimateExample {
         }
 
         template <std::size_t OldLevel>
-        Vertex operator()(const Complex& F,
+        Vertex operator()(Complex& F,
                         const std::array<KeyType,OldLevel>& old_name,
                         const std::array<KeyType,1>& new_name,
                         const SimplexSet& merged)
@@ -380,7 +380,7 @@ namespace DecimateExample {
         }
 
         template <std::size_t OldLevel>
-        Face operator()(const Complex& F,
+        Face operator()(Complex& F,
                         const std::array<KeyType,OldLevel>& old_name,
                         const std::array<KeyType,3>& new_name,
                         const SimplexSet& merged)
