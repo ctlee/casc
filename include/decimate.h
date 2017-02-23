@@ -167,7 +167,7 @@ namespace decimation_detail
             : pLevels(p), simplex(s), new_point(np), callback(c), data(rv) {}
 
         template <std::size_t OldLevel>
-        bool visit( Complex& F, typename Complex::template SimplexID<OldLevel> s)
+        bool visit(Complex& F, typename Complex::template SimplexID<OldLevel> s)
         {
             constexpr std::size_t NewLevel = OldLevel - BaseLevel + 1;
 
@@ -181,7 +181,7 @@ namespace decimation_detail
                 std::size_t j = 0; // old_name
                 std::size_t k = 0; // base_name
 
-                new_name[i++] = F.add_vertex();//new_point;
+                new_name[i++] = new_point;
 
                 while(i < NewLevel)
                 {
@@ -300,7 +300,7 @@ namespace decimation_detail
 template <typename Complex, typename Simplex, template<typename> class Callback>
 void decimate(Complex& F, Simplex s, Callback<Complex>& clbk)
 {
-    static int np = -1;
+    int np = F.add_vertex();
     int i = 0;
     typename decimation_detail::SimplexDataSet<SurfaceMesh>::type rv;
     typename decimation_detail::SimplexSet<SurfaceMesh>::type levels;
