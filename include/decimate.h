@@ -50,12 +50,14 @@ namespace decimation_detail
         template <std::size_t level>
         bool visit(Complex& F, typename Complex::template SimplexID<level> s)
         {
+            // If the simplex isn't there, insert it and continue BFS.
             if(std::get<level>(*pLevels).find(s) == std::get<level>(*pLevels).end())
             {
                 std::get<level>(*pLevels).insert(s);
-    //            std::cout << F.get_name(s) << std::endl;
+                //std::cout << F.get_name(s) << std::endl;
                 return true;
             }
+            // Else it's been found before and everything above it also stop BFS.
             else
             {
                 return false;
@@ -68,19 +70,42 @@ namespace decimation_detail
 
 
 
+    /**
+     * @brief      Struct functional to get the complete neighborhood around a simplex
+     *
+     * @tparam     Complex  Type of simplicial complex
+     */
     template <typename Complex>
     struct GetCompleteNeighborhood
     {
         using SimplexSet = typename decimation_detail::SimplexSet<Complex>::type;
 
+        /**
+         * @brief      Constructor
+         *
+         * @param      p     SimplexSet to use to pass results back
+         */
         GetCompleteNeighborhood(SimplexSet* p) : pLevels(p) {}
 
+        /**
+         * @brief      Continue traversing, to the next level
+         *
+         * @return     True, continue the BFS
+         */
         template <std::size_t level>
         bool visit(Complex& F, typename Complex::template SimplexID<level> s)
         {
             return true;
         }
 
+        /**
+         * @brief      Terminal case, go back up (visit_node_up).
+         *
+         * @param      F          Simplicial Complex
+         * @param[in]  s          Simplex of interest.
+         *
+         * @return     False, stop the BFS traversal
+         */
         bool visit(Complex& F, typename Complex::template SimplexID<1> s)
         {
             visit_node_up(GetCompleteNeighborhoodHelper<Complex>(pLevels), F, s);
@@ -297,6 +322,17 @@ namespace decimation_detail
     };
 }
 
+/**
+ * @brief      Decimation of a simplex
+ *
+ * @param      F         Simplicial complex to operate on
+ * @param[in]  s         A simplex in F
+ * @param      clbk      Callback function describing the mapping from simplices before to after
+ *
+ * @tparam     Complex   Type of simplicial complex
+ * @tparam     Simplex   Type of simplex
+ * @tparam     Callback  Functional type for metatemplate magic
+ */
 template <typename Complex, typename Simplex, template<typename> class Callback>
 void decimate(Complex& F, Simplex s, Callback<Complex>& clbk)
 {

@@ -80,13 +80,13 @@ struct BFS_Down_Node<Visitor, Traits, Complex, std::integral_constant<std::size_
 
         for(auto curr = begin; curr != end; ++curr)
         {
-            v.visit(F, *curr);
-
-            F.get_name(*curr, [&](typename Complex::KeyType a)
-            {
-                auto id = F.get_simplex_down(*curr,a);
-                next.insert(id);
-            });
+            if(v.visit(F, *curr)){
+                F.get_name(*curr, [&](typename Complex::KeyType a)
+                {
+                    auto id = F.get_simplex_down(*curr,a);
+                    next.insert(id);
+                });
+            }
         }
 
         BFS_Down_Node_Next::apply(std::forward<Visitor>(v), F, next.begin(), next.end());
