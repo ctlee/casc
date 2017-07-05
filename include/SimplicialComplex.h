@@ -1031,7 +1031,6 @@ private:
 	{
 		static Node<level+n>* apply(type_this* that, Node<level>* root, const KeyType* begin)
 		{
-			std::cout << "insert_full(level: " << level << ", n:" << n << ") @" << *root << std::endl;
 			return insert_for<level, n, n>::apply(that, root, begin);
 		}
 	};
@@ -1041,7 +1040,6 @@ private:
 	{
 		static Node<level>* apply(type_this* that, Node<level>* root, const KeyType* begin)
 		{
-			std::cout << "term_insert_full(level: " << level << ", n:" << 0 << ") @" << *root << std::endl;
 			return root;
 		}
 	};
@@ -1051,7 +1049,6 @@ private:
 	{
 		static Node<level+n>* apply(type_this* that, Node<level>* root, const KeyType* begin)
 		{
-			std::cout << "\tinsert_for<level=" << level << " a=" << antistep << " n=" << n << ">" << std::endl;
 			insert_raw<level, n-antistep>::apply(that, root, begin);
 			return insert_for<level, antistep-1, n>::apply(that, root, begin);
 		}
@@ -1061,7 +1058,6 @@ private:
 	struct insert_for<level,1,n>
 	{
 		static Node<level+n>* apply(type_this* that, Node<level>* root, const KeyType* begin){
-			std::cout << "\tterm_insert_for<level=" << level << ", a=" << 1 << ", n=" << n << ">" << std::endl;
 			return insert_raw<level, n-1>::apply(that, root, begin);
 		}
 	};
@@ -1079,7 +1075,6 @@ private:
 		{
 
 			KeyType v = *(begin+n);
-			std::cout << "\t\tinsert_raw<level=" << level << ", n=" << n << ">, key=" << v << std::endl << "\t\t root:" << *root << std::endl; 	
 			Node<level+1>* nn;
 			// if root->v doesn't exist then create it
 			auto iter = root->_up.find(v);
@@ -1093,8 +1088,6 @@ private:
 			}
 			else
 				nn = iter->second;	// otherwise get it
-
-			std::cout << "\t\tinsert_raw_full(level: " << level+1 << ", n:" << n << ")" << std::endl;			             
 			return insert_full<level+1,n>::apply(that, nn, begin);
 		}
 	};
@@ -1119,7 +1112,6 @@ private:
 			nn->_down[v] = child;
 			child->_up[v] = nn;
 		}
-		std::cout << "\t\tBackfill: " << *nn << std::endl;
 	}
 
     /**
@@ -1131,7 +1123,6 @@ private:
      */
 	void backfill(Node<0>* root, Node<1>* nn, int value)
 	{
-		std::cout << "\t\tBackfill: " << *nn << std::endl;
 		return;
 	}
 
