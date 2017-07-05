@@ -290,7 +290,7 @@ public:
 	using type_this                 = simplicial_complex<traits>;
 	static constexpr auto numLevels = NodeDataTypes::size;
 	static constexpr auto topLevel  = numLevels-1;
-	using LevelIndex                = typename std::make_index_sequence<numLevels>;
+	//using LevelIndex                = typename std::make_index_sequence<numLevels>;
 
 private:
 	template <std::size_t k> using Node     = detail::asc_Node<KeyType,k,topLevel,NodeDataTypes,EdgeDataTypes>;
@@ -332,8 +332,11 @@ public:
 		auto const&& data() const { return ptr->_data; }
 		auto&& data() { return ptr->_data; }
 
-		//friend std::ostream& operator<<(std::ostream& out, const SimplexID& nid) { out << *nid.ptr; return out; }
-		friend std::ostream& operator<<(std::ostream& out, const SimplexID& nid) { out << nid.ptr; return out; }
+		// Full debug print
+		friend std::ostream& operator<<(std::ostream& out, const SimplexID& nid) { out << *nid.ptr; return out; }
+		
+		// Don't share the secrets
+		//friend std::ostream& operator<<(std::ostream& out, const SimplexID& nid) { out << nid.ptr; return out; }
 
 	private:
 		NodePtr<k> ptr;
@@ -422,7 +425,6 @@ public:
 			unused_vertices.remove(*p);
 		}
 		insert_full<0,n>::apply(this, _root, s);	
-		//insert_for<0,n,false>::apply(this, _root, s);
 	}
 
 	/**
@@ -1029,7 +1031,7 @@ private:
 	{
 		static Node<level+n>* apply(type_this* that, Node<level>* root, const KeyType* begin)
 		{
-			//std::cout << "insert_full(level: " << level << ", n:" << n << ")" << std::endl << *root << std::endl;
+			std::cout << "insert_full(level: " << level << ", n:" << n << ") @" << *root << std::endl;
 			return insert_for<level, n, n>::apply(that, root, begin);
 		}
 	};
@@ -1039,7 +1041,7 @@ private:
 	{
 		static Node<level>* apply(type_this* that, Node<level>* root, const KeyType* begin)
 		{
-			//std::cout << "term_insert_full(level: " << level << ", n:" << 0 << ")" << std::endl << *root << std::endl;
+			std::cout << "term_insert_full(level: " << level << ", n:" << 0 << ") @" << *root << std::endl;
 			return root;
 		}
 	};
@@ -1049,7 +1051,7 @@ private:
 	{
 		static Node<level+n>* apply(type_this* that, Node<level>* root, const KeyType* begin)
 		{
-			//std::cout << "\tinsert_for<level=" << level << " a=" << antistep << " n=" << n << ">" << std::endl;
+			std::cout << "\tinsert_for<level=" << level << " a=" << antistep << " n=" << n << ">" << std::endl;
 			insert_raw<level, n-antistep>::apply(that, root, begin);
 			return insert_for<level, antistep-1, n>::apply(that, root, begin);
 		}
@@ -1059,11 +1061,17 @@ private:
 	struct insert_for<level,1,n>
 	{
 		static Node<level+n>* apply(type_this* that, Node<level>* root, const KeyType* begin){
-			//std::cout << "\tterm_insert_for<level=" << level << ", a=" << 1 << ", n=" << n << ">" << std::endl;
+			std::cout << "\tterm_insert_for<level=" << level << ", a=" << 1 << ", n=" << n << ">" << std::endl;
 			return insert_raw<level, n-1>::apply(that, root, begin);
 		}
 	};
 
+	/**
+	 * @brief      Actually insert the node and connect up and down. 
+	 *
+	 * @tparam     level  { description }
+	 * @tparam     n      { description }
+	 */
 	template <size_t level, size_t n>
 	struct insert_raw
 	{
@@ -1071,7 +1079,7 @@ private:
 		{
 
 			KeyType v = *(begin+n);
-			//std::cout << "\t\tinsert_raw<level=" << level << ", n=" << n << ", v=" << v << "> " << std::endl << "\t\t" << *root << std::endl << std::endl; 	
+			std::cout << "\t\tinsert_raw<level=" << level << ", n=" << n << ">, key=" << v << std::endl << "\t\t root:" << *root << std::endl; 	
 			Node<level+1>* nn;
 			// if root->v doesn't exist then create it
 			auto iter = root->_up.find(v);
@@ -1085,6 +1093,8 @@ private:
 			}
 			else
 				nn = iter->second;	// otherwise get it
+
+			std::cout << "\t\tinsert_raw_full(level: " << level+1 << ", n:" << n << ")" << std::endl;			             
 			return insert_full<level+1,n>::apply(that, nn, begin);
 		}
 	};
@@ -1097,7 +1107,7 @@ private:
      *  @return void
      */
 	template <size_t level>
-	void backfill(Node<level>* root, Node<level+1>* nn, int value)
+	void backfill(Node<level>* root, Node<level+1>* nn, KeyType value)
 	{
 		for(auto curr = root->_down.begin(); curr != root->_down.end(); ++curr)
 		{
@@ -1109,6 +1119,7 @@ private:
 			nn->_down[v] = child;
 			child->_up[v] = nn;
 		}
+		std::cout << "\t\tBackfill: " << *nn << std::endl;
 	}
 
     /**
@@ -1120,6 +1131,7 @@ private:
      */
 	void backfill(Node<0>* root, Node<1>* nn, int value)
 	{
+		std::cout << "\t\tBackfill: " << *nn << std::endl;
 		return;
 	}
 
@@ -1128,7 +1140,7 @@ private:
 	{
 		auto p = new Node<level>(node_count++);
 		++(level_count[level]);
-	    
+
 	    bool ret = std::get<level>(levels).insert(
 	    		std::pair<size_t,NodePtr<level>>(node_count-1, p)).second; // node_count-1 to match the id's correctly
 	    assert(ret);
@@ -1199,15 +1211,34 @@ private:
 	NodePtr<0> _root;
 	size_t node_count;
 	std::array<size_t,numLevels> level_count;
+	
+	using LevelIndex   = typename std::make_index_sequence<numLevels>;
 	using NodePtrLevel = typename util::int_type_map<std::size_t, std::tuple, LevelIndex, NodePtr>::type;
 	typename util::type_map<NodePtrLevel, detail::map>::type levels;
 	index_tracker<KeyType> unused_vertices;
 };
 
+
+/**
+ * Definition to help unpack explicit call of 
+ * AbstractSimplicalComplex with full traits list.
+ */
 template <typename KeyType, typename... Ts>
 using AbstractSimplicialComplex = simplicial_complex<simplicial_complex_traits_default<KeyType,Ts...>>;
 
 
+
+/**
+ * @brief      Push the immediate face neighbors into the provided iterator
+ *
+ * @param      F           The full complex
+ * @param[in]  nid  	   Simplex to get neighbors of
+ * @param[in]  iter        The iterator
+ *
+ * @tparam     Complex     Type of the simplicial complex
+ * @tparam     level       The integral level of the node
+ * @tparam     InsertIter  Iterator type
+ */
 template <class Complex, std::size_t level, class InsertIter>
 void neighbors(Complex &F, typename Complex::template SimplexID<level> nid, InsertIter iter)
 {
@@ -1225,6 +1256,9 @@ void neighbors(Complex &F, typename Complex::template SimplexID<level> nid, Inse
 	}
 }
 
+/**
+ * @brief      This is a helper function to assist neighbors to automatically deduce the integral level.
+ */
 template <class Complex, class SimplexID, class InsertIter>
 void neighbors(Complex& F, SimplexID nid, InsertIter iter)
 {
@@ -1232,6 +1266,17 @@ void neighbors(Complex& F, SimplexID nid, InsertIter iter)
 }
 
 
+/**
+ * @brief      Push the immediate coface neighbors into the provided iterator 
+ *
+ * @param      F           The full complex
+ * @param[in]  nid  	   Simplex to get neighbors of
+ * @param[in]  iter        The iterator
+ *
+ * @tparam     Complex     Type of the simplicial complex
+ * @tparam     level       The integral level of the node
+ * @tparam     InsertIter  Iterator type
+ */
 template <class Complex, std::size_t level, class InsertIter>
 void neighbors_up(Complex &F, typename Complex::template SimplexID<level> nid, InsertIter iter)
 {
@@ -1249,6 +1294,9 @@ void neighbors_up(Complex &F, typename Complex::template SimplexID<level> nid, I
 	}
 }
 
+/**
+ * @brief      This is a helper function to assist neighbors to automatically deduce the integral level.
+ */
 template <class Complex, class SimplexID, class InsertIter>
 void neighbors_up(Complex& F, SimplexID nid, InsertIter iter)
 {
@@ -1258,37 +1306,37 @@ void neighbors_up(Complex& F, SimplexID nid, InsertIter iter)
 /**
  * Code for returning a set of k-ring neighbors. Currently obseleted by neighbors_up visitor pattern
  */
-// template <class Complex, std::size_t level>
-// std::set<typename Complex::template SimplexID<level>> neighbors_up(Complex &F, 
-// 			std::set<typename Complex::template SimplexID<level>>& nodes,
-// 			std::set<typename Complex::template SimplexID<level>> next,
-// 			int ring)
-// {
-// 	if (ring == 0)
-// 		return nodes;
-// 	std::set<typename Complex::template SimplexID<level>> tmp;
-// 	for (auto nid : next){
-// 		for (auto a : F.get_cover(nid))
-// 		{
-// 			auto id = F.get_simplex_up(nid,a);
-// 			for(auto b : F.get_name(id))
-// 			{
-// 				auto nbor = F.get_simplex_down(id,b);
-// 				if(nodes.insert(nbor).second){
-// 					tmp.insert(nbor);
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return neighbors_up<Complex, level>(F, nodes, tmp, ring-1);
-// }
+template <class Complex, std::size_t level>
+std::set<typename Complex::template SimplexID<level>> kneighbors_up(Complex &F, 
+			std::set<typename Complex::template SimplexID<level>>& nodes,
+			std::set<typename Complex::template SimplexID<level>> next,
+			int ring)
+{
+	if (ring == 0)
+		return nodes;
+	std::set<typename Complex::template SimplexID<level>> tmp;
+	for (auto nid : next){
+		for (auto a : F.get_cover(nid))
+		{
+			auto id = F.get_simplex_up(nid,a);
+			for(auto b : F.get_name(id))
+			{
+				auto nbor = F.get_simplex_down(id,b);
+				if(nodes.insert(nbor).second){
+					tmp.insert(nbor);
+				}
+			}
+		}
+	}
+	return neighbors_up<Complex, level>(F, nodes, tmp, ring-1);
+}
 
-// template <class Complex, class SimplexID>
-// std::set<SimplexID> neighbors_up(Complex& F, SimplexID nid, int ring)
-// {
-// 	std::set<SimplexID> nodes{nid};
-// 	return neighbors_up<Complex, SimplexID::level>(F,nodes,nodes,ring);
-// }
+template <class Complex, class SimplexID>
+std::set<SimplexID> kneighbors_up(Complex& F, SimplexID nid, int ring)
+{
+	std::set<SimplexID> nodes{nid};
+	return neighbors_up<Complex, SimplexID::level>(F,nodes,nodes,ring);
+}
 
 template <typename SimplexID>
 struct hashSimplexID{

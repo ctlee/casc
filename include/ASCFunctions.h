@@ -3,9 +3,56 @@
 #include <iostream>
 #include <fstream>
 #include <ostream>
+#include "SimplexSets.h"
 #include "SimplicialComplex.h"
 #include "SimplicialComplexVisitors.h"
 
+template <typename Complex>
+struct SimplexAggregator
+{
+    using SimplexSet = typename casc::SimplexSet<Complex>::type;
+
+    SimplexAggregator(SimplexSet* p) : pLevels(p) {}
+
+    template <std::size_t level>
+    bool visit(Complex& F, typename Complex::template SimplexID<level> s)
+    {
+        // If the simplex isn't there, insert it.
+        if(std::get<level>(*pLevels).find(s) == std::get<level>(*pLevels).end())
+        {
+            std::get<level>(*pLevels).insert(s);
+        }
+        return true; // Always continue?
+    }
+private:
+    SimplexSet* pLevels;
+};
+
+// TODO generalize this to take a set of simplices
+template <typename Complex, typename Simplex>
+casc::SimplexSet<Complex> getStar(Complex& F, Simplex s){
+    typename casc::SimplexSet<Complex>::type levels;
+    visit_node_up(SimplexAggregator<Complex>(&levels), F, s);
+    return levels;
+}
+
+// TODO generalize this to take a set of simplices
+template <typename Complex, typename Simplex>
+casc::SimplexSet<Complex> getClosure(Complex& F, Simplex s){
+    typename casc::SimplexSet<Complex>::type levels;
+    visit_node_down(SimplexAggregator<Complex>(&levels), F, s);
+    return levels;
+}
+
+template <typename Complex, typename Simplex>
+casc::SimplexSet<Complex> getLink(Complex& F, Simplex s){
+    typename casc::SimplexSet<Complex>::type levels;
+
+    // TODO...
+    return levels;
+}
+
+// TODO wrap this in a namespace
 /**
  * @brief      Returns a string representation of the vertex subsimplicies of a given simplex
  *
@@ -101,7 +148,7 @@ template <typename Complex, typename K>
 struct DotHelper {};
 
 /**
- * @brief      Print out the names of simplices at each level
+ * @brief      List the names of simplices at each level
  *
  * @tparam     Complex  Type of the ASC
  * @tparam     k        Level to traverse
@@ -122,7 +169,7 @@ struct DotHelper<Complex, std::integral_constant<std::size_t, k>>
 };
 
 /**
- * @brief      Print out the names of simplices at the top level
+ * @brief      List the names of simplices at the top level
  *
  * @tparam     Complex  Type of the ASC
  */
@@ -167,6 +214,7 @@ void writeDOT(const std::string& filename, const Complex& F){
     auto v = GraphVisitor<Complex>(fout);
 	visit_node_up(v, F, F.get_simplex_up());
 
+    // List the simplices
     DotHelper<Complex, std::integral_constant<std::size_t, 0>>::printlevel(fout, F);
 
 	fout << "}\n";

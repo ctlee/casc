@@ -1,49 +1,15 @@
+#pragma once
+
+#include "SimplexSets.h"
 #include "SimplicialComplexVisitors.h"
 
-namespace decimation_detail
+
+namespace casc_decimation
 {
-    template <class T> using set = std::set<T>;
-    template <class T> using vector = std::vector<T>;
-
-    template <typename Complex>
-    struct SimplexSet
-    {
-        template <std::size_t j>
-        using Simplex = typename Complex::template SimplexID<j>;
-        using LevelIndex = typename std::make_index_sequence<Complex::numLevels>;
-        using SimplexIDLevel = typename util::int_type_map<std::size_t, std::tuple, LevelIndex, Simplex>::type;
-        using type = typename util::type_map<SimplexIDLevel, NodeSet>::type;
-    };
-
-    template <typename Complex>
-    struct SimplexDataSet
-    {
-        using KeyType = typename Complex::KeyType;
-
-        template <std::size_t k, typename T>
-        struct DataType
-        {
-            using type = std::pair<std::array<KeyType,k>, T>;
-        };
-
-        template <std::size_t k>
-        struct DataType<k, void>
-        {
-            using type = std::array<KeyType,k>;
-        };
-
-        template <std::size_t j>
-        using DataSet = typename DataType<j, typename Complex::template NodeData<j>>::type;
-        using LevelIndex = typename std::make_index_sequence<Complex::numLevels>;
-        using SimplexIDLevel = typename util::int_type_map<std::size_t, std::tuple, LevelIndex, DataSet>::type;
-        using type = typename util::type_map<SimplexIDLevel, decimation_detail::vector>::type;
-    };
-
-
     template <typename Complex>
     struct GetCompleteNeighborhoodHelper
     {
-        using SimplexSet = typename decimation_detail::SimplexSet<Complex>::type;
+        using SimplexSet = typename casc::SimplexSet<Complex>::type;
 
         GetCompleteNeighborhoodHelper(SimplexSet* p) : pLevels(p) {}
 
@@ -78,7 +44,7 @@ namespace decimation_detail
     template <typename Complex>
     struct GetCompleteNeighborhood
     {
-        using SimplexSet = typename decimation_detail::SimplexSet<Complex>::type;
+        using SimplexSet = typename casc::SimplexSet<Complex>::type;
 
         /**
          * @brief      Constructor
@@ -120,7 +86,7 @@ namespace decimation_detail
     template <typename Complex>
     struct GrabVisitor
     {
-        using SimplexSet = typename decimation_detail::SimplexSet<Complex>::type;
+        using SimplexSet = typename casc::SimplexSet<Complex>::type;
 
         GrabVisitor(SimplexSet* p, SimplexSet* grab) : pLevels(p), pGrab(grab) {}
 
@@ -151,10 +117,10 @@ namespace decimation_detail
     template <typename Complex, std::size_t BaseLevel, template <typename> class Callback>
     struct InnerVisitor
     {
-        using SimplexSet = typename decimation_detail::SimplexSet<Complex>::type;
+        using SimplexSet = typename casc::SimplexSet<Complex>::type;
         using Simplex = typename Complex::template SimplexID<BaseLevel>;
         using KeyType = typename Complex::KeyType;
-        using ReturnValues = typename decimation_detail::SimplexDataSet<Complex>::type;
+        using ReturnValues = typename casc::SimplexDataSet<Complex>::type;
 
         template <typename ReturnType, std::size_t OldLevel>
         struct PerformCallback
@@ -239,9 +205,9 @@ namespace decimation_detail
     template <typename Complex, template <typename> class Callback>
     struct MainVisitor
     {
-        using SimplexSet = typename decimation_detail::SimplexSet<Complex>::type;
+        using SimplexSet = typename casc::SimplexSet<Complex>::type;
         using KeyType = typename Complex::KeyType;
-        using ReturnValues = typename decimation_detail::SimplexDataSet<Complex>::type;
+        using ReturnValues = typename casc::SimplexDataSet<Complex>::type;
 
         MainVisitor(SimplexSet* p, Callback<Complex>* c, KeyType np, ReturnValues* rv)
             : pLevels(p), callback(c), new_point(np), data(rv) {}
@@ -267,7 +233,7 @@ namespace decimation_detail
     template <typename Complex, typename NodeDataType, std::size_t level>
     struct PerformInsertion<Complex, NodeDataType, std::integral_constant<std::size_t,level>>
     {
-        static void apply(Complex& F, typename decimation_detail::SimplexDataSet<Complex>::type& data)
+        static void apply(Complex& F, typename casc::SimplexDataSet<Complex>::type& data)
         {
             for(auto curr : std::get<level>(data))
             {
@@ -280,7 +246,7 @@ namespace decimation_detail
     template <typename Complex, std::size_t level>
     struct PerformInsertion<Complex, void, std::integral_constant<std::size_t,level>>
     {
-        static void apply(Complex& F, typename decimation_detail::SimplexDataSet<Complex>::type& data)
+        static void apply(Complex& F, typename casc::SimplexDataSet<Complex>::type& data)
         {
             for(auto curr : std::get<level>(data))
             {
@@ -293,7 +259,7 @@ namespace decimation_detail
     template <typename Complex, typename NodeDataType>
     struct PerformInsertion<Complex, NodeDataType, std::integral_constant<std::size_t,Complex::topLevel>>
     {
-        static void apply(Complex& F, typename decimation_detail::SimplexDataSet<Complex>::type& data)
+        static void apply(Complex& F, typename casc::SimplexDataSet<Complex>::type& data)
         {
             for(auto curr : std::get<Complex::topLevel>(data))
             {
@@ -305,7 +271,7 @@ namespace decimation_detail
     template <typename Complex, std::size_t k>
     struct PerformRemoval
     {
-        static void apply(Complex& F, typename decimation_detail::SimplexSet<Complex>::type& data)
+        static void apply(Complex& F, typename casc::SimplexSet<Complex>::type& data)
         {
             for(auto curr : std::get<k>(data))
             {
@@ -318,7 +284,7 @@ namespace decimation_detail
     template <typename Complex>
     struct PerformRemoval<Complex,0>
     {
-        static void apply(Complex& F, typename decimation_detail::SimplexSet<Complex>::type& data) {}
+        static void apply(Complex& F, typename casc::SimplexSet<Complex>::type& data) {}
     };
 }
 
@@ -338,15 +304,15 @@ void decimate(Complex& F, Simplex s, Callback<Complex>& clbk)
 {
     int np = F.add_vertex();
     int i = 0;
-    typename decimation_detail::SimplexDataSet<SurfaceMesh>::type rv;
-    typename decimation_detail::SimplexSet<SurfaceMesh>::type levels;
+    typename casc::SimplexDataSet<Complex>::type rv;
+    typename casc::SimplexSet<Complex>::type levels;
 
-    visit_node_down(decimation_detail::GetCompleteNeighborhood<SurfaceMesh>(&levels), F, s);
-    typename decimation_detail::SimplexSet<SurfaceMesh>::type doomed = levels;
-    visit_node_down(decimation_detail::MainVisitor<SurfaceMesh,Callback>(&levels,&clbk,np,&rv), F, s);
+    visit_node_down(casc_decimation::GetCompleteNeighborhood<Complex>(&levels), F, s);
+    typename casc::SimplexSet<Complex>::type doomed = levels;
+    visit_node_down(casc_decimation::MainVisitor<Complex,Callback>(&levels,&clbk,np,&rv), F, s);
 
-    decimation_detail::PerformRemoval<SurfaceMesh,3>::apply(F, doomed);
-    decimation_detail::PerformInsertion<SurfaceMesh,Vertex,std::integral_constant<std::size_t,1>>::apply(F, rv);
+    casc_decimation::PerformRemoval<Complex,3>::apply(F, doomed);
+    casc_decimation::PerformInsertion<Complex,Vertex,std::integral_constant<std::size_t,1>>::apply(F, rv);
     --np;
 }
 
@@ -383,7 +349,7 @@ namespace DecimateExample {
     template <typename Complex>
     struct Callback
     {
-        using SimplexSet = typename decimation_detail::SimplexSet<Complex>::type;
+        using SimplexSet = typename casc::SimplexSet<Complex>::type;
         template <std::size_t level> using Type = typename Complex::template NodeData<level>;
         using KeyType = typename Complex::KeyType;
 
