@@ -290,7 +290,7 @@ public:
 	using type_this                 = simplicial_complex<traits>;
 	static constexpr auto numLevels = NodeDataTypes::size;
 	static constexpr auto topLevel  = numLevels-1;
-	//using LevelIndex                = typename std::make_index_sequence<numLevels>;
+	using LevelIndex                = typename std::make_index_sequence<numLevels>;
 
 private:
 	template <std::size_t k> using Node     = detail::asc_Node<KeyType,k,topLevel,NodeDataTypes,EdgeDataTypes>;
@@ -333,10 +333,10 @@ public:
 		auto&& data() { return ptr->_data; }
 
 		// Full debug print
-		friend std::ostream& operator<<(std::ostream& out, const SimplexID& nid) { out << *nid.ptr; return out; }
+		//friend std::ostream& operator<<(std::ostream& out, const SimplexID& nid) { out << *nid.ptr; return out; }
 		
 		// Don't share the secrets
-		//friend std::ostream& operator<<(std::ostream& out, const SimplexID& nid) { out << nid.ptr; return out; }
+		friend std::ostream& operator<<(std::ostream& out, const SimplexID& nid) { out << nid.ptr; return out; }
 
 	private:
 		NodePtr<k> ptr;
@@ -1203,7 +1203,6 @@ private:
 	size_t node_count;
 	std::array<size_t,numLevels> level_count;
 	
-	using LevelIndex   = typename std::make_index_sequence<numLevels>;
 	using NodePtrLevel = typename util::int_type_map<std::size_t, std::tuple, LevelIndex, NodePtr>::type;
 	typename util::type_map<NodePtrLevel, detail::map>::type levels;
 	index_tracker<KeyType> unused_vertices;

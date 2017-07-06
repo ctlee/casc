@@ -71,7 +71,7 @@ namespace util
 	struct type_map_helper {};
 
 	/**
-	 * @brief      Place the mapped types into a tuple
+	 * @brief      Terminal condition: place the mapped types into a tuple
 	 *
 	 * @tparam     G     Generalized tuple
 	 * @tparam     V     Type template <class T> class to map into
@@ -233,4 +233,46 @@ namespace util
 	{
 		flattenH<Fn,Ts...>::template apply<0>(f,args...);
 	}
+
+
+	template <typename Integer, typename IntegerSequence, typename Fn, typename... Args>
+    struct int_for_each_helper {};
+
+    template <class Integer, template <class, Integer...> class InHolder, 
+    		Integer I, typename Fn, typename... Args>
+    struct int_for_each_helper<Integer, InHolder<Integer, I>, Fn, Args...>
+    {
+        static void apply(Fn&& f, Args&&... args){
+            f.template apply<I>(std::forward<Args>(args)...);
+        }
+    };
+
+    template <class Integer, template <class, Integer...> class InHolder, 
+    		Integer I, Integer... Is, typename Fn, typename... Args>
+    struct int_for_each_helper<Integer, InHolder<Integer, I, Is...>, Fn, Args...> 
+    {
+        static void apply(Fn&& f, Args&&... args){
+            f.template apply<I>(std::forward<Args>(args)...);
+            int_for_each_helper<Integer, InHolder<Integer, Is...>, Fn, Args...>::apply(
+            		std::forward<Fn>(f), 
+            		std::forward<Args>(args)...);
+        }
+    };
+
+    /**
+     * @brief      Calls a function f.apply<k>() for a sequence of integer k's
+     *
+     * @param[in]  args        		Arguments to f
+     * @param[in]  f     			Functor with apply<k>() method
+     *
+     * @tparam     Integer          Integer type
+     * @tparam     IntegerSequence  Sequence of integers to iterate
+     * @tparam     Fn               Typename of functor f
+     * @tparam     Args             { description }
+     */
+    template <class Integer, typename IntegerSequence, typename Fn, typename... Args>
+    void int_for_each(Fn&& f, Args&&... args){
+        int_for_each_helper<Integer, IntegerSequence, Fn, Args...>::apply(std::forward<Fn>(f), 
+            	std::forward<Args>(args)...);
+    }
 }

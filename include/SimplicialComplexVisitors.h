@@ -285,7 +285,7 @@ struct BFS_NoRepeat_Node_Traits
 struct BFS_NoRepeat_Edge_Traits
 {
     template <typename T> using Container = NodeSet<T>;
-//    template <typename Complex, typename SimplexID> auto node_next(Complex F, SimplexID s);
+    // template <typename Complex, typename SimplexID> auto node_next(Complex F, SimplexID s);
 };
 
 template <typename Visitor, typename SimplexID>

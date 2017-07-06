@@ -1,6 +1,9 @@
 #pragma once
 
 #include <algorithm>
+#include <type_traits>
+#include <unordered_set>
+#include "util.h"
 
 namespace casc
 {
@@ -12,73 +15,97 @@ namespace casc
     {
         // NOTE TO CTL: this is the same as levels but on SimplexID not Node*
         // // Add functions for set addition and difference, intersection
-        // inline insert/remove
-        // Also iterations over the simplex set?
 
         template <std::size_t j>
         using Simplex = typename Complex::template SimplexID<j>;
-        using LevelIndex = typename std::make_index_sequence<Complex::numLevels>;
+        using LevelIndex = typename Complex::LevelIndex;
         using SimplexIDLevel = typename util::int_type_map<std::size_t, std::tuple, LevelIndex, Simplex>::type;
         using type = typename util::type_map<SimplexIDLevel, NodeSet>::type;
+
+        // Tuple of NodeSets by level
+        type tupleSet;
+
+        /**
+         * @brief      Default constructor does nothing. Compiling 
+         */
+        SimplexSet() {};
+
+        template <size_t k>
+        inline void insert(Simplex<k> s){
+            std::get<k>(tupleSet).insert(s);
+        }
+
+        template <size_t k>
+        inline void erase(Simplex<k> s){
+            std::get<k>(tupleSet).erase(s);
+        }
+
+
+
+        // friend std::ostream& operator<<(std::ostream& output, const SimplexSet<Complex>& S){
+        //     output << "SimplexSet(";
+        //     util::int_for_each<std::size_t, LevelIndex>(PrintHelper(), 
+        //             std::forward<std::ostream&>(output), 
+        //             std::forward<const SimplexSet<Complex>&>(S));
+        //     output << ")" << std::endl;
+        //     return output;
+        // }
+    
+    private:
+
     };
 
-    template <class Complex, typename K>
-    struct Union {};
 
-    template <class Complex, std::size_t k>
-    struct Union<Complex, std::integral_constant<std::size_t, k>>
+    template <typename Complex>
+    struct PrintHelper
     {
-         static void apply(const SimplexSet<Complex>& A, 
-                    const SimplexSet<Complex>& B, 
-                    SimplexSet<Complex>& dest){
-            auto sA = std::get<k>(A);
-            auto sB = std::get<k>(B);
-            auto sDest = std::get<k>(dest);
-
-            std::sort(sA.begin(), sA.end());
-            std::sort(sB.begin(), sB.end());
-
-            std::set_union(sA.begin(), sA.end(),
-                   sB.begin(), sB.end(),                  
-                   std::back_inserter(sDest));
+        template <std::size_t k>
+        static void apply(SimplexSet<Complex>& S)
+        {
+            std::cout << "{l=" << k;
+            auto s = std::get<k>(S.tupleSet);
+            for(auto simplex : s){
+                std::cout << ", " << simplex;
+            }
+            std::cout << "} ";
         }
     };
 
-    template <class Complex>
-    struct Union<Complex, std::integral_constant<std::size_t, Complex::topLevel>>
+    template <typename Complex>
+    void printSS(SimplexSet<Complex>& S)
     {
-        static void apply(const SimplexSet<Complex>& A, 
-                    const SimplexSet<Complex>& B, 
-                    SimplexSet<Complex>& dest){
-            static constexpr auto k = Complex::topLevel;
-
-            auto sA = std::get<k>(A);
-            auto sB = std::get<k>(B);
-            auto sDest = std::get<k>(dest);
-
-            std::sort(sA.begin(), sA.end());
-            std::sort(sB.begin(), sB.end());
-
-            std::set_union(sA.begin(), sA.end(),
-                   sB.begin(), sB.end(),                  
-                   std::back_inserter(sDest));
-        }
-    };
-
-    template <class Complex>
-    SimplexSet<Complex>& set_union(const SimplexSet<Complex>& A, 
-            const SimplexSet<Complex>& B){
-
-        SimplexSet<Complex> dest;
-        Union<Complex, std::integral_constant<std::size_t, 0>>::apply(A, B, dest);
-        return dest;
+        std::cout << "SimplexSet(";
+        util::int_for_each<std::size_t, 
+            typename Complex::LevelIndex>(PrintHelper<Complex>(), S);
+        std::cout << ")" << std::endl;
     }
 
-    // Apply some function to sets at each level
-    template <typename Func, typename Complex, typename K>
-    struct SimplexSet_Up_Node {};
 
-    
+    struct UnionHelper
+    {
+        template <typename Complex, std::size_t k>
+        static void apply(const SimplexSet<Complex>& A, 
+                const SimplexSet<Complex>& B, 
+                SimplexSet<Complex>& dest){
+                auto sA = std::get<k>(A);
+                auto sB = std::get<k>(B);
+                auto sDest = std::get<k>(dest);
+
+                std::sort(sA.begin(), sA.end());
+                std::sort(sB.begin(), sB.end());
+
+                std::set_union(sA.begin(), sA.end(),
+                       sB.begin(), sB.end(),                  
+                       std::back_inserter(sDest));
+        }
+    };
+
+    template <typename Complex>
+    void set_union(const SimplexSet<Complex>& A, 
+            const SimplexSet<Complex>& B, 
+            SimplexSet<Complex>& dest){
+        util::int_for_each<std::size_t, Complex::LevelIndex>(UnionHelper(A, B, dest));
+    }
 
 
     // This probably goes with decimation?
