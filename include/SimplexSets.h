@@ -13,9 +13,6 @@ namespace casc
     template <typename Complex>
     struct SimplexSet
     {
-        // NOTE TO CTL: this is the same as levels but on SimplexID not Node*
-        // // Add functions for set addition and difference, intersection
-
         template <std::size_t j>
         using Simplex = typename Complex::template SimplexID<j>;
         using LevelIndex = typename Complex::LevelIndex;
@@ -42,69 +39,108 @@ namespace casc
 
 
 
-        // friend std::ostream& operator<<(std::ostream& output, const SimplexSet<Complex>& S){
-        //     output << "SimplexSet(";
-        //     util::int_for_each<std::size_t, LevelIndex>(PrintHelper(), 
-        //             std::forward<std::ostream&>(output), 
-        //             std::forward<const SimplexSet<Complex>&>(S));
-        //     output << ")" << std::endl;
-        //     return output;
-        // }
+        friend std::ostream& operator<<(std::ostream& output, const SimplexSet<Complex>& S){
+            output << "SimplexSet(";
+            util::int_for_each<std::size_t, LevelIndex>(PrintHelper(), 
+                    output,S);
+            output << ")" << std::endl;
+            return output;
+        }
     
     private:
-
+        struct PrintHelper
+        {
+            template <std::size_t k>
+            static void apply(std::ostream& output, const SimplexSet<Complex>& S)
+            {
+                output << "{l=" << k;
+                auto s = std::get<k>(S.tupleSet);
+                for(auto simplex : s){
+                    output << ", " << simplex;
+                }
+                output << "} ";
+            }
+        };
     };
 
-
     template <typename Complex>
-    struct PrintHelper
+    struct UnionH
     {
         template <std::size_t k>
-        static void apply(SimplexSet<Complex>& S)
-        {
-            std::cout << "{l=" << k;
-            auto s = std::get<k>(S.tupleSet);
-            for(auto simplex : s){
-                std::cout << ", " << simplex;
-            }
-            std::cout << "} ";
-        }
-    };
-
-    template <typename Complex>
-    void printSS(SimplexSet<Complex>& S)
-    {
-        std::cout << "SimplexSet(";
-        util::int_for_each<std::size_t, 
-            typename Complex::LevelIndex>(PrintHelper<Complex>(), S);
-        std::cout << ")" << std::endl;
-    }
-
-
-    struct UnionHelper
-    {
-        template <typename Complex, std::size_t k>
         static void apply(const SimplexSet<Complex>& A, 
                 const SimplexSet<Complex>& B, 
                 SimplexSet<Complex>& dest){
-                auto sA = std::get<k>(A);
-                auto sB = std::get<k>(B);
-                auto sDest = std::get<k>(dest);
-
-                std::sort(sA.begin(), sA.end());
-                std::sort(sB.begin(), sB.end());
-
-                std::set_union(sA.begin(), sA.end(),
-                       sB.begin(), sB.end(),                  
-                       std::back_inserter(sDest));
+            auto a = std::get<k>(A.tupleSet);
+            auto b = std::get<k>(B.tupleSet);
+            auto& d = std::get<k>(dest.tupleSet);
+            d.insert(a.begin(), a.end());
+            d.insert(b.begin(), b.end());
         }
     };
 
     template <typename Complex>
-    void set_union(const SimplexSet<Complex>& A, 
+    static void set_union(const SimplexSet<Complex>& A, 
             const SimplexSet<Complex>& B, 
             SimplexSet<Complex>& dest){
-        util::int_for_each<std::size_t, Complex::LevelIndex>(UnionHelper(A, B, dest));
+        util::int_for_each<std::size_t, typename Complex::LevelIndex>(UnionH<Complex>(), A, B, dest);
+    }
+
+
+    template <typename Complex>
+    struct IntersectH
+    {
+        template <std::size_t k>
+        static void apply(const SimplexSet<Complex>& A, 
+                const SimplexSet<Complex>& B, 
+                SimplexSet<Complex>& dest){
+            auto a = std::get<k>(A.tupleSet);
+            auto b = std::get<k>(B.tupleSet);
+            auto& d = std::get<k>(dest.tupleSet);
+
+            if(a.size() < b.size()){
+                for(auto item : a){
+                    if(b.find(item) != b.end())
+                        d.insert(item);
+                }
+            }else{
+                for(auto item : b){
+                    if(a.find(item) != a.end())
+                        d.insert(item);
+                }
+            }
+        }
+    };
+
+    template <typename Complex>
+    static void set_intersect(const SimplexSet<Complex>& A, 
+            const SimplexSet<Complex>& B, 
+            SimplexSet<Complex>& dest){
+        util::int_for_each<std::size_t, typename Complex::LevelIndex>(IntersectH<Complex>(), A, B, dest);
+    }
+
+    template <typename Complex>
+    struct DifferenceH
+    {
+        template<std::size_t k>
+        static void apply(const SimplexSet<Complex>& A,
+                const SimplexSet<Complex>& B,
+                SimplexSet<Complex>& dest){
+            auto a = std::get<k>(A.tupleSet);
+            auto b = std::get<k>(B.tupleSet);
+            auto& d = std::get<k>(dest.tupleSet);
+
+            for(auto item : a){
+                if(b.find(item) == b.end())
+                    d.insert(item);
+            }
+        }
+    };
+
+    template <typename Complex>
+    static void set_difference(const SimplexSet<Complex>& A, 
+            const SimplexSet<Complex>& B, 
+            SimplexSet<Complex>& dest){
+        util::int_for_each<std::size_t, typename Complex::LevelIndex>(DifferenceH<Complex>(), A, B, dest);
     }
 
 

@@ -235,9 +235,21 @@ namespace util
 	}
 
 
+	/**
+	 * @brief      Template type for future specialization
+	 */
 	template <typename Integer, typename IntegerSequence, typename Fn, typename... Args>
     struct int_for_each_helper {};
 
+    /**
+     * @brief      Terminal Case
+     *
+     * @tparam     Integer   { description }
+     * @tparam     InHolder  { description }
+     * @tparam     I         { description }
+     * @tparam     Fn        { description }
+     * @tparam     Args      { description }
+     */
     template <class Integer, template <class, Integer...> class InHolder, 
     		Integer I, typename Fn, typename... Args>
     struct int_for_each_helper<Integer, InHolder<Integer, I>, Fn, Args...>
@@ -247,6 +259,16 @@ namespace util
         }
     };
 
+    /**
+     * @brief      Recurse through the integer series
+     *
+     * @tparam     Integer   { description }
+     * @tparam     InHolder  { description }
+     * @tparam     I         { description }
+     * @tparam     Is        { description }
+     * @tparam     Fn        { description }
+     * @tparam     Args      { description }
+     */
     template <class Integer, template <class, Integer...> class InHolder, 
     		Integer I, Integer... Is, typename Fn, typename... Args>
     struct int_for_each_helper<Integer, InHolder<Integer, I, Is...>, Fn, Args...> 
@@ -268,7 +290,7 @@ namespace util
      * @tparam     Integer          Integer type
      * @tparam     IntegerSequence  Sequence of integers to iterate
      * @tparam     Fn               Typename of functor f
-     * @tparam     Args             { description }
+     * @tparam     Args             Typenames of the arguments
      */
     template <class Integer, typename IntegerSequence, typename Fn, typename... Args>
     void int_for_each(Fn&& f, Args&&... args){
