@@ -94,11 +94,8 @@ struct BFS_Down_Node<Visitor, Traits, Complex, std::integral_constant<std::size_
 };
 
 template <typename Visitor, typename Traits, typename Complex>
-struct BFS_Down_Node<Visitor, Traits, Complex, std::integral_constant<std::size_t, 1>>
+struct BFS_Down_Node<Visitor, Traits, Complex, std::integral_constant<std::size_t,1>>
 {
-    static constexpr auto level = Complex::topLevel;
-    using CurrSimplexID = typename Complex::template SimplexID<level>;
-
     template <typename Iterator>
     static void apply(Visitor&& v, Complex& F, Iterator begin, Iterator end)
     {
@@ -108,6 +105,23 @@ struct BFS_Down_Node<Visitor, Traits, Complex, std::integral_constant<std::size_
         }
     }
 };
+
+/**
+ * @brief      Case to catch accidents... calling down on root is bad.
+ *
+ * @tparam     Visitor  { description }
+ * @tparam     Traits   { description }
+ * @tparam     Complex  { description }
+ */
+// template <typename Visitor, typename Traits, typename Complex>
+// struct BFS_Down_Node<Visitor, Traits, Complex, std::integral_constant<std::size_t,0>>
+// {
+//     template <typename Iterator>
+//     static void apply(Visitor&& v, Complex& F, Iterator begin, Iterator end)
+//     {}
+// };
+
+
 
 
 

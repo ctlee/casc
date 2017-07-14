@@ -7,186 +7,292 @@
 #include "SimplicialComplex.h"
 #include "SimplicialComplexVisitors.h"
 
-template <typename Complex>
-struct SimplexAggregator
-{
-    using SimplexSet = typename casc::SimplexSet<Complex>::type;
-
-    SimplexAggregator(SimplexSet* p) : pLevels(p) {}
-
-    template <std::size_t level>
-    bool visit(Complex& F, typename Complex::template SimplexID<level> s)
+namespace casc_detail{
+    template <typename Complex>
+    struct SimplexAggregator
     {
-        // If the simplex isn't there, insert it.
-        if(std::get<level>(*pLevels).find(s) == std::get<level>(*pLevels).end())
+        using SimplexSet = typename casc::SimplexSet<Complex>;
+
+        SimplexAggregator(SimplexSet* p) : pLevels(p) {}
+
+        template <std::size_t k>
+        bool visit(Complex& F, typename Complex::template SimplexID<k> s)
         {
-            std::get<level>(*pLevels).insert(s);
-        }
-        return true; // Always continue?
-    }
-private:
-    SimplexSet* pLevels;
-};
-
-// TODO generalize this to take a set of simplices
-template <typename Complex, typename Simplex>
-casc::SimplexSet<Complex> getStar(Complex& F, Simplex s){
-    typename casc::SimplexSet<Complex>::type levels;
-    visit_node_up(SimplexAggregator<Complex>(&levels), F, s);
-    return levels;
-}
-
-// TODO generalize this to take a set of simplices
-template <typename Complex, typename Simplex>
-casc::SimplexSet<Complex> getClosure(Complex& F, Simplex s){
-    typename casc::SimplexSet<Complex>::type levels;
-    visit_node_down(SimplexAggregator<Complex>(&levels), F, s);
-    return levels;
-}
-
-template <typename Complex, typename Simplex>
-casc::SimplexSet<Complex> getLink(Complex& F, Simplex s){
-    typename casc::SimplexSet<Complex>::type levels;
-
-    // TODO...
-    return levels;
-}
-
-// TODO wrap this in a namespace
-/**
- * @brief      Returns a string representation of the vertex subsimplicies of a given simplex
- *
- * @param[in]  A     Array containing name of a simplex
- *
- * @tparam     T     Type of the array elements
- * @tparam     k     Number of elements
- *
- * @return     String representation of the object.
- */
-template <typename T, std::size_t k>
-std::string to_string(const std::array<T,k>& A)
-{
-    if (k==0){
-        return "{root}";
-    }
-	std::string out;
-    out += "\"{";
-    for(int i = 0; i + 1 < k; ++i)
-    {
-        out += std::to_string(A[i]) + ",";
-    }
-    if(k > 0)
-    {
-        out += std::to_string(A[k-1]);
-    }
-    out += "}\"";
-    return out;
-}
-
-/**
- * @brief      Visitor for printing connectivity of the ASC
- *
- * @tparam     Complex  Type details of the ASC
- */
-template <typename Complex>
-struct GraphVisitor
-{
-    std::ostream& fout;
-    GraphVisitor(std::ostream& os) : fout(os) {}
-
-    template <std::size_t level> 
-    bool visit(const Complex& F, typename Complex::template SimplexID<level> s)
-    {
-    	auto name = to_string(F.get_name(s));
-
-   		auto covers = F.get_cover(s);
-   		for(auto cover : covers){
-   			auto edge = F.get_edge_up(s, cover);
-   			auto nextName = to_string(F.get_name(edge.up()));
-   			if((*edge).orientation == 1){
-   				fout    << "   " << name << " -> " 
-   					    << nextName << std::endl;
-   			}
-   			else{
-				fout    << "   " << nextName << " -> " 
-				   		<< name << std::endl;
-   			}
-	    }
-    	return true;
-    }
-
-    bool visit(const Complex& F, typename Complex::template SimplexID<Complex::topLevel-1> s){
-
-        auto name = to_string(F.get_name(s));
-        auto covers = F.get_cover(s);
-        for(auto cover : covers){
-            auto edge = F.get_edge_up(s, cover);
-            auto nextName = to_string(F.get_name(edge.up()));
-            auto orient = (*edge.up()).orientation;
-            if (orient == 1){
-                nextName = "+ " + nextName;
+            
+            // If the simplex isn't there, insert it.
+            if(pLevels->find(s) == pLevels->template end<k>())
+            {
+                pLevels->insert(s);
+                return true;
             }
             else{
-                nextName = "- " + nextName;
-            }
-            if((*edge).orientation == 1){
-                fout    << "   " << name << " -> " 
-                        << nextName << std::endl;
-            }
-            else{
-                fout    << "   " << nextName << " -> " 
-                        << name << std::endl;
+                // Everything after has been found already
+                return false;
             }
         }
-        return true;
-    }
+    private:
+        SimplexSet* pLevels;
+    };
 
-    void visit(const Complex& F, typename Complex::template SimplexID<Complex::topLevel> s){}
-};
-
-template <typename Complex, typename K>
-struct DotHelper {};
-
-/**
- * @brief      List the names of simplices at each level
- *
- * @tparam     Complex  Type of the ASC
- * @tparam     k        Level to traverse
- */
-template <typename Complex, std::size_t k>
-struct DotHelper<Complex, std::integral_constant<std::size_t, k>>
-{
-    static void printlevel(std::ofstream& fout, const Complex& F){
-        auto nodes = F.template get_level_id<k>();
-        fout    << "subgraph cluster_" << k << " {\n"
-                << "label=\"Level " << k << "\"\n";
-        for (auto node : nodes){
-            fout << to_string(F.get_name(node)) << ";";
+    template <typename Complex>
+    struct StarHelper
+    {
+        template <std::size_t k>
+        static void apply(Complex& F, 
+                casc::SimplexSet<Complex>& S,
+                casc::SimplexSet<Complex>& dest){
+            auto s = std::get<k>(S.tupleSet);
+            for(auto simplex : s){
+                visit_node_up(SimplexAggregator<Complex>(&dest), F, simplex);
+            }
         }
-        fout    << "\n}\n";
-        DotHelper<Complex, std::integral_constant<std::size_t,k+1>>::printlevel(fout, F);
+    };
+
+    template <typename Complex>
+    struct ClosureHelper
+    {
+        template <std::size_t k>
+        static void apply(Complex& F, 
+                casc::SimplexSet<Complex>& S,
+                casc::SimplexSet<Complex>& dest){
+            auto s = std::get<k>(S.tupleSet);
+            for(auto simplex : s){
+                //std::cout << simplex << std::endl;
+                visit_node_down(SimplexAggregator<Complex>(&dest), F, simplex);
+            }
+        }
+    };
+
+    /**
+     * @brief      Returns a string representation of the vertex subsimplicies of a given simplex
+     *
+     * @param[in]  A     Array containing name of a simplex
+     *
+     * @tparam     T     Type of the array elements
+     * @tparam     k     Number of elements
+     *
+     * @return     String representation of the object.
+     */
+    template <typename T, std::size_t k>
+    std::string to_string(const std::array<T,k>& A)
+    {
+        if (k==0){
+            return "{root}";
+        }
+        std::string out;
+        out += "\"{";
+        for(int i = 0; i + 1 < k; ++i)
+        {
+            out += std::to_string(A[i]) + ",";
+        }
+        if(k > 0)
+        {
+            out += std::to_string(A[k-1]);
+        }
+        out += "}\"";
+        return out;
     }
-};
+
+    /**
+     * @brief      Visitor for printing connectivity of the ASC
+     *
+     * @tparam     Complex  Type details of the ASC
+     */
+    template <typename Complex>
+    struct GraphVisitor
+    {
+        std::ostream& fout;
+        GraphVisitor(std::ostream& os) : fout(os) {}
+
+        template <std::size_t level> 
+        bool visit(const Complex& F, typename Complex::template SimplexID<level> s)
+        {
+            auto name = to_string(F.get_name(s));
+
+            auto covers = F.get_cover(s);
+            for(auto cover : covers){
+                auto edge = F.get_edge_up(s, cover);
+                auto nextName = to_string(F.get_name(edge.up()));
+                if((*edge).orientation == 1){
+                    fout    << "   " << name << " -> " 
+                            << nextName << std::endl;
+                }
+                else{
+                    fout    << "   " << nextName << " -> " 
+                            << name << std::endl;
+                }
+            }
+            return true;
+        }
+
+        bool visit(const Complex& F, typename Complex::template SimplexID<Complex::topLevel-1> s){
+
+            auto name = to_string(F.get_name(s));
+            auto covers = F.get_cover(s);
+            for(auto cover : covers){
+                auto edge = F.get_edge_up(s, cover);
+                auto nextName = to_string(F.get_name(edge.up()));
+                auto orient = (*edge.up()).orientation;
+                if (orient == 1){
+                    nextName = "+ " + nextName;
+                }
+                else{
+                    nextName = "- " + nextName;
+                }
+                if((*edge).orientation == 1){
+                    fout    << "   " << name << " -> " 
+                            << nextName << std::endl;
+                }
+                else{
+                    fout    << "   " << nextName << " -> " 
+                            << name << std::endl;
+                }
+            }
+            return true;
+        }
+
+        void visit(const Complex& F, typename Complex::template SimplexID<Complex::topLevel> s){}
+    };
+
+    template <typename Complex, typename K>
+    struct DotHelper {};
+
+    /**
+     * @brief      List the names of simplices at each level
+     *
+     * @tparam     Complex  Type of the ASC
+     * @tparam     k        Level to traverse
+     */
+    template <typename Complex, std::size_t k>
+    struct DotHelper<Complex, std::integral_constant<std::size_t, k>>
+    {
+        static void printlevel(std::ofstream& fout, const Complex& F){
+            auto nodes = F.template get_level_id<k>();
+            fout    << "subgraph cluster_" << k << " {\n"
+                    << "label=\"Level " << k << "\"\n";
+            for (auto node : nodes){
+                fout << to_string(F.get_name(node)) << ";";
+            }
+            fout    << "\n}\n";
+            DotHelper<Complex, std::integral_constant<std::size_t,k+1>>::printlevel(fout, F);
+        }
+    };
+
+    /**
+     * @brief      List the names of simplices at the top level
+     *
+     * @tparam     Complex  Type of the ASC
+     */
+    template <typename Complex>
+    struct DotHelper<Complex, std::integral_constant<std::size_t, Complex::topLevel>>
+    {
+        static void printlevel(std::ofstream& fout, const Complex& F){
+            auto nodes = F.template get_level_id<Complex::topLevel>();
+            fout    << "subgraph cluster_" << Complex::topLevel << " {\n"
+                    << "label=\"Level " << Complex::topLevel << "\"\n";
+            for (auto node : nodes){
+                fout << to_string(F.get_name(node)) << ";";
+            }
+            fout    << "\n}\n";
+        }
+    };
+}
 
 /**
- * @brief      List the names of simplices at the top level
+ * @brief      Gets the star of a SimplexSet
  *
- * @tparam     Complex  Type of the ASC
+ * @param      F        { parameter_description }
+ * @param      S        { parameter_description }
+ * @param      dest     The destination
+ *
+ * @tparam     Complex  { description }
  */
 template <typename Complex>
-struct DotHelper<Complex, std::integral_constant<std::size_t, Complex::topLevel>>
-{
-    static void printlevel(std::ofstream& fout, const Complex& F){
-        auto nodes = F.template get_level_id<Complex::topLevel>();
-        fout    << "subgraph cluster_" << Complex::topLevel << " {\n"
-                << "label=\"Level " << Complex::topLevel << "\"\n";
-        for (auto node : nodes){
-            fout << to_string(F.get_name(node)) << ";";
-        }
-        fout    << "\n}\n";
-    }
-};
+void getStar(Complex& F, casc::SimplexSet<Complex>& S,
+        casc::SimplexSet<Complex>& dest){
+    using SimplexSet = typename casc::SimplexSet<Complex>;
+    using RevIndex = typename SimplexSet::cRevIndex;
 
+    // Start at the top and work up. We can assume that if we've seen it then
+    // everything after has been added.
+    util::int_for_each<std::size_t, RevIndex>(
+            casc_detail::StarHelper<Complex>(), F, S, dest);
+}
+
+/**
+ * @brief      Gets the Star of simplex s
+ *
+ * @param      F        { parameter_description }
+ * @param      s        { parameter_description }
+ * @param      dest     The destination
+ *
+ * @tparam     Complex  { description }
+ * @tparam     Simplex  { description }
+ */
+template <typename Complex, typename Simplex>
+void getStar(Complex& F, Simplex& s, casc::SimplexSet<Complex>& dest){
+    visit_node_up(casc_detail::SimplexAggregator<Complex>(&dest), F, s);
+}
+
+template <typename Complex>
+void getClosure(Complex& F, casc::SimplexSet<Complex>& S,
+        casc::SimplexSet<Complex>& dest){
+    using SimplexSet = typename casc::SimplexSet<Complex>;
+    using LevelIndex = typename SimplexSet::cLevelIndex;
+    // Start at the bottom and work down.
+    // We can assume that everything below has been looked at.
+    util::int_for_each<std::size_t, LevelIndex>(
+            casc_detail::ClosureHelper<Complex>(), F, S, dest);
+}
+
+/**
+ * @brief      Gets the Closure of simplex s
+ *
+ * @param      F        { parameter_description }
+ * @param      s        { parameter_description }
+ * @param      dest     The destination
+ *
+ * @tparam     Complex  { description }
+ * @tparam     Simplex  { description }
+ */
+template <typename Complex, typename Simplex>
+void getClosure(Complex& F, Simplex& s, casc::SimplexSet<Complex>& dest){
+    visit_node_down(casc_detail::SimplexAggregator<Complex>(&dest), F, s);
+}
+
+template <typename Complex>
+void getLink(Complex& F, casc::SimplexSet<Complex>& S,
+        casc::SimplexSet<Complex>& dest){
+    using SimplexSet = typename casc::SimplexSet<Complex>;
+    using LevelIndex = typename SimplexSet::cLevelIndex;
+    using RevIndex = typename SimplexSet::cRevIndex;
+
+    SimplexSet star;
+    SimplexSet closure;
+    SimplexSet closeStar;
+    SimplexSet starClose; 
+    getStar(F, S, star);
+    getClosure(F, star, closeStar);
+
+    getClosure(F, S, closure);
+    getStar(F, closure, starClose);
+    casc::set_difference(closeStar, starClose, dest);
+}
+
+template <typename Complex, typename Simplex>
+void getLink(Complex& F, Simplex& s, casc::SimplexSet<Complex>& dest){
+    using SimplexSet = typename casc::SimplexSet<Complex>;
+    SimplexSet star;
+    SimplexSet closure;
+    SimplexSet closeStar;
+    SimplexSet starClose;
+    getStar(F, s, star);
+    getClosure(F, star, closeStar); 
+
+    getClosure(F, s, closure);
+    getStar(F, closure, starClose);
+    casc::set_difference(closeStar, starClose, dest);
+}
 
 /**
  * @brief      Writes out the topology of an ASC into the dot format. The resulting dot file can be rendered into an image using tools such as GraphViz. dot -Tpng file.dot > image.png.
@@ -211,12 +317,12 @@ void writeDOT(const std::string& filename, const Complex& F){
             << "node [shape = record,height = .1]"
             << "splines=line;\n"
 			<< "dpi=300;\n";
-    auto v = GraphVisitor<Complex>(fout);
+    auto v = casc_detail::GraphVisitor<Complex>(fout);
 	visit_node_up(v, F, F.get_simplex_up());
 
     // List the simplices
-    DotHelper<Complex, std::integral_constant<std::size_t, 0>>::printlevel(fout, F);
-
+    casc_detail::DotHelper<Complex, 
+            std::integral_constant<std::size_t, 0>>::printlevel(fout, F);
 	fout << "}\n";
     fout.close();
 }

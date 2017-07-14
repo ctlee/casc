@@ -291,7 +291,6 @@ public:
 	static constexpr auto numLevels = NodeDataTypes::size;
 	static constexpr auto topLevel  = numLevels-1;
 	using LevelIndex                = typename std::make_index_sequence<numLevels>;
-
 private:
 	template <std::size_t k> using Node     = detail::asc_Node<KeyType,k,topLevel,NodeDataTypes,EdgeDataTypes>;
 	template <std::size_t k> using NodePtr  = Node<k>*;

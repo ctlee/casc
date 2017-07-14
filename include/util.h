@@ -235,6 +235,52 @@ namespace util
 	}
 
 
+
+	template <class Integer, class IntegerSequence, Integer... Accumulator>
+	struct reverse_sequence_helper {};
+
+	template <class Integer,
+			template<class, Integer...> class InHolder,
+			Integer... Accumulator>
+	struct reverse_sequence_helper<Integer, InHolder<Integer>, Accumulator...>
+	{
+		using type = InHolder<Integer, Accumulator...>;
+	};
+
+	template <class Integer,
+			template<class, Integer...> class InHolder,
+			Integer I, Integer... Is,
+			Integer... Accumulator>
+	struct reverse_sequence_helper<Integer, InHolder<Integer, I, Is...>, Accumulator...>
+	{
+		using type = typename reverse_sequence_helper<Integer, 
+				InHolder<Integer, Is...>, I, Accumulator...>::type;
+	};
+
+	/**
+	 * @brief      Reverse an Integer Sequence
+	 *
+	 * @tparam     Integer          { description }
+	 * @tparam     IntegerSequence  { description }
+	 */
+	template <class Integer, class IntegerSequence>
+	struct reverse_sequence
+	{
+		using type = typename reverse_sequence_helper<Integer, IntegerSequence>::type;
+	};
+
+
+	template <class Integer, class IntegerSequence>
+	struct remove_first_val {};
+
+	template <class Integer,
+			template<class, Integer...> class InHolder,
+			Integer I, Integer... Is>
+	struct remove_first_val<Integer, InHolder<Integer, I, Is...>>
+	{
+		using type = InHolder<Integer, Is...>; 	
+	};
+
 	/**
 	 * @brief      Template type for future specialization
 	 */
