@@ -3,9 +3,10 @@
 #include <iostream>
 #include <fstream>
 #include <ostream>
-#include "SimplexSets.h"
+#include "SimplexSet.h"
 #include "SimplicialComplex.h"
 #include "SimplicialComplexVisitors.h"
+#include "stringutil.h"
 
 namespace casc_detail{
     template <typename Complex>
@@ -18,7 +19,6 @@ namespace casc_detail{
         template <std::size_t k>
         bool visit(Complex& F, typename Complex::template SimplexID<k> s)
         {
-            
             // If the simplex isn't there, insert it.
             if(pLevels->find(s) == pLevels->template end<k>())
             {
@@ -41,7 +41,7 @@ namespace casc_detail{
         static void apply(Complex& F, 
                 casc::SimplexSet<Complex>& S,
                 casc::SimplexSet<Complex>& dest){
-            auto s = std::get<k>(S.tupleSet);
+            auto s = casc::get<k>(S);
             for(auto simplex : s){
                 visit_node_up(SimplexAggregator<Complex>(&dest), F, simplex);
             }
@@ -55,43 +55,12 @@ namespace casc_detail{
         static void apply(Complex& F, 
                 casc::SimplexSet<Complex>& S,
                 casc::SimplexSet<Complex>& dest){
-            auto s = std::get<k>(S.tupleSet);
+            auto s = casc::get<k>(S);
             for(auto simplex : s){
-                //std::cout << simplex << std::endl;
                 visit_node_down(SimplexAggregator<Complex>(&dest), F, simplex);
             }
         }
     };
-
-    /**
-     * @brief      Returns a string representation of the vertex subsimplicies of a given simplex
-     *
-     * @param[in]  A     Array containing name of a simplex
-     *
-     * @tparam     T     Type of the array elements
-     * @tparam     k     Number of elements
-     *
-     * @return     String representation of the object.
-     */
-    template <typename T, std::size_t k>
-    std::string to_string(const std::array<T,k>& A)
-    {
-        if (k==0){
-            return "{root}";
-        }
-        std::string out;
-        out += "\"{";
-        for(int i = 0; i + 1 < k; ++i)
-        {
-            out += std::to_string(A[i]) + ",";
-        }
-        if(k > 0)
-        {
-            out += std::to_string(A[k-1]);
-        }
-        out += "}\"";
-        return out;
-    }
 
     /**
      * @brief      Visitor for printing connectivity of the ASC
@@ -107,19 +76,19 @@ namespace casc_detail{
         template <std::size_t level> 
         bool visit(const Complex& F, typename Complex::template SimplexID<level> s)
         {
-            auto name = to_string(F.get_name(s));
+            auto name = cascstringutil::to_string(F.get_name(s));
 
             auto covers = F.get_cover(s);
             for(auto cover : covers){
                 auto edge = F.get_edge_up(s, cover);
-                auto nextName = to_string(F.get_name(edge.up()));
+                auto nextName = cascstringutil::to_string(F.get_name(edge.up()));
                 if((*edge).orientation == 1){
-                    fout    << "   " << name << " -> " 
-                            << nextName << std::endl;
+                    fout    << "   \"" << name << "\" -> \"" 
+                            << nextName << "\"" << std::endl;
                 }
                 else{
-                    fout    << "   " << nextName << " -> " 
-                            << name << std::endl;
+                    fout    << "   \"" << nextName << "\" -> \"" 
+                            << name << "\"" <<  std::endl;
                 }
             }
             return true;
@@ -127,11 +96,11 @@ namespace casc_detail{
 
         bool visit(const Complex& F, typename Complex::template SimplexID<Complex::topLevel-1> s){
 
-            auto name = to_string(F.get_name(s));
+            auto name = cascstringutil::to_string(F.get_name(s));
             auto covers = F.get_cover(s);
             for(auto cover : covers){
                 auto edge = F.get_edge_up(s, cover);
-                auto nextName = to_string(F.get_name(edge.up()));
+                auto nextName = cascstringutil::to_string(F.get_name(edge.up()));
                 auto orient = (*edge.up()).orientation;
                 if (orient == 1){
                     nextName = "+ " + nextName;
@@ -140,12 +109,12 @@ namespace casc_detail{
                     nextName = "- " + nextName;
                 }
                 if((*edge).orientation == 1){
-                    fout    << "   " << name << " -> " 
-                            << nextName << std::endl;
+                    fout    << "   \"" << name << "\" -> \"" 
+                            << nextName << "\"" << std::endl;
                 }
                 else{
-                    fout    << "   " << nextName << " -> " 
-                            << name << std::endl;
+                    fout    << "   \"" << nextName << "\" -> \"" 
+                            << name << "\"" << std::endl;
                 }
             }
             return true;
@@ -171,7 +140,7 @@ namespace casc_detail{
             fout    << "subgraph cluster_" << k << " {\n"
                     << "label=\"Level " << k << "\"\n";
             for (auto node : nodes){
-                fout << to_string(F.get_name(node)) << ";";
+                fout << "\"" << cascstringutil::to_string(F.get_name(node)) << "\";";
             }
             fout    << "\n}\n";
             DotHelper<Complex, std::integral_constant<std::size_t,k+1>>::printlevel(fout, F);
@@ -191,7 +160,14 @@ namespace casc_detail{
             fout    << "subgraph cluster_" << Complex::topLevel << " {\n"
                     << "label=\"Level " << Complex::topLevel << "\"\n";
             for (auto node : nodes){
-                fout << to_string(F.get_name(node)) << ";";
+                auto orient = (*node).orientation;
+                if (orient == 1){
+                    fout << "\"+ ";
+                }
+                else{
+                    fout << "\"- ";
+                }
+                fout << cascstringutil::to_string(F.get_name(node)) << "\";";
             }
             fout    << "\n}\n";
         }
@@ -294,8 +270,10 @@ void getLink(Complex& F, Simplex& s, casc::SimplexSet<Complex>& dest){
     casc::set_difference(closeStar, starClose, dest);
 }
 
+// TODO: Put back the const F (0)
 /**
  * @brief      Writes out the topology of an ASC into the dot format. The resulting dot file can be rendered into an image using tools such as GraphViz. dot -Tpng file.dot > image.png.
+ *             dot -Tpng input.dot > output.png
  *
  * @param[in]  filename  The filename
  * @param[in]  F         ASC of interest
@@ -303,7 +281,7 @@ void getLink(Complex& F, Simplex& s, casc::SimplexSet<Complex>& dest){
  * @tparam     Complex   Type of the ASC
  */
 template <typename Complex>
-void writeDOT(const std::string& filename, const Complex& F){
+void writeDOT(const std::string& filename, Complex& F){
 	std::ofstream fout(filename);
 	if(!fout.is_open())
 	{

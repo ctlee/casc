@@ -1,49 +1,36 @@
 #pragma once
 
-#include <algorithm>
-#include <cctype>
-#include <functional>
 #include <string>
 
-namespace stringutil
+namespace cascstringutil
 {
-    inline std::vector<std::string> split(const std::string& cstr, std::vector<char> delim = {' ', '\t'})
+    /**
+     * @brief      Returns a string representation of the vertex subsimplicies of a given simplex
+     *
+     * @param[in]  A     Array containing name of a simplex
+     *
+     * @tparam     T     Type of the array elements
+     * @tparam     k     Number of elements
+     *
+     * @return     String representation of the object.
+     */
+    template <typename T, std::size_t k>
+    std::string to_string(const std::array<T,k>& A)
     {
-        std::string s = cstr;
-        // convert all delims into delim[0]
-        for (auto i=1; i < delim.size(); ++i){
-            std::replace(s.begin(), s.end(), delim[i], delim[0]);
+        if (k==0){
+            return "{root}";
         }
-        std::vector<std::string> result;
-        auto begin = s.begin();
-        do{
-            auto end = begin;
-            while(*end != delim[0] && end != s.end())
-                end++;
-            if(end != begin) 
-                result.push_back(std::string(begin,end));
-            begin = end;
-        } while (begin++ != s.end());  
-        return result;
-    }
-
-    std::function<int(int)> isntspace = [](int c) -> int{
-        return !std::isspace(c);
-    };
-
-    inline void ltrim(std::string& s)
-    {
-        s.erase(s.begin(), std::find_if(s.begin(), s.end(), isntspace));
-    }
-
-    inline void rtrim(std::string& s)
-    {
-        s.erase(std::find_if(s.rbegin(), s.rend(), isntspace).base(), s.end());
-    }
-
-    inline void trim(std::string& s)
-    {
-        ltrim(s);
-        rtrim(s);
+        std::string out;
+        out += "{";
+        for(int i = 0; i + 1 < k; ++i)
+        {
+            out += std::to_string(A[i]) + ",";
+        }
+        if(k > 0)
+        {
+            out += std::to_string(A[k-1]);
+        }
+        out += "}";
+        return out;
     }
 }

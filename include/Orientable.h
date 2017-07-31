@@ -25,6 +25,7 @@ struct init_orientation_helper<Complex, std::integral_constant<std::size_t, k>>
 				int orient = 1;
 				for(auto b : F.get_name(curr))
 				{
+					// Count the number of indices > name
 					if(a > b)
 					{
 						orient *= -1;
@@ -48,9 +49,12 @@ struct init_orientation_helper<Complex, std::integral_constant<std::size_t, Comp
 	static void f(Complex& F) {}
 };
 
+
+// TODO: Implement this as a disjoint set operation during insertion (0)
 template <typename Complex>
 std::tuple<int, bool, bool> compute_orientation(Complex& F)
 {
+	// TODO: separate out init and clear orientation for speed (5)
 	// init orientation
 	init_orientation_helper<Complex,std::integral_constant<std::size_t,0>>::f(F);
 
@@ -93,6 +97,8 @@ std::tuple<int, bool, bool> compute_orientation(Complex& F)
 					}
 					else if(w.size() == 2)
 					{
+						// std::cout << curr << " " << w[0] << std::endl;
+						// std::cout << curr << " " << w[1] << std::endl;
 						auto& edge0 = *F.get_edge_up(curr, w[0]);
 						auto& edge1 = *F.get_edge_up(curr, w[1]);
 

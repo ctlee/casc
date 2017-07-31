@@ -13,9 +13,9 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <utility>
-#include "util.h"
 #include <assert.h>
 #include "index_tracker.h"
+#include "util.h"
 //using Simplex = unsigned int;
 
 namespace detail {
@@ -332,12 +332,46 @@ public:
 		auto&& data() { return ptr->_data; }
 
 		// Full debug print
-		//friend std::ostream& operator<<(std::ostream& out, const SimplexID& nid) { out << *nid.ptr; return out; }
+		//friend std::ostream& operator<<(std::ostream& out, const SimplexID& nid){ out << *nid.ptr; return out; }
 		
+		// Something inbetween
+		friend std::ostream& operator<<(std::ostream& out, 
+				const SimplexID& nid){
+			// We really need a static_if here...
+			out << "s{";
+			print_helper<k,0>::apply(out, nid);
+			out << "}";
+			return out;
+		}
+
 		// Don't share the secrets
-		friend std::ostream& operator<<(std::ostream& out, const SimplexID& nid) { out << nid.ptr; return out; }
+		//friend std::ostream& operator<<(std::ostream& out, const SimplexID& nid) { out << nid.ptr; return out; }
 
 	private:
+		template <size_t l, size_t foo>
+		struct print_helper
+		{
+			static std::ostream& apply(std::ostream& out, 
+					const SimplexID<l>& nid){
+				auto down = (*nid.ptr)._down;
+				for(auto it=down.cbegin(); it!= --down.cend(); ++it){
+					out << it->first << ",";
+				}
+				out << (--down.cend())->first;
+				return out;
+			}
+		};
+
+		template <size_t foo>
+		struct print_helper<0, foo>
+		{
+			static std::ostream& apply(std::ostream& out, 
+					const SimplexID& nid){
+				out << "root";
+				return out;
+			}
+		};
+
 		NodePtr<k> ptr;
 	};
 
@@ -964,6 +998,7 @@ private:
 	{
 		static Node<i+n>* apply(const type_this* that, const KeyType* s, Node<i>* root)
 		{
+			// TODO: We probably don't need to check if root is a valid simplex (10)
 			if(root)
 			{
 				auto p = root->_up.find(*s);
@@ -1293,6 +1328,7 @@ void neighbors_up(Complex& F, SimplexID nid, InsertIter iter)
 }
 
 /**
+ * TODO: convert this to use an iterator inserter (1)
  * Code for returning a set of k-ring neighbors. Currently obseleted by neighbors_up visitor pattern
  */
 template <class Complex, std::size_t level>

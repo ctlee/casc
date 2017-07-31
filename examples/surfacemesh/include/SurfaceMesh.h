@@ -8,7 +8,6 @@
 #include <utility>
 #include "util.h"
 #include "SimplicialComplex.h"
-#include "SimplicialComplexVisitors.h"
 #include "Orientable.h"
 #include "Vertex.h"
 /**

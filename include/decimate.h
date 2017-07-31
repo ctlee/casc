@@ -1,11 +1,40 @@
 #pragma once
 
-#include "SimplexSets.h"
+#include <typeinfo>
+
+#include "SimplexSet.h"
+#include "SimplexMap.h"
 #include "SimplicialComplexVisitors.h"
 #include "ASCFunctions.h"
+#include "stringutil.h"
 
 namespace casc_decimation
 {
+    template <typename Complex>
+    struct SimplexDataSet
+    {
+        using KeyType = typename Complex::KeyType;
+
+        template <std::size_t k, typename T>
+        struct DataType
+        {
+            using type = std::pair<std::array<KeyType,k>, T>;
+        };
+
+        template <std::size_t k>
+        struct DataType<k, void>
+        {
+            using type = std::array<KeyType,k>;
+        };
+
+        template <std::size_t j>
+        using DataSet = typename DataType<j, typename Complex::template NodeData<j>>::type;
+        using LevelIndex = typename std::make_index_sequence<Complex::numLevels>;
+        using SimplexIDLevel = typename util::int_type_map<std::size_t, 
+                std::tuple, LevelIndex, DataSet>::type;
+        using type = typename util::type_map<SimplexIDLevel, casc::vector>::type;
+    };
+
     /**
      * @brief      Struct functional to get the complete neighborhood around a simplex
      *
@@ -53,7 +82,6 @@ namespace casc_decimation
         SimplexSet* pLevels;
     };
 
-
     /**
      * @brief      Move found simplices from pLevels to pGrab.
      *
@@ -71,9 +99,9 @@ namespace casc_decimation
         {
             if(pLevels->find(s) != pLevels->template end<level>())
             {
+                //std::cout << "GrabVisitor (found): " << s << std::endl;
                 pLevels->erase(s);
                 pGrab->insert(s);
-                // std::cout << F.get_name(s) << std::endl;
                 return true;
             }
             else
@@ -87,50 +115,27 @@ namespace casc_decimation
         SimplexSet* pGrab;
     };
 
-    template <typename Complex, std::size_t BaseLevel, template <typename> class Callback>
+    template <typename Complex, std::size_t BaseLevel>
     struct InnerVisitor
     {
         using SimplexSet = typename casc::SimplexSet<Complex>;
+        using SimplexMap = typename casc::SimplexMap<Complex>;
         using Simplex = typename Complex::template SimplexID<BaseLevel>;
         using KeyType = typename Complex::KeyType;
 
-        using ReturnValues = typename casc::SimplexDataSet<Complex>::type;
+        InnerVisitor(SimplexSet* p, Simplex s, KeyType np, SimplexMap* rv)
+            : pLevels(p), simplex(s), new_point(np), data(rv) {}
 
-        template <typename ReturnType, std::size_t OldLevel>
-        struct PerformCallback
-        {
-            constexpr static std::size_t NewLevel = OldLevel - BaseLevel + 1;
-            static void apply(Callback<Complex>* callback,
-                        ReturnValues* data,
-                        Complex& F,
-                        const std::array<KeyType,OldLevel>& old_name,
-                        const std::array<KeyType,NewLevel>& new_name,
-                        const SimplexSet& merged)
-            {
-                ReturnType rval = (*callback)(F,old_name,new_name,merged);
-                std::get<NewLevel>(*data).push_back(std::make_pair(new_name,rval));
-            }
-        };
-
-        template <std::size_t OldLevel>
-        struct PerformCallback<void,OldLevel>
-        {
-            constexpr static std::size_t NewLevel = OldLevel - BaseLevel + 1;
-            static void apply(Callback<Complex>* callback,
-                        ReturnValues* data,
-                        Complex& F,
-                        const std::array<KeyType,OldLevel>& old_name,
-                        const std::array<KeyType,NewLevel>& new_name,
-                        const SimplexSet& merged)
-            {
-                (*callback)(F,old_name,new_name,merged);
-                std::get<NewLevel>(*data).push_back(new_name);
-            }
-        };
-
-        InnerVisitor(SimplexSet* p, Simplex s, KeyType np, ReturnValues* rv, Callback<Complex>* c)
-            : pLevels(p), simplex(s), new_point(np), callback(c), data(rv) {}
-
+        /**
+         * @brief      Overloaded visit function
+         *
+         * @param      F          { parameter_description }
+         * @param[in]  <unnamed>  { parameter_description }
+         *
+         * @tparam     OldLevel   { description }
+         *
+         * @return     { description_of_the_return_value }
+         */
         template <std::size_t OldLevel>
         bool visit(Complex& F, typename Complex::template SimplexID<OldLevel> s)
         {
@@ -138,9 +143,11 @@ namespace casc_decimation
 
             if(pLevels->find(s) != pLevels->template end<OldLevel>())
             {
+                //std::cout << "InnerVisitor (found): " << s << std::endl;
                 auto old_name = F.get_name(s);
                 auto base_name = F.get_name(simplex);
-                std::array<KeyType,NewLevel> new_name;
+                using NewArrayType = std::array<KeyType,NewLevel>;
+                NewArrayType new_name;
 
                 std::size_t i = 0; // new_name
                 std::size_t j = 0; // old_name
@@ -148,23 +155,34 @@ namespace casc_decimation
 
                 new_name[i++] = new_point;
 
+                // Remove base_name from old_name and append to new_name
                 while(i < NewLevel)
                 {
                     if(base_name[k] == old_name[j])
                     {
+                        // if equivalent than skip the value
                         ++j; ++k;
                     }
                     else
                     {
+                        // append to new_name and increment
                         new_name[i++] = old_name[j++];
                     }
                 }
 
                 SimplexSet grab;
                 visit_node_down(GrabVisitor<Complex>(pLevels,&grab), F, s);
-                PerformCallback<typename Complex::template NodeData<NewLevel>, 
-                        OldLevel>::apply(callback, data, F, 
-                        old_name, new_name, grab);
+
+                auto& levelMap = casc::get<NewLevel>(*data);
+                auto it = levelMap.find(new_name);
+                if(it != levelMap.end()){
+                    it->second.insert(grab);
+                }
+                else{
+                    auto ret = levelMap.insert(
+                            std::pair<NewArrayType, SimplexSet>(new_name, grab));
+                    assert(ret.second);
+                }
             }
             return true;
         }
@@ -173,96 +191,165 @@ namespace casc_decimation
         SimplexSet* pLevels;
         Simplex     simplex;
         KeyType     new_point;
-        Callback<Complex>* callback;
-        ReturnValues* data;
+        SimplexMap* data;
     };
 
 
-    template <typename Complex, template <typename> class Callback>
+    template <typename Complex>
     struct MainVisitor
     {
         using SimplexSet = typename casc::SimplexSet<Complex>;
+        using SimplexMap = typename casc::SimplexMap<Complex>;
         using KeyType = typename Complex::KeyType;
-        using ReturnValues = typename casc::SimplexDataSet<Complex>::type;
 
-        MainVisitor(SimplexSet* p, Callback<Complex>* c, KeyType np, ReturnValues* rv)
-            : pLevels(p), callback(c), new_point(np), data(rv) {}
+        MainVisitor(SimplexSet* p, KeyType np, SimplexMap* rv)
+            : pLevels(p), new_point(np), data(rv) {}
 
         template <std::size_t level>
         bool visit(Complex& F, typename Complex::template SimplexID<level> s)
         {
-            visit_node_up(InnerVisitor<Complex,level,Callback>(
-                    pLevels,s,new_point,data,callback), F, s);
+            //std::cout << "MainVisitor: " << s << std::endl;
+            visit_node_up(
+                    InnerVisitor<Complex,level>(
+                            pLevels,s,new_point,data),
+                    F, s);
             return true;
         }
 
     private:
         SimplexSet* pLevels;
-        Callback<Complex>* callback;
         KeyType     new_point;
-        ReturnValues* data;
+        SimplexMap* data;
     };
 
-    template <typename Complex, typename NodeDataType, typename T>
-    struct PerformInsertion {};
-
-    template <typename Complex, typename NodeDataType, std::size_t level>
-    struct PerformInsertion<Complex, NodeDataType, std::integral_constant<std::size_t,level>>
+    template <typename Complex, template<typename> class Callback>
+    struct RunCallback
     {
-        static void apply(Complex& F, typename casc::SimplexDataSet<Complex>::type& data)
-        {
-            for(auto curr : std::get<level>(data))
-            {
-                F.template insert<level>(curr.first, curr.second);
-            }
-            PerformInsertion<Complex,typename Complex::template NodeData<level+1>,std::integral_constant<std::size_t,level+1>>::apply(F,data);
-        }
-    };
+        using SimplexMap = typename casc::SimplexMap<Complex>;
+        using SimplexSet = typename casc::SimplexSet<Complex>;
+        using SimplexDataSet = typename SimplexDataSet<Complex>::type;
+        using KeyType = typename Complex::KeyType;
+        template <std::size_t level> 
+        using DataType = typename Complex::template NodeData<level>;
 
-    template <typename Complex, std::size_t level>
-    struct PerformInsertion<Complex, void, std::integral_constant<std::size_t,level>>
-    {
-        static void apply(Complex& F, typename casc::SimplexDataSet<Complex>::type& data)
-        {
-            for(auto curr : std::get<level>(data))
-            {
-                F.template insert<level>(curr);
-            }
-            PerformInsertion<Complex,typename Complex::template NodeData<level+1>,std::integral_constant<std::size_t,level+1>>::apply(F,data);
-        }
-    };
 
-    template <typename Complex, typename NodeDataType>
-    struct PerformInsertion<Complex, NodeDataType, std::integral_constant<std::size_t,Complex::topLevel>>
-    {
-        static void apply(Complex& F, typename casc::SimplexDataSet<Complex>::type& data)
+        template <std::size_t k, typename ReturnType>
+        struct PerformCallback
         {
-            for(auto curr : std::get<Complex::topLevel>(data))
-            {
-                F.template insert<Complex::topLevel>(curr.first, curr.second);
+            static void apply(Complex& F, Callback<Complex>&& clbk, 
+                    SimplexDataSet& rv,
+                    const std::array<KeyType, k>& new_name,
+                    const SimplexSet& merged){
+                ReturnType rval = clbk(F, new_name, merged);
+                std::get<k>(rv).push_back(std::make_pair(new_name,rval));
             }
-        }
-    };
+        };
 
-    template <typename Complex, std::size_t k>
-    struct PerformRemoval
-    {
-        static void apply(Complex& F, casc::SimplexSet<Complex>& data)
+        template <std::size_t k>
+        struct PerformCallback<k, void>
         {
-            for(auto curr : data.template get<k>())
-            {
-                F.template remove<k>(curr);
+            static void apply(Complex& F, Callback<Complex>&& clbk, 
+                    SimplexDataSet& rv,
+                    const std::array<KeyType, k>& new_name,
+                    const SimplexSet& merged){
+                clbk(F,new_name, merged);
+                std::get<k>(rv).push_back(new_name);
             }
-            PerformRemoval<Complex,k-1>::apply(F,data);
+        };
+
+
+        template <std::size_t k>
+        static void apply(Complex& F, SimplexMap& S, 
+                Callback<Complex>&& clbk, SimplexDataSet& rv){
+            auto& levelMap = casc::get<k>(S);
+            for (auto s : levelMap){
+                PerformCallback<k, DataType<k>>::apply(F, std::forward<Callback<Complex>>(clbk),
+                        rv, s.first, s.second);
+            }
         }
     };
 
     template <typename Complex>
-    struct PerformRemoval<Complex,0>
+    struct PerformRemoval
     {
-        static void apply(Complex& F, casc::SimplexSet<Complex>& data) {}
+        template <std::size_t k>
+        static void apply(Complex& F, casc::SimplexSet<Complex>& S){
+            for(auto curr : casc::get<k>(S))
+                F.remove(curr);
+        }
     };
+
+    
+    template <typename Complex>
+    struct PerformInsertion {
+        using KeyType = typename Complex::KeyType;
+
+        template <std::size_t k, class T>
+        static void insert(Complex& F, std::pair<std::array<KeyType, k>, T> P){
+            F.insert(P.first, P.second);
+        }
+
+        template <std::size_t k>
+        static void insert(Complex& F, std::array<KeyType, k> A){
+            F.insert(A);
+        }
+
+        template <std::size_t k>
+        static void apply(Complex& F, 
+                typename casc_decimation::SimplexDataSet<Complex>::type& data){
+            for(auto curr : std::get<k>(data)){
+                insert(F, curr);
+            }
+        }
+    };
+} // end namespace casc_decimation
+
+/**
+ * @brief      Remove simplex in SimplexSet S from complex F
+ *
+ * @param      F        Simplicial Complex
+ * @param      S        SimplexSet
+ *
+ * @tparam     Complex  Typename of complex
+ */
+template <typename Complex>
+void perform_removal(Complex& F, casc::SimplexSet<Complex>& S){
+    using SimplexSet = typename casc::SimplexSet<Complex>;
+    using LevelIndex = typename SimplexSet::cRevIndex;
+    util::int_for_each<std::size_t, LevelIndex>(
+            casc_decimation::PerformRemoval<Complex>(), F, S);
 }
+
+/**
+ * @brief      Insert all simplices in SimplexSet $S$ into complex $F$
+ *
+ * @param      F        Simplicial Complex
+ * @param      S        SimplexSet 
+ *
+ * @tparam     Complex  Typename of complex
+ */
+template <typename Complex>
+void perform_insertion(Complex& F, 
+        typename casc_decimation::SimplexDataSet<Complex>::type& S){
+    using SimplexSet = typename casc::SimplexSet<Complex>;
+    using LevelIndex = typename SimplexSet::cLevelIndex;
+    util::int_for_each<std::size_t, LevelIndex>(
+            casc_decimation::PerformInsertion<Complex>(), F, S);
+}  
+
+template <typename Complex, template<typename> class Callback>
+void run_user_callback(Complex& F,
+        casc::SimplexMap<Complex>& S,
+        Callback<Complex>&& clbk,
+        typename casc_decimation::SimplexDataSet<Complex>::type& rv){
+    using SimplexMap = typename casc::SimplexMap<Complex>;
+    using LevelIndex = typename SimplexMap::cLevelIndex;
+
+    util::int_for_each<std::size_t, LevelIndex>(
+            casc_decimation::RunCallback<Complex, Callback>(), 
+                F, S, std::forward<Callback<Complex>>(clbk), rv);  
+}
+
 
 /**
  * @brief      Decimation of a simplex
@@ -276,96 +363,28 @@ namespace casc_decimation
  * @tparam     Callback  Functional type for metatemplate magic
  */
 template <typename Complex, typename Simplex, template<typename> class Callback>
-void decimate(Complex& F, Simplex s, Callback<Complex>& clbk)
+void decimate(Complex& F, Simplex s, Callback<Complex>&& clbk)
 {
+    using SimplexSet = typename casc::SimplexSet<Complex>;
+    using SimplexMap = typename casc::SimplexMap<Complex>;
+
     int np = F.add_vertex();
-    int i = 0;
-    typename casc::SimplexDataSet<Complex>::type rv;
-    casc::SimplexSet<Complex> levels;
+    //typename casc::SimplexDataSet<Complex>::type rv;
+    SimplexSet nbhd;
+    SimplexMap simplexMap;
 
-    visit_node_down(casc_decimation::GetCompleteNeighborhood<Complex>(&levels), F, s);
-    casc::SimplexSet<Complex> doomed = levels;
-    visit_node_down(casc_decimation::MainVisitor<Complex,Callback>(&levels,&clbk,np,&rv), F, s);
+    visit_node_down(
+            casc_decimation::GetCompleteNeighborhood<Complex>(&nbhd),
+            F, s);
 
-    casc_decimation::PerformRemoval<Complex,3>::apply(F, doomed);
-    casc_decimation::PerformInsertion<Complex,Vertex,std::integral_constant<std::size_t,1>>::apply(F, rv);
-    --np;
-}
-
-
-namespace DecimateExample {
-    template <typename T, std::size_t k>
-    std::ostream& operator<<(std::ostream& out, const std::array<T,k>& A)
-    {
-        out << "[";
-        for(int i = 0; i + 1 < k; ++i)
-        {
-            out << A[i] << " ";
-        }
-        if(k > 0)
-        {
-            out << A[k-1];
-        }
-        out << "]";
-        return out;
-    }
-
-    template <typename T>
-    std::ostream& operator<<(std::ostream& out, const std::set<T>& A)
-    {
-        out << "[";
-        for(auto a : A)
-        {
-            std::cout << a << " ";
-        }
-        out << "]";
-        return out;
-    }
-
-    template <typename Complex>
-    struct Callback
-    {
-        using SimplexSet = typename casc::SimplexSet<Complex>;
-        template <std::size_t level> using Type = typename Complex::template NodeData<level>;
-        using KeyType = typename Complex::KeyType;
-
-        template <std::size_t OldLevel, std::size_t NewLevel>
-        void operator()(Complex& F,
-                        const std::array<KeyType,OldLevel>& old_name,
-                        const std::array<KeyType,NewLevel>& new_name,
-                        const SimplexSet& merged)
-        {
-            std::cout << "Inner: " << old_name << " --> " << new_name << std::endl;
-        }
-
-        template <std::size_t OldLevel>
-        Vertex operator()(Complex& F,
-                        const std::array<KeyType,OldLevel>& old_name,
-                        const std::array<KeyType,1>& new_name,
-                        const SimplexSet& merged)
-        {
-            Vertex center;
-            std::size_t cnt = 0;
-            for(auto v : std::get<1>(merged))
-            {
-                center = center + (*v);
-                ++cnt;
-            }
-            center = center / (double)(cnt);
-            std::cout << "Vertex : " << old_name << " --> " << new_name << " : " << center << std::endl;
-
-            return center;
-        }
-
-        template <std::size_t OldLevel>
-        Face operator()(Complex& F,
-                        const std::array<KeyType,OldLevel>& old_name,
-                        const std::array<KeyType,3>& new_name,
-                        const SimplexSet& merged)
-        {
-            std::cout << "3nner: " << old_name << " --> " << new_name << " : " << std::get<3>(merged).size() << std::endl;
-            return Face();
-        }
-    };
+    SimplexSet doomed = nbhd; // Save the list of simplices
+    visit_node_down(
+            casc_decimation::MainVisitor<Complex>(
+                    &nbhd, np, &simplexMap), 
+            F, s);
+    typename casc_decimation::SimplexDataSet<Complex>::type rv;
+    run_user_callback(F, simplexMap, std::forward<Callback<Complex>>(clbk), rv);
+    perform_removal(F, doomed); 
+    perform_insertion(F, rv);
 }
 
