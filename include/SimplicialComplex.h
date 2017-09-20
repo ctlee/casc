@@ -1,3 +1,10 @@
+/**
+ * @file SimplicialComplex.h
+ * @brief The main data structure 
+ * 
+ * This is a test for why it's not documenting...
+ */
+
 #pragma once
 
 #include <cstdint>
@@ -277,7 +284,11 @@ struct simplicial_complex_traits_default
 
 
 /**
- * @brief      Class for simplicial complex.
+ * @class SimplicialComplex
+ *
+ * @brief Class for simplicial complex.
+ *
+ * @author John Moody and Chris Lee
  *
  * @tparam     traits  The traits defining the KeyType, NodeTypes and EdgeTypes.
  */

@@ -23,7 +23,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 # set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 # set(TEST_DATA_PATH ${PROJECT_SOURCE_DIR}/data)
 
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(include)
 
 # List the include directories...
@@ -43,7 +42,8 @@ find_package(Doxygen)
 
 message(STATUS "Doxygen ${DOXYGEN_EXECUTABLE}")
 if(DOXYGEN_FOUND)
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+
     add_custom_target(casc_doc
         ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
