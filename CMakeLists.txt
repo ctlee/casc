@@ -42,6 +42,7 @@ find_package(Doxygen)
 
 message(STATUS "Doxygen ${DOXYGEN_EXECUTABLE}")
 if(DOXYGEN_FOUND)
+    # Parse Doxyfile.in and replace CMake @macros@.
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
     add_custom_target(casc_doc
