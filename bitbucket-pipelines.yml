@@ -13,5 +13,5 @@ pipelines:
           - apt-get install -y cmake
           - mkdir build
           - cd build
-          - cmake -DBUILD_TEST=on ..
+          - cmake -DBUILD_TESTS=on ..
           - make
