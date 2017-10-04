@@ -24,9 +24,7 @@
 
 /**
  * @file SimplicialComplex.h
- * @brief The main data structure 
- * 
- * This is a test for why it's not documenting...
+ * @brief This header contains the main CASC data structure.
  */
 
 #pragma once
@@ -47,31 +45,31 @@
 #include <assert.h>
 #include "index_tracker.h"
 #include "util.h"
-//using Simplex = unsigned int;
 
 namespace detail {
+	/**< Data structure to store simplices by level*/
 	template <class T> using map = std::map<size_t,T>;
+
 	/*
-	 * asc_Node must be defined outside of simplicial_complex because c++ does not allow
-	 * internal templates to be partially specialized. I admit that I do not understand
-	 * the reason for this, but this work around seems to work. However, the muddying of
-	 * the template parameters is unfortunate.
+	 * asc_Node must be defined outside of simplicial_complex because C++ does 
+	 * not allow internal templates to be partially specialized. This template
+	 * prototype is later specialized to represent various Node roles.
 	 */
 	template <class KeyType, size_t k, size_t N, typename DataTypes, class> struct asc_Node;
 
 	/**
-	 * @brief      A base class for a Simplicial Complex Node
+	 * @brief      This is the base Node class.
 	 */
 	struct asc_NodeBase {
 		/**
-		 * @brief      Node constructor
-		 *
-		 * @param[in]  id    The identifier
+		 * @brief      Construct a Node
+		 * 
+		 * @param[in]  id    An internal integer identifier of the Node.
 		 */
 		asc_NodeBase(int id) : _node(id) {}
 		
 		/**
-		 * @brief      Destroys the object
+		 * @brief      Destructor
 		 */
 		virtual ~asc_NodeBase() {};
 
@@ -79,9 +77,9 @@ namespace detail {
 	};
 
 	/**
-	 * @brief      Base class for Node with some data
+	 * @brief      Base class for Node with some data.
 	 *
-	 * @tparam     DataType  type of the data to be contained
+	 * @tparam     DataType  Typename of the data to be stored.
 	 */
 	template <class DataType>
 	struct asc_NodeData {
@@ -89,56 +87,71 @@ namespace detail {
 	};
 
 	/**
-	 * @brief      Base class for Node with DataType of void
+	 * @brief      Explicit specialization for Nodes without data.
+	 * 
+	 * This exists so that the compiler knows to not allocate any memory to
+	 * store data when void is specified.
 	 */
 	template <>
 	struct asc_NodeData<void> {};
 
 	/**
-	 * @brief      Base class for Node with edge data of type DataType
+	 * @brief      Base class for Nodes with edge data.
 	 *
-	 * @tparam     KeyType   type for indexing Nodes
-	 * @tparam     DataType  type of edge_data stored
+	 * @tparam     KeyType   Typename of index for indexing Nodes.
+	 * @tparam     DataType  Typename of the data stored on the edge.
 	 */
 	template <class KeyType, class DataType>
 	struct asc_EdgeData {
+		/** The map of NodeIDs to stored edge data. */
 		std::unordered_map<KeyType, DataType> _edge_data;
 	};	
 
 	/**
-	 * @brief      Base class for Node with no edge data
+	 * @brief      Explicit specialization for Nodes with no edge data.
 	 *
-	 * @tparam     KeyType  type for indexing Nodes
+	 * @tparam     KeyType   Typename of index for indexing Nodes.
 	 */
 	template <class KeyType>
-	struct asc_EdgeData<KeyType,void>
-	{};
+	struct asc_EdgeData<KeyType,void> {};
 
 	/**
-	 * @brief      Base class for Node with parent Nodes
+	 * @brief      Base class for Node with parent nodes
 	 *
-	 * @tparam     KeyType        type for indexing Nodes
-	 * @tparam     k              the depth of the Node
-	 * @tparam     N              the maximum depth of Nodes in the simplicial complex
-	 * @tparam     NodeDataTypes  a util::type_holder array of Node types
-	 * @tparam     EdgeDataTypes  a util::type_holder array of Edge types
+	 * @tparam     KeyType        Typename of the Node index
+	 * @tparam     k              The Simplex dimension
+	 * @tparam     N              Dimension of the Complex
+	 * @tparam     NodeDataTypes  A util::type_holder array of Node types
+	 * @tparam     EdgeDataTypes  A util::type_holder array of Edge types
 	 */
-	template <class KeyType, size_t k, size_t N, class NodeDataTypes, class EdgeDataTypes>
-	struct asc_NodeDown : public asc_EdgeData<KeyType,typename util::type_get<k-1,EdgeDataTypes>::type> {
+	template <	class KeyType, 
+				size_t k, 
+				size_t N, 
+				class NodeDataTypes, 
+				class EdgeDataTypes>
+	struct asc_NodeDown : 
+			public asc_EdgeData<KeyType, 
+					typename util::type_get<k-1,EdgeDataTypes>::type> {
+		/** Alias the typename of the parent Node */
 		using DownNodeT = asc_Node<KeyType,k-1,N,NodeDataTypes,EdgeDataTypes>;
-		std::map<KeyType, DownNodeT*> _down;	/**< @brief Map of pointers to parents */
+		/** Map of indices to parent Node pointers*/
+		std::map<KeyType, DownNodeT*> _down;
 	};
 
 	/**
 	 * @brief      Base class for Node with children Nodes
 	 *
-	 * @tparam     KeyType        type for indexing Nodes
-	 * @tparam     k              the depth of the Node
-	 * @tparam     N              the maximum depth of Nodes in the simplicial complex
-	 * @tparam     NodeDataTypes  a util::type_holder array of Node types
-	 * @tparam     EdgeDataTypes  a util::type_holder array of Edge types
+	 * @tparam     KeyType        Typename of the Node index
+	 * @tparam     k              The Simplex dimension
+	 * @tparam     N              Dimension of the Complex
+	 * @tparam     NodeDataTypes  A util::type_holder array of Node types
+	 * @tparam     EdgeDataTypes  A util::type_holder array of Edge types
 	 */
-	template <class KeyType, size_t k, size_t N, class NodeDataTypes, class EdgeDataTypes>
+	template <	class KeyType, 
+				size_t k, 
+				size_t N, 
+				class NodeDataTypes, 
+				class EdgeDataTypes>
 	struct asc_NodeUp {
 		using UpNodeT = asc_Node<KeyType,k+1,N,NodeDataTypes,EdgeDataTypes>;
 		std::unordered_map<KeyType, UpNodeT*> _up;	/**< @brief Map of pointers to children */
@@ -147,11 +160,11 @@ namespace detail {
 	/**
 	 * @brief      Node with both parents and children 
 	 *
-	 * @tparam     KeyType        index typename
-	 * @tparam     k              level of the node
-	 * @tparam     N              max level of the simplicial complex
-	 * @tparam     NodeDataTypes  util::type_holder of node types
-	 * @tparam     EdgeDataTypes  util::type_holder of edge types
+	 * @tparam     KeyType        Typename of the Node index
+	 * @tparam     k              The Simplex dimension
+	 * @tparam     N              Dimension of the Complex
+	 * @tparam     NodeDataTypes  A util::type_holder of Node types
+	 * @tparam     EdgeDataTypes  A util::type_holder of Edge types
 	 */
 	template <class KeyType, size_t k, size_t N, class NodeDataTypes, class EdgeDataTypes>
 	struct asc_Node : public asc_NodeBase,
@@ -160,9 +173,21 @@ namespace detail {
 					  public asc_NodeUp<KeyType, k, N, NodeDataTypes, EdgeDataTypes>
 	{
 		static constexpr size_t level = k;
-
+		/**
+		 * @brief      Default constructor
+		 *
+		 * @param[in]  id    The internal integer identifier.
+		 */
 		asc_Node(int id) : asc_NodeBase(id) {}
-        
+
+       	/**
+       	 * @brief      Print the Node out for debugging only
+       	 *
+       	 * @param      output  The output stream.
+       	 * @param[in]  node    The Node of interest to print.
+       	 *
+       	 * @return     A handle to the output stream.
+       	 */
         friend std::ostream& operator<<(std::ostream& output, const asc_Node& node){
             output  << "Node(level=" << k << ", " << "id=" << node._node;
             if(node._down.size() > 0)
@@ -181,22 +206,36 @@ namespace detail {
 	};
 
 	/**
-	 * @brief      Root node with only children
+	 * @brief      Node with only children i.e., the root.
 	 *
-	 * @tparam     KeyType        index typename
-	 * @tparam     N              max level of the simplicial complex
-	 * @tparam     NodeDataTypes  util::type_holder of node types
-	 * @tparam     EdgeDataTypes  util::type_holder of edge types
+	 * @tparam     KeyType        Typename of the Node index
+	 * @tparam     N              The Simplex dimension
+	 * @tparam     NodeDataTypes  A util::type_holder of Node types
+	 * @tparam     EdgeDataTypes  A util::type_holder of Edge types
 	 */
 	template <class KeyType, size_t N, class NodeDataTypes, class EdgeDataTypes>
-	struct asc_Node<KeyType,0,N,NodeDataTypes,EdgeDataTypes> : public asc_NodeBase,
-											 public asc_NodeData<typename util::type_get<0,NodeDataTypes>::type>,
-											 public asc_NodeUp<KeyType, 0, N, NodeDataTypes, EdgeDataTypes>
+	struct asc_Node<KeyType,0,N,NodeDataTypes,EdgeDataTypes> : 
+			public asc_NodeBase,
+			public asc_NodeData<typename util::type_get<0,NodeDataTypes>::type>,
+			public asc_NodeUp<KeyType, 0, N, NodeDataTypes, EdgeDataTypes>
 	{
 		static constexpr size_t level = 0;
 
+		/**
+		 * @brief      Default constructor
+		 *
+		 * @param[in]  id    The internal integer identifier.
+		 */
 		asc_Node(int id) : asc_NodeBase(id) {}
-       
+  
+       	/**
+       	 * @brief      Print the Node out for debugging only
+       	 *
+       	 * @param      output  The output stream.
+       	 * @param[in]  node    The Node of interest to print.
+       	 *
+       	 * @return     A handle to the output stream.
+       	 */ 
         friend std::ostream& operator<<(std::ostream& output, const asc_Node& node){
             output  << "Node(level=" << 0
                     << ", id=" << node._node;
@@ -213,10 +252,10 @@ namespace detail {
 	/**
 	 * @brief      Top level node with only parents
 	 *
-	 * @tparam     KeyType        index typename
-	 * @tparam     N              max level of the simplicial complex
-	 * @tparam     NodeDataTypes  util::type_holder of node types
-	 * @tparam     EdgeDataTypes  util::type_holder of edge types
+	 * @tparam     KeyType        Typename of the Node index
+	 * @tparam     N              The Simplex dimension
+	 * @tparam     NodeDataTypes  A util::type_holder of Node types
+	 * @tparam     EdgeDataTypes  A util::type_holder of Edge types
 	 */
 	template <class KeyType, size_t N, class NodeDataTypes, class EdgeDataTypes>
 	struct asc_Node<KeyType,N,N,NodeDataTypes,EdgeDataTypes> : public asc_NodeBase,
@@ -224,9 +263,21 @@ namespace detail {
 					  						 public asc_NodeDown<KeyType, N, N, NodeDataTypes, EdgeDataTypes>
 	{
 		static constexpr size_t level = N;
-
+		/**
+		 * @brief      Default constructor
+		 *
+		 * @param[in]  id    The internal integer identifier.
+		 */
 		asc_Node(int id) : asc_NodeBase(id) {}
        
+        /**
+       	 * @brief      Print the Node out for debugging only
+       	 *
+       	 * @param      output  The output stream.
+       	 * @param[in]  node    The Node of interest to print.
+       	 *
+       	 * @return     A handle to the output stream.
+       	 */
         friend std::ostream& operator<<(std::ostream& output, const asc_Node& node){
             output  << "Node(level=" << N
                     << ", id=" << node._node;
@@ -240,8 +291,12 @@ namespace detail {
         }
 	};
 
+
 	/*
-	 * These are iterator adapters. The use of boost libraries is indicated.
+	 * @brief      An iterator adapter to iterate over NodeIDs 
+	 *
+	 * @tparam     Iter  Typename of the iterator
+	 * @tparam     Data  Typename of the data
 	 */
 	template <typename Iter, typename Data>
 	struct node_id_iterator : public std::iterator<std::bidirectional_iterator_tag, Data> {
@@ -261,9 +316,27 @@ namespace detail {
 		Iter i;
 	};
 
+	/**
+	 * @brief      Convert an iterator into a node_id_iterator.
+	 *
+	 * @param[in]  j     The iterator to wrap 
+	 *
+	 * @tparam     Iter  Typename of the iterator
+	 * @tparam     Data  Typename of the data
+	 *
+	 * @return     An iterator over NodeIDs.
+	 */
 	template <typename Iter, typename Data>
-	inline node_id_iterator<Iter,Data> make_node_id_iterator(Iter j) { return node_id_iterator<Iter,Data>(j); }
+	inline node_id_iterator<Iter,Data> make_node_id_iterator(Iter j) { 
+		return node_id_iterator<Iter,Data>(j);
+	}
 
+	/**
+	 * @brief      An iterator adapter to iterate over Node data. 
+	 *
+	 * @tparam     Iter  Typename of the iterator
+	 * @tparam     Data  Typename of the data
+	 */
 	template <typename Iter, typename Data>
 	struct node_data_iterator : public std::iterator<std::bidirectional_iterator_tag, Data> {
 	public:
@@ -282,17 +355,27 @@ namespace detail {
 		Iter i;
 	};
 
+	/**
+	 * @brief      Convert an iterator into a node_data_iterator.
+	 *
+	 * @param[in]  j     The iterator to wrap
+	 *
+	 * @tparam     Iter  Typename of the iterator
+	 * @tparam     Data  Typename of the data
+	 *
+	 * @return     An iterator over Node data.
+	 */
 	template <typename Iter, typename Data>
-	inline 
-	node_data_iterator<Iter,Data> make_node_data_iterator(Iter j) { return node_data_iterator<Iter,Data>(j); }
-} // end namespace
-
+	inline node_data_iterator<Iter,Data> make_node_data_iterator(Iter j) { 
+		return node_data_iterator<Iter,Data>(j);
+	}
+} // end namespace detail
 
 /**
  * @brief      Helper to expand traits for AbstractSimplicialComplex
  *
- * @tparam     K     KeyType
- * @tparam     Ts    Types for each level
+ * @tparam     K     Typename of the simplex KeyType
+ * @tparam     Ts    Types for nodes and edges.
  */
 template <typename K, typename... Ts>
 struct simplicial_complex_traits_default
@@ -301,18 +384,17 @@ struct simplicial_complex_traits_default
 	using KeyType = K;
 	using NodeTypes = util::type_holder<Ts...>;
 	using EdgeTypes = typename util::int_type_map<std::size_t,
-									                util::type_holder,
-									                typename std::make_index_sequence<sizeof...(Ts)-1>,
-									                all_void>::type;
+				util::type_holder,
+				typename std::make_index_sequence<sizeof...(Ts)-1>,
+				all_void>::type;
 };
 
 
 /**
- * @class SimplicialComplex
+ * @class simplicial_complex
  *
- * @brief Class for simplicial complex.
- *
- * @author John Moody and Chris Lee
+ * @brief The CASC data structure for representing simplicial complexes of 
+ * arbitrary dimensionlity with coloring.
  *
  * @tparam     traits  The traits defining the KeyType, NodeTypes and EdgeTypes.
  */
@@ -336,9 +418,11 @@ public:
 
 	friend struct SimplexID;
 	/**
-	 * @brief      SimplexID is an external reference to a simplex of the complex.
+	 * @brief      A handle for a simplex in the complex.
+	 * 
+	 * SimplexID wraps a Node* for external handling.
 	 *
-	 * @tparam     k     Size of the simplex.
+	 * @tparam     k     Simplex dimension
 	 */
 	template <std::size_t k>
 	struct SimplexID {
@@ -366,21 +450,42 @@ public:
 		auto const&& data() const { return ptr->_data; }
 		auto&& data() { return ptr->_data; }
 
-		// Full debug print
+		/**
+		 * @brief      A full debug printout of of the node itself
+		 *
+		 * @param      out   Handle to the stream
+		 * @param[in]  nid   Node of interest
+		 *
+		 * @return     Handle to the stream
+		 */
 		//friend std::ostream& operator<<(std::ostream& out, const SimplexID& nid){ out << *nid.ptr; return out; }
 		
-		// Something inbetween
-		friend std::ostream& operator<<(std::ostream& out, 
-				const SimplexID& nid){
-			// We really need a static_if here...
-			out << "s{";
-			print_helper<k,0>::apply(out, nid);
-			out << "}";
-			return out;
-		}
+		/**
+		 * @brief      Print basic information about the simplex.
+		 *
+		 * @param      out   Handle to the stream
+		 * @param[in]  nid   Node of interest
+		 *
+		 * @return     Handle to the stream
+		 */
+		// friend std::ostream& operator<<(std::ostream& out, 
+		// 		const simplexid& nid){
+		// 	// we really need a static_if here...
+		// 	out << "s{";
+		// 	print_helper<k,0>::apply(out, nid);
+		// 	out << "}";
+		// 	return out;
+		// }
 
-		// Don't share the secrets
-		//friend std::ostream& operator<<(std::ostream& out, const SimplexID& nid) { out << nid.ptr; return out; }
+		/**
+		 * @brief      Print the SimplexID as if it were an ID
+		 *
+		 * @param      out   Handle to the stream
+		 * @param[in]  nid   Node of interest
+		 *
+		 * @return     Handle to the stream
+		 */
+		friend std::ostream& operator<<(std::ostream& out, const SimplexID& nid) { out << nid.ptr; return out; }
 
 	private:
 		template <size_t l, size_t foo>
