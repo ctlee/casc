@@ -44,6 +44,7 @@ int  main(int argc, char *argv[])
 
     auto v = mesh.get_simplex_up({0,1,2});
     if(v != nullptr){
+        std::cout << v << std::endl;
         for(auto c : mesh.get_name(v)){
             std::cout << c << " ";
         }
