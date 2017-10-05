@@ -1088,28 +1088,6 @@ class simplicial_complex
             return EdgeID<k>(nid.ptr, a);
         }
 
-        /**
-         * @brief      Gets the edge up
-         *
-         * @param[in]  nid   The nid
-         * @param[in]  a     Key of the edge to get.
-         *
-         * @tparam     k     The level of the simplex of interest
-         *
-         * @return     The edge up.
-         */
-        template <size_t k>
-        auto get_edge_up(SimplexID<k> nid, KeyType a)
-        {
-            return EdgeID<k+1>(nid.ptr->_up[a], a);
-        }
-
-        template <size_t k>
-        auto get_edge_down(SimplexID<k> nid, KeyType a)
-        {
-            return EdgeID<k>(nid.ptr, a);
-        }
-
         template <size_t k>
         auto get_edge_up(SimplexID<k> nid, KeyType a) const
         {
