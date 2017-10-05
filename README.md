@@ -50,7 +50,7 @@ We use [Bitbucket](https://bitbucket.org/fetk/casc) for versioning. For the vers
 
 ## License
 
-This project is licensed under the ... License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the ... License - see the [COPYING.md](COPYING.md) file for details
 
 ## Acknowledgments
 
