@@ -402,11 +402,10 @@ struct simplicial_complex_traits_default
     template <std::size_t k> using all_void = int;
     using KeyType   = K;
     using NodeTypes = util::type_holder<Ts...>;
-    using EdgeTypes = typename util::int_type_map<
-    		std::size_t,
-            util::type_holder,
-            typename std::make_index_sequence<sizeof ... (Ts)-1>,
-            all_void>::type;
+    using EdgeTypes = typename util::int_type_map<std::size_t,
+                                                  util::type_holder,
+                                                  typename std::make_index_sequence<sizeof ... (Ts)-1>,
+                                                  all_void>::type;
 };
 
 
@@ -445,12 +444,12 @@ class simplicial_complex
         /**
          * @brief      A handle for a simplex object in the complex.
          *
+         * @tparam     k     The Simplex dimension
+         *
          *             SimplexID wraps a Node* for external handling. This way
          *             the end users are never exposed to a raw pointer. For all
          *             general purposes algorithms should use and pass
          *             SimplexIDs over raw pointers.
-         *
-         * @tparam     k     The Simplex dimension
          */
         template <std::size_t k>
         struct SimplexID {
@@ -501,7 +500,6 @@ class simplicial_complex
 
             auto const && data() const { return ptr->_data; }
             auto        &&data() { return ptr->_data; }
-
 
             /**
              * @brief      Print the simplex as its name.
@@ -588,7 +586,6 @@ class simplicial_complex
 
                 NodePtr<k> ptr;
         };
-
 
         friend struct EdgeID; /**< EdgeID is a friend to simplicial_complex */
 
@@ -1101,6 +1098,18 @@ class simplicial_complex
          *
          * @return     The edge up.
          */
+        template <size_t k>
+        auto get_edge_up(SimplexID<k> nid, KeyType a)
+        {
+            return EdgeID<k+1>(nid.ptr->_up[a], a);
+        }
+
+        template <size_t k>
+        auto get_edge_down(SimplexID<k> nid, KeyType a)
+        {
+            return EdgeID<k>(nid.ptr, a);
+        }
+
         template <size_t k>
         auto get_edge_up(SimplexID<k> nid, KeyType a) const
         {
@@ -1640,10 +1649,11 @@ void neighbors_up(Complex &F, SimplexID nid, InsertIter iter)
  *neighbors_up visitor pattern
  */
 template <class Complex, std::size_t level>
-std::set<typename Complex::template SimplexID<level> > kneighbors_up(Complex                                                &F,
-                                                                     std::set<typename Complex::template SimplexID<level> > &nodes,
-                                                                     std::set<typename Complex::template SimplexID<level> >  next,
-                                                                     int                                                     ring)
+std::set<typename Complex::template SimplexID<level> > kneighbors_up(
+    Complex                                                &F,
+    std::set<typename Complex::template SimplexID<level> > &nodes,
+    std::set<typename Complex::template SimplexID<level> >  next,
+    int                                                     ring)
 {
     if (ring == 0)
     {
