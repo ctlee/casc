@@ -1424,9 +1424,9 @@ class simplicial_complex
 
     private:
         /**
-         * @brief      Recursively deletes dependent nodes.
+         * @brief      Base case for recursively deleting simplices.
          *
-         * @tparam     level  Simplex dimension fot operate at.
+         * @tparam     level  Simplex dimension to operate at.
          * @tparam     foo    Dummy argument to avoid explicit specialization in
          *                    class scope
          */
@@ -1434,16 +1434,18 @@ class simplicial_complex
         struct remove_recurse
         {
             /**
-             * @brief      { function_description }
+             * @brief      Recursively remove simplices.
              *
-             * @param      that   The that
-             * @param[in]  begin  The begin
-             * @param[in]  end    The end
-             * @param      count  The count
+             * @param      that   The CASC object
+             * @param[in]  begin  Iterator to beginning of the set of simplices
+             *                    to remove.
+             * @param[in]  end    Iterator to the end of the set.
+             * @param      count  Number of simplices removed already.
              *
-             * @tparam     T      { description }
+             * @tparam     T      Typename of the iterator.
              *
-             * @return     { description_of_the_return_value }
+             * @return     Recurse to the next level and remove coboundary
+             *             simplices.
              */
             template <typename T>
             static size_t apply(type_this* that, T begin, T end, size_t &count)
@@ -1465,7 +1467,7 @@ class simplicial_complex
         };
 
         /**
-         * @brief      Terminal condition fo rremove_recurse.
+         * @brief      Terminal condition for remove_recurse.
          *
          * @tparam     foo   Dummy argument to avoid explicit specialization in
          *                   class scope
@@ -1474,16 +1476,17 @@ class simplicial_complex
         struct remove_recurse<numLevels-1, foo>
         {
             /**
-             * @brief      { function_description }
+             * @brief      Remove the facets of the complex.
              *
-             * @param      that   The that
-             * @param[in]  begin  The begin
-             * @param[in]  end    The end
-             * @param      count  The count
+             * @param      that   The CASC object
+             * @param[in]  begin  Iterator to beginning of the set of simplices
+             *                    to remove.
+             * @param[in]  end    Iterator to the end of the set.
+             * @param      count  Number of simplices removed already.
              *
-             * @tparam     T      { description }
+             * @tparam     T      Typename of the iterator.
              *
-             * @return     { description_of_the_return_value }
+             * @return     The number of simplices removed
              */
             template <typename T>
             static size_t apply(type_this* that, T begin, T end, size_t &count)
@@ -1498,12 +1501,12 @@ class simplicial_complex
         };
 
         /**
-         * @brief      { struct_description }
+         * @brief      Recursively retrieve a simplex of interest.
          *
          * @tparam     i     { description }
          * @tparam     n     { description }
          */
-        template <size_t i, size_t n>
+        template <size_t level, size_t n>
         struct get_recurse
         {
             /**
@@ -1515,7 +1518,7 @@ class simplicial_complex
              *
              * @return     { description_of_the_return_value }
              */
-            static Node<i+n>* apply(const type_this* that, const KeyType* s, Node<i>* root)
+            static Node<level+n>* apply(const type_this* that, const KeyType* s, Node<level>* root)
             {
                 // TODO: We probably don't need to check if root is a valid
                 // simplex (10)
@@ -1524,7 +1527,7 @@ class simplicial_complex
                     auto p = root->_up.find(*s);
                     if (p != root->_up.end())
                     {
-                        return get_recurse<i+1, n-1>::apply(that, s+1, root->_up[*s]);
+                        return get_recurse<level+1, n-1>::apply(that, s+1, root->_up[*s]);
                     }
                     else
                     {
@@ -1541,10 +1544,10 @@ class simplicial_complex
         /**
          * @brief      { struct_description }
          *
-         * @tparam     i     { description }
+         * @tparam     level  { description }
          */
-        template <size_t i>
-        struct  get_recurse<i, 0>
+        template <size_t level>
+        struct  get_recurse<level, 0>
         {
             /**
              * @brief      { function_description }
@@ -1555,7 +1558,7 @@ class simplicial_complex
              *
              * @return     { description_of_the_return_value }
              */
-            static Node<i>* apply(const type_this* that, const KeyType* s, Node<i>* root)
+            static Node<level>* apply(const type_this* that, const KeyType* s, Node<level>* root)
             {
                 return root;
             }
@@ -1564,10 +1567,10 @@ class simplicial_complex
         /**
          * @brief      { struct_description }
          *
-         * @tparam     i     { description }
-         * @tparam     n     { description }
+         * @tparam     level  { description }
+         * @tparam     n      { description }
          */
-        template <size_t i, size_t n>
+        template <size_t level, size_t n>
         struct get_down_recurse
         {
             /**
@@ -1579,14 +1582,14 @@ class simplicial_complex
              *
              * @return     { description_of_the_return_value }
              */
-            static Node<i-n>* apply(const type_this* that, const KeyType* s, Node<i>* root)
+            static Node<level-n>* apply(const type_this* that, const KeyType* s, Node<level>* root)
             {
                 if (root)
                 {
                     auto p = root->_down.find(*s);
                     if (p != root->_down.end())
                     {
-                        return get_recurse<i-1, n-1>::apply(that, s+1, root->_down[*s]);
+                        return get_recurse<level-1, n-1>::apply(that, s+1, root->_down[*s]);
                     }
                     else
                     {
@@ -1603,10 +1606,10 @@ class simplicial_complex
         /**
          * @brief      { struct_description }
          *
-         * @tparam     i     { description }
+         * @tparam     level  { description }
          */
-        template <size_t i>
-        struct  get_down_recurse<i, 0>
+        template <size_t level>
+        struct  get_down_recurse<level, 0>
         {
             /**
              * @brief      { function_description }
@@ -1617,7 +1620,7 @@ class simplicial_complex
              *
              * @return     { description_of_the_return_value }
              */
-            static Node<i>* apply(const type_this* that, const KeyType* s, Node<i>* root)
+            static Node<level>* apply(const type_this* that, const KeyType* s, Node<level>* root)
             {
                 return root;
             }
@@ -1941,16 +1944,21 @@ using AbstractSimplicialComplex = simplicial_complex<
 
 
 /**
- * @brief      Push the immediate face neighbors into the provided iterator
+ * @brief      Push the immediate face neighbors into the provided iterator.
+ * 
+ *  This function gets the set of neighbors which share a common face. We compute
+ *  this by traversing to all faces of the simplex of interest. Then we get all
+ *  cofaces of this set. Depending on the type of iterator passed, duplicate simplices
+ *  will be included or excluded. Note that this is the traditional definition of
+ *  neighbor. For example, faces which share an edge are neighbors.
  *
- * @param      F           The full complex
- * @param[in]  <unnamed>   { parameter_description }
- * @param[in]  iter        The iterator
- * @param[in]  nid   Simplex to get neighbors of
+ * @param      F           The simplicial complex
+ * @param[in]  nid         Simplex to get neighbors of.
+ * @param[in]  iter        The iterator to push members into.
  *
  * @tparam     Complex     Type of the simplicial complex
  * @tparam     level       The integral level of the node
- * @tparam     InsertIter  Iterator type
+ * @tparam     InsertIter  Typename of the iterator.
  */
 template <class Complex, std::size_t level, class InsertIter>
 void neighbors(Complex &F, typename Complex::template SimplexID<level> nid, InsertIter iter)
@@ -1973,13 +1981,13 @@ void neighbors(Complex &F, typename Complex::template SimplexID<level> nid, Inse
  * @brief      This is a helper function to assist neighbors to automatically
  *             deduce the integral level.
  *
- * @param      F           { parameter_description }
- * @param[in]  nid         The nid
- * @param[in]  iter        The iterator
+ * @param      F           The simplicial complex.
+ * @param[in]  nid         Simplex to get neighbors of.
+ * @param[in]  iter        The iterator to push members into.
  *
- * @tparam     Complex     { description }
- * @tparam     SimplexID   { description }
- * @tparam     InsertIter  { description }
+ * @tparam     Complex     Type of the simplicial complex
+ * @tparam     level       The integral level of the node
+ * @tparam     InsertIter  Typename of the iterator.
  */
 template <class Complex, class SimplexID, class InsertIter>
 void neighbors(Complex &F, SimplexID nid, InsertIter iter)
@@ -1987,18 +1995,16 @@ void neighbors(Complex &F, SimplexID nid, InsertIter iter)
     neighbors<Complex, SimplexID::level, InsertIter>(F, nid, iter);
 }
 
-
 /**
- * @brief      Push the immediate coface neighbors into the provided iterator
+ * @brief      Push the immediate coface neighbors into the provided iterator.
  *
- * @param      F           The full complex
- * @param[in]  <unnamed>   { parameter_description }
- * @param[in]  iter        The iterator
- * @param[in]  nid   Simplex to get neighbors of
+ * @param      F           The simplicial complex.
+ * @param[in]  nid         Simplex to get neighbors of.
+ * @param[in]  iter        The iterator to push members into.
  *
  * @tparam     Complex     Type of the simplicial complex
  * @tparam     level       The integral level of the node
- * @tparam     InsertIter  Iterator type
+ * @tparam     InsertIter  Typename of the iterator.
  */
 template <class Complex, std::size_t level, class InsertIter>
 void neighbors_up(Complex &F, typename Complex::template SimplexID<level> nid, InsertIter iter)
@@ -2021,13 +2027,13 @@ void neighbors_up(Complex &F, typename Complex::template SimplexID<level> nid, I
  * @brief      This is a helper function to assist neighbors to automatically
  *             deduce the integral level.
  *
- * @param      F           { parameter_description }
- * @param[in]  nid         The nid
- * @param[in]  iter        The iterator
+ * @param      F           The simplicial complex.
+ * @param[in]  nid         Simplex to get neighbors of.
+ * @param[in]  iter        The iterator to push members into.
  *
- * @tparam     Complex     { description }
- * @tparam     SimplexID   { description }
- * @tparam     InsertIter  { description }
+ * @tparam     Complex     Type of the simplicial complex
+ * @tparam     level       The integral level of the node
+ * @tparam     InsertIter  Typename of the iterator.
  */
 template <class Complex, class SimplexID, class InsertIter>
 void neighbors_up(Complex &F, SimplexID nid, InsertIter iter)
