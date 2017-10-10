@@ -38,7 +38,14 @@
 int  main(int argc, char *argv[])
 {
 
-    auto mesh = AbstractSimplicialComplex<int,int,int,int,int,int>();
+    auto mesh = AbstractSimplicialComplex<
+        int, // KEYTYPE
+        int, // Root data
+        int, // Vertex data
+        int, // Edge data
+        int, // Face data
+        int  // Volume data
+    >();
 
     mesh.insert<3>({0,1,2});
 
