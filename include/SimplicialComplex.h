@@ -19,7 +19,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
- * ****************************************************************************
+ * ***************************************************************************
  */
 
 /**
@@ -54,7 +54,7 @@ template <class T> using map = std::map<size_t, T>;
 
 /**
  * @brief Template prototype for Nodes in CASC.
- * 
+ *
  * asc_Node must be defined outside of simplicial_complex because C++ does
  * not allow internal templates to be partially specialized. This template
  * prototype is later specialized to represent various Node roles.
@@ -150,6 +150,7 @@ template <  class KeyType,
             class NodeDataTypes,
             class EdgeDataTypes>
 struct asc_NodeUp {
+    /// Typename of the nodes up.
     using UpNodeT = asc_Node<KeyType, k+1, N, NodeDataTypes, EdgeDataTypes>;
     std::unordered_map<KeyType, UpNodeT*> _up;      /**< @brief Map of pointers
                                                        to children */
@@ -170,7 +171,9 @@ struct asc_Node : public asc_NodeBase,
                   public asc_NodeDown<KeyType, k, N, NodeDataTypes, EdgeDataTypes>,
                   public asc_NodeUp<KeyType, k, N, NodeDataTypes, EdgeDataTypes>
 {
+    /// Dimension of the simplex.
     static constexpr size_t level = k;
+
     /**
      * @brief      Default constructor
      *
@@ -188,26 +191,26 @@ struct asc_Node : public asc_NodeBase,
      */
     friend std ::ostream &operator<<(std::ostream &output, const asc_Node &node)
     {
-        output  << "Node(level=" << k << ", " << "id=" << node._node;
+        output << "Node(level=" << k << ", " << "id=" << node._node;
         if (node._down.size() > 0)
         {
             for (auto it = node._down.cbegin(); it != node._down.cend(); ++it)
             {
-                output  << ", NodeDownID={'"
-                << it->first << "', "
-                << it->second->_node << "}";
+                output << ", NodeDownID={'"
+                       << it->first << "', "
+                       << it->second->_node << "}";
             }
         }
         if (node._up.size() > 0)
         {
             for (auto it = node._up.cbegin(); it != node._up.cend(); ++it)
             {
-                output  << ", NodeUpID={'"
-                << it->first << "', "
-                << it->second->_node << "}";
+                output << ", NodeUpID={'"
+                       << it->first << "', "
+                       << it->second->_node << "}";
             }
         }
-        output  << ")";
+        output << ")";
         return output;
     }
 };
@@ -226,6 +229,7 @@ struct asc_Node<KeyType, 0, N, NodeDataTypes, EdgeDataTypes> :
     public asc_NodeData<typename util::type_get<0, NodeDataTypes>::type>,
     public asc_NodeUp<KeyType, 0, N, NodeDataTypes, EdgeDataTypes>
 {
+    /// Dimension of the simplex.
     static constexpr size_t level = 0;
 
     /**
@@ -245,15 +249,15 @@ struct asc_Node<KeyType, 0, N, NodeDataTypes, EdgeDataTypes> :
      */
     friend std ::ostream &operator<<(std::ostream &output, const asc_Node &node)
     {
-        output  << "Node(level=" << 0
-        << ", id=" << node._node;
+        output << "Node(level=" << 0
+               << ", id=" << node._node;
         if (node._up.size() > 0)
         {
             for (auto it = node._up.cbegin(); it != node._up.cend(); ++it)
             {
-                output  << ", NodeUpID={'"
-                << it->first << "', "
-                << it->second->_node << "}";
+                output << ", NodeUpID={'"
+                       << it->first << "', "
+                       << it->second->_node << "}";
             }
         }
         output << ")";
@@ -270,13 +274,14 @@ struct asc_Node<KeyType, 0, N, NodeDataTypes, EdgeDataTypes> :
  * @tparam     EdgeDataTypes  A util::type_holder of Edge types
  */
 template <class KeyType, size_t N, class NodeDataTypes, class EdgeDataTypes>
-struct asc_Node<KeyType, N, N, NodeDataTypes, EdgeDataTypes> : 
-	public asc_NodeBase,
+struct asc_Node<KeyType, N, N, NodeDataTypes, EdgeDataTypes> :
+    public asc_NodeBase,
     public asc_NodeData<typename util::type_get<N, NodeDataTypes>::type>,
     public asc_NodeDown<KeyType, N, N, NodeDataTypes, EdgeDataTypes>
 {
+    /// Dimension of the simplex.
     static constexpr size_t level = N;
-    
+
     /**
      * @brief      Default constructor
      *
@@ -294,15 +299,15 @@ struct asc_Node<KeyType, N, N, NodeDataTypes, EdgeDataTypes> :
      */
     friend std ::ostream &operator<<(std::ostream &output, const asc_Node &node)
     {
-        output  << "Node(level=" << N
-        << ", id=" << node._node;
+        output << "Node(level=" << N
+               << ", id=" << node._node;
         if (node._down.size() > 0)
         {
             for (auto it = node._down.cbegin(); it != node._down.cend(); ++it)
             {
-                output  << ", NodeDownID={'"
-                << it->first << "', "
-                << it->second->_node << "}";
+                output << ", NodeDownID={'"
+                       << it->first << "', "
+                       << it->second->_node << "}";
             }
         }
         output << ")";
@@ -310,7 +315,7 @@ struct asc_Node<KeyType, N, N, NodeDataTypes, EdgeDataTypes> :
     }
 };
 
-/*
+/**
  * @brief      An iterator adapter to iterate over NodeIDs.
  *
  * @tparam     Iter  Typename of the iterator
@@ -319,18 +324,30 @@ struct asc_Node<KeyType, N, N, NodeDataTypes, EdgeDataTypes> :
 template <typename Iter, typename Data>
 struct node_id_iterator : public std::iterator<std::bidirectional_iterator_tag, Data> {
     public:
+        /// Inherit from a bidirectional std::iterator.
         using super = std::iterator<std::bidirectional_iterator_tag, Data>;
+        /// Empty constructor
         node_id_iterator() {}
+        /// Instantiate with an iterator to wrap
         node_id_iterator(Iter j) : i(j) {}
+        /// Increment the iterator
         node_id_iterator &operator++() { ++i; return *this; }
+        /// Increment the iterator
         node_id_iterator operator++(int) { auto tmp = *this; ++(*this); return tmp; }
+        /// Decrement the iterator
         node_id_iterator &operator--() { --i; return *this; }
+        /// Decrement hte iterator
         node_id_iterator operator--(int) { auto tmp = *this; --(*this); return tmp; }
+        /// Iterator equality comparison
         bool operator==(node_id_iterator j) const { return i == j.i; }
+        /// Iterator inequality comparison
         bool operator!=(node_id_iterator j) const { return !(*this == j); }
+        /// Dereferencing the iterator produces a SimplexID.
         Data operator*() { return Data(i->second); }
+        /// Dereferencing the iterator produces a SimplexID.
         typename super::pointer operator->() { return Data(i->second); }
     protected:
+        /// The iterator to wrap.
         Iter i;
 };
 
@@ -359,18 +376,30 @@ inline node_id_iterator<Iter, Data> make_node_id_iterator(Iter j)
 template <typename Iter, typename Data>
 struct node_data_iterator : public std::iterator<std::bidirectional_iterator_tag, Data> {
     public:
+        /// Inherit from a bidirectional std::iterator.
         using super = std::iterator<std::bidirectional_iterator_tag, Data>;
+        /// Empty constructor.
         node_data_iterator() {}
+        /// Instantiate with an iterator to wrap.
         node_data_iterator(Iter j) : i(j) {}
+        /// Increment the iterator
         node_data_iterator &operator++() { ++i; return *this; }
+        /// Increment the iterator
         node_data_iterator operator++(int) { auto tmp = *this; ++(*this); return tmp; }
+        /// Decrement the iterator
         node_data_iterator &operator--() { --i; return *this; }
+        /// Decrement the iterator
         node_data_iterator operator--(int) { auto tmp = *this; --(*this); return tmp; }
+        /// Iterator comparison
         bool operator==(node_data_iterator j) const { return i == j.i; }
+        /// Iterator inequality comparison
         bool operator!=(node_data_iterator j) const { return !(*this == j); }
+        /// Dereferencing the iterator produces the data.
         typename super::reference operator*() { return i->second->_data; }
+        /// Dereferencing the iterator produces the data.
         typename super::pointer operator->() { return i->second->_data; }
     protected:
+        /// The wrapped iterator.
         Iter i;
 };
 
@@ -392,7 +421,8 @@ inline node_data_iterator<Iter, Data> make_node_data_iterator(Iter j)
 } // end namespace detail
 
 /**
- * @brief      Helper to build a traits struct via expanding explicitly specified
+ * @brief      Helper to build a traits struct via expanding explicitly
+ * specified
  *             traits from AbstractSimplicialComplex.
  *
  * @tparam     K     Typename for the KeyType
@@ -401,14 +431,17 @@ inline node_data_iterator<Iter, Data> make_node_data_iterator(Iter j)
 template <typename K, typename ... Ts>
 struct simplicial_complex_traits_default
 {
-    template <std::size_t k> using all_void = int;
+    /// Template to assign ints for all levels.
+    template <std::size_t k> using all_int = int;
+    /// Alias for KeyType
     using KeyType   = K;
+    /// The typenames of the data to be stored on simplices.
     using NodeTypes = util::type_holder<Ts...>;
-    // Assign int type to all edges
+    /// Assign all_int type to all edges
     using EdgeTypes = typename util::int_type_map<std::size_t,
                                                   util::type_holder,
                                                   typename std::make_index_sequence<sizeof ... (Ts)-1>,
-                                                  all_void>::type;
+                                                  all_int>::type;
 };
 
 
@@ -419,17 +452,17 @@ struct simplicial_complex_traits_default
  *             arbitrary dimensionality with coloring.
  *
  * You can create a CASC object by defining a struct containing the
- * traits of the complex. For example: 
+ * traits of the complex. For example:
  * ~~~~~~~~~~~~~~~{.cpp}
  * struct complex_traits{
  *     using KeyType = int;
  *     using NodeTypes = util::type_holder<int,int,int,int>;
  *     using EdgeTypes = util::type_holder<int,int,int>;
  * };
- * 
+ *
  * using SurfaceMesh = simplicial_complex<complex_traits>;
  * ~~~~~~~~~~~~~~~
- * This is the preferred method for creating a new CASC type. Alternatively you 
+ * This is the preferred method for creating a new CASC type. Alternatively you
  * can use the ::AbstractSimplicialComplex alias to build a struct for you.
  *
  * @tparam     traits  A struct defining the dimension of the complex and data
@@ -439,39 +472,50 @@ template <typename traits>
 class simplicial_complex
 {
     public:
-        using KeyType                   = typename traits::KeyType;
-        using NodeDataTypes             = typename traits::NodeTypes;
-        using EdgeDataTypes             = typename traits::EdgeTypes;
-        using type_this                 = simplicial_complex<traits>;
+        /// Typename of simplex keys.
+        using KeyType = typename traits::KeyType;
+        /// Typenames of the data stored on simplices.
+        using NodeDataTypes = typename traits::NodeTypes;
+        /// Typenames of the data stored on edges.
+        using EdgeDataTypes = typename traits::EdgeTypes;
+        /// Type of this 
+        using type_this = simplicial_complex<traits>;
+        /// Total number of levels in the complex.
         static constexpr auto numLevels = NodeDataTypes::size;
+        /// Dimension of the simplicial complex.
         static constexpr auto topLevel  = numLevels-1;
-        using LevelIndex                = typename std::make_index_sequence<numLevels>;
+        /// Index of all simplex dimensions in the complex.
+        using LevelIndex = typename std::make_index_sequence<numLevels>;
     private:
-    	/// Alias templated asc_node<...> as Node<k>
-        template <std::size_t k> using Node     = detail::asc_Node<KeyType, k, topLevel, NodeDataTypes, EdgeDataTypes>;
+        /// Alias templated asc_node<...> as Node<k>
+        template <std::size_t k> using Node = detail::asc_Node<KeyType, k, topLevel, NodeDataTypes, EdgeDataTypes>;
         /// Alias Node<k>* as NodePtr<k>
-        template <std::size_t k> using NodePtr  = Node<k>*;
+        template <std::size_t k> using NodePtr = Node<k>*;
 
     public:
-    	/** Convenience alias for the user specified NodeData<k> typename */
+        /** Convenience alias for the user specified NodeData<k> typename */
         template <std::size_t k> using NodeData = typename util::type_get<k, NodeDataTypes>::type;
         /** Convenience alias for the user specified EdgeData<k> typename */
         template <std::size_t k> using EdgeData = typename util::type_get<k, EdgeDataTypes>::type;
 
-        friend struct SimplexID; /**< SimplexID is a friend of simplicial_complex */
+        friend struct SimplexID; /**< SimplexID is a friend of
+                                    simplicial_complex */
         /**
          * @brief      A handle for a simplex object in the complex.
          *
          * SimplexID wraps a Node* for external handling. This way
-         * the end users are never exposed to a raw pointer. For all general 
+         * the end users are never exposed to a raw pointer. For all general
          * purposes algorithms should use and pass SimplexIDs over raw pointers.
          *
          * @tparam     k     The Simplex dimension.
          */
         template <std::size_t k>
         struct SimplexID {
+            /// Typename of the complex
             using complex = simplicial_complex<traits>;
+            /// SimplexID is a friend of the complex
             friend simplicial_complex<traits>;
+            /// The dimension fo the simplex.
             static constexpr size_t level = k;
 
             /**
@@ -496,7 +540,7 @@ class simplicial_complex
             /// Assignment operator
             SimplexID &operator=(const SimplexID &rhs) { ptr = rhs.ptr; return *this;}
 
-            /// Equality of wrapped pointers  
+            /// Equality of wrapped pointers
             friend bool operator==(SimplexID lhs, SimplexID rhs) { return lhs.ptr == rhs.ptr; }
             /// Inequality of wrapped pointers
             friend bool operator!=(SimplexID lhs, SimplexID rhs) { return lhs.ptr != rhs.ptr; }
@@ -509,13 +553,17 @@ class simplicial_complex
             /// Compare wrapped pointers
             friend bool operator>(SimplexID lhs, SimplexID rhs)  { return lhs.ptr > rhs.ptr; }
 
-            /// Support casting 
+            /// Support casting to uintptr_t for hashing.
             explicit operator std::uintptr_t () const { return reinterpret_cast<std::uintptr_t>(ptr); }
 
-            auto const && operator*() const { return ptr->_data; }
+            /// Dereferencing a SimplexID returns the data stored.
+            auto const &&operator*() const { return ptr->_data; }
+            /// Dereferencing a SimplexID returns the data stored.
             auto &&operator*() { return ptr->_data; }
 
-            auto const && data() const { return ptr->_data; }
+            /// Get the data stored.
+            auto const &&data() const { return ptr->_data; }
+            /// Get the data stored.
             auto        &&data() { return ptr->_data; }
 
             /**
@@ -525,26 +573,29 @@ class simplicial_complex
              * @param[in]  nid   SimplexID of interest
              *
              * @return     Handle to the stream
-             * 
-             * Example 
+             *
+             * Example
              * ~~~~~~~~~~~~~~~(.c)
              * mesh.insert<3>({0,1,2});
              * std::cout << s << std::endl;
              * s{0,1,2}"
              * ~~~~~~~~~~~~~~~
              */
-            friend std::ostream& operator<<(std::ostream& out,
-                 const SimplexID& nid){
-             // currently no such thing as static_if in c++ so we use a template
-             // helper
-             out << "s{";
-             print_helper<k,0>::apply(out, nid);
-             out << "}";
-             return out;
+            friend std ::ostream &operator<<(std::ostream    &out,
+                                             const SimplexID &nid)
+            {
+                // currently no such thing as static_if in c++ so we use a
+                // template
+                // helper
+                out << "s{";
+                print_helper<k, 0>::apply(out, nid);
+                out << "}";
+                return out;
             }
 
 
-            // NOTE: Manually swap out these print functions for debugging if desired. 
+            // NOTE: Manually swap out these print functions for debugging if
+            // desired.
             // /**
             //  * @brief      A full debug printout of of the node itself
             //  *
@@ -558,7 +609,7 @@ class simplicial_complex
 
             // /**
             //  * @brief      Print the SimplexID as an ID.
-            //  * 
+            //  *
             //  * Example "0x7fd502402f10"
             //  *
             //  * @param      out   Handle to the stream
@@ -566,19 +617,29 @@ class simplicial_complex
             //  *
             //  * @return     Handle to the stream
             //  */
-            // friend std ::ostream &operator<<(std::ostream &out, const SimplexID &nid) { out << nid.ptr; return out; }
+            // friend std ::ostream &operator<<(std::ostream &out, const
+            // SimplexID &nid) { out << nid.ptr; return out; }
 
             private:
                 /**
                  * @brief      Base Case helper for printing SimplexIDs.
                  *
                  * @tparam     l     The Simplex dimension
-                 * @tparam     foo   Dummy argument to avoid explicit specialization
+                 * @tparam     foo   Dummy argument to avoid explicit
+                 * specialization
                  *                   in class scope
                  */
                 template <size_t l, size_t foo>
                 struct print_helper
                 {
+                    /**
+                     * @brief      Print out the name of the simplex.
+                     * 
+                     * @param      out   Stream to pipe to.
+                     * @param[in]  nid   The simplex to print.
+                     *
+                     * @return     Handle to the output stream.
+                     */
                     static std::ostream &apply(std::ostream       &out,
                                                const SimplexID<l> &nid)
                     {
@@ -592,15 +653,24 @@ class simplicial_complex
                     }
                 };
 
- 				/**
- 				 * @brief      Explicit specialization to print 0-Simplices
- 				 *
- 				 * @tparam     foo   Dummy argument to avoid explicit specialization
- 				 *                   in class scope
- 				 */
+                /**
+                 * @brief      Explicit specialization to print 0-Simplices
+                 *
+                 * @tparam     foo   Dummy argument to avoid explicit
+                 * specialization
+                 *                   in class scope
+                 */
                 template <size_t foo>
                 struct print_helper<0, foo>
                 {
+                    /**
+                     * @brief      Print the root simplex
+                     *
+                     * @param      out   Stream to print to.
+                     * @param[in]  nid   The simplex to print.
+                     *
+                     * @return     Handle to the output stream.
+                     */
                     static std::ostream &apply(std::ostream    &out,
                                                const SimplexID &nid)
                     {
@@ -608,7 +678,7 @@ class simplicial_complex
                         return out;
                     }
                 };
-
+                /// The wrapped pointer.
                 NodePtr<k> ptr;
         };
 
@@ -623,8 +693,11 @@ class simplicial_complex
          */
         template <std::size_t k>
         struct EdgeID {
+            /// Typename of the complex
             using complex = simplicial_complex<traits>;
+            /// EdgeID is a friend of the complex
             friend simplicial_complex<traits>;
+            /// The dimension of the simplex which the edge points to.
             static constexpr size_t level = k;
 
             /**
@@ -652,33 +725,42 @@ class simplicial_complex
 
             /// Equality of wrapped pointers and edges
             friend bool operator==(EdgeID lhs, EdgeID rhs) { return lhs.ptr == rhs.ptr && lhs.edge == rhs.edge; }
+            /// Compare wrapped pointers and edges.
             friend bool operator!=(EdgeID lhs, EdgeID rhs) { return !(lhs == rhs); }
+            /// Compare wrapped pointers and edges.
             friend bool operator<=(EdgeID lhs, EdgeID rhs) { return lhs < rhs || lhs == rhs; }
+            /// Compare wrapped pointers and edges.
             friend bool operator>=(EdgeID lhs, EdgeID rhs) { return lhs > rhs || lhs == rhs; }
-        	/// Less than defines an ordering of key types on the edges.
+            /// Less than defines an ordering of key types on the edges.
             friend bool operator<(EdgeID lhs, EdgeID rhs)
             {
                 return (lhs.ptr < rhs.ptr) || (lhs.ptr == rhs.ptr && lhs.edge < rhs.edge);
             }
-        	/// Greater than comparison 
+            /// Greater than comparison
             friend bool operator>(EdgeID lhs, EdgeID rhs)  { return rhs < lhs; }
 
-			// explicit operator std::size_t () const { return static_cast<std::size_t>(ptr); }
+            // explicit operator std::size_t () const { return
+            // static_cast<std::size_t>(ptr); 
 
+            /// Dereferencing an EdgeID gets the data on the edge.
             auto const &operator*() const { return data(); }
+            /// Dereferencing an EdgeID gets the data on the edge.
             auto &operator*() { return data(); }
 
-            KeyType        key() const { return edge; }
+            /// Get the key of the edge.
+            KeyType     key() const { return edge; }
 
-            auto const    &data() const { return ptr->_edge_data[edge]; }
-            auto          &data() { return ptr->_edge_data[edge]; }
+            /// Return the data stored on the edge.
+            auto const &data() const { return ptr->_edge_data[edge]; }
+            /// Return the data stored on the edge.
+            auto       &data() { return ptr->_edge_data[edge]; }
 
             /**
              * @brief      Get the coboundary simplex.
              *
              * @return     SimplexID of the simplex above the edge.
              */
-            SimplexID<k>   up() const { return ptr; }
+            SimplexID<k> up() const { return ptr; }
 
             /**
              * @brief      Get the simplex below.
@@ -688,7 +770,9 @@ class simplicial_complex
             SimplexID<k-1> down() const { return SimplexID<k-1>(ptr->_down[edge]); }
 
             private:
+                /// Pointer to the next node.
                 NodePtr<k> ptr;
+                /// The Key of the edge.
                 KeyType    edge;
         };
 
@@ -698,9 +782,10 @@ class simplicial_complex
         simplicial_complex()
             : node_count(0)
         {
-        	// Create a root node
+            // Create a root node
             _root = create_node(std::integral_constant<std::size_t, 0>());
-            for (auto &x : level_count) // Initialize level_count to 0 for all levels
+            for (auto &x : level_count) // Initialize level_count to 0 for all
+                                        // levels
             {
                 x = 0;
             }
@@ -709,7 +794,8 @@ class simplicial_complex
         /**
          * @brief      Destruct the simplicial complex.
          *
-         * Recursively go over the simplices and remove them prior to destructing
+         * Recursively go over the simplices and remove them prior to
+         * destructing
          * the CASC object itself.
          */
         ~simplicial_complex()
@@ -725,7 +811,7 @@ class simplicial_complex
          * ~~~~~~~~~~~~~~~{.cpp}
          * mesh.insert<3>({1,2,3});
          * ~~~~~~~~~~~~~~~
-         * 
+         *
          * @param[in]  s     A C style array of vertices of simplex 's'.
          *
          * @tparam     n     Dimension of simplex 's'.
@@ -742,7 +828,7 @@ class simplicial_complex
 
         /**
          * @brief      Insert a simplex and all sub-simplices into the complex
-         *             along with data. 
+         *             along with data.
          *
          * Example -- insert the simplex {1,2,3} with data:
          * ~~~~~~~~~~~~~~~{.cpp}
@@ -766,7 +852,8 @@ class simplicial_complex
         }
 
         /**
-         * @brief      Insert a simplex named and all sub-simplices into the complex.
+         * @brief      Insert a simplex named and all sub-simplices into the
+         * complex.
          *
          * @param[in]  s     Array of vertices comprising 's'.
          *
@@ -784,7 +871,7 @@ class simplicial_complex
 
         /**
          * @brief      Insert a simplex and all sub-simplices into the complex
-         *             along with data. 
+         *             along with data.
          *
          * @param[in]  s     Array of vertices comprising 's'.
          * @param[in]  data  The data to be stored at the simplex 's'.
@@ -805,10 +892,10 @@ class simplicial_complex
         /**
          * @brief      Add a new vertex to the complex.
          *
-         * A list of currently unused indices are tracked using a B-tree. This 
+         * A list of currently unused indices are tracked using a B-tree. This
          * function retrieves a currently unused index and creates a new vertex
-         * while returning the new key. 
-         * 
+         * while returning the new key.
+         *
          * @return     The key of the new vertex.
          */
         KeyType add_vertex()
@@ -861,8 +948,9 @@ class simplicial_complex
 
         /**
          * @brief      Gets the name of a simplex.
-         * 
-         * This is the explicit specializtion which handles the empty set simplex.
+         *
+         * This is the explicit specializtion which handles the empty set
+         * simplex.
          *
          * @param[in]  id    SimplexID of the simplex of interest.
          *
@@ -882,7 +970,7 @@ class simplicial_complex
          *
          * @tparam     n     Dimension of simplex s.
          *
-         * @return     SimplexID of node corresponding to 's'. 
+         * @return     SimplexID of node corresponding to 's'.
          */
         template <size_t n>
         SimplexID<n> get_simplex_up(const KeyType (&s)[n]) const
@@ -1008,7 +1096,8 @@ class simplicial_complex
          * @param[in]  fn      The function
          *
          * @tparam     k       The dimension of the simplex.
-         * @tparam     Lambda  Typename of a functor which supports operator(KeyType).
+         * @tparam     Lambda  Typename of a functor which supports
+         * operator(KeyType).
          */
         template <size_t k, class Lambda>
         void get_cover(const SimplexID<k> id, Lambda fn) const
@@ -1085,7 +1174,7 @@ class simplicial_complex
          * @param      nodes  The set of simplicies.
          *
          * @tparam     k      The dimension of the simplices.
-         * 
+         *
          * @return     The set of boundary simplices.
          */
         template <size_t k>
@@ -1216,7 +1305,8 @@ class simplicial_complex
         }
 
         /**
-         * @brief      Create an iterator to traverse the SimplexIDs of a dimension.
+         * @brief      Create an iterator to traverse the SimplexIDs of a
+         *             dimension.
          *
          * @tparam     k     The simplex dimension to traverse.
          *
@@ -1225,15 +1315,16 @@ class simplicial_complex
         template <std::size_t k>
         auto get_level_id()
         {
-            auto begin      = std::get<k>(levels).begin();
-            auto end        = std::get<k>(levels).end();
+            auto begin = std::get<k>(levels).begin();
+            auto end = std::get<k>(levels).end();
             auto data_begin = detail::make_node_id_iterator<decltype(begin), SimplexID<k> >(begin);
             auto data_end   = detail::make_node_id_iterator<decltype(end), SimplexID<k> >(end);
             return util::make_range(data_begin, data_end);
         }
 
         /**
-         * @brief      Create an iterator to traverse the SimplexIDs of a dimension.
+         * @brief      Create an iterator to traverse the SimplexIDs of a
+         *             dimension.
          *
          * @tparam     k     The simplex dimension to traverse.
          *
@@ -1242,42 +1333,46 @@ class simplicial_complex
         template <std::size_t k>
         auto get_level_id() const
         {
-            auto begin      = std::get<k>(levels).cbegin();
-            auto end        = std::get<k>(levels).cend();
+            auto begin = std::get<k>(levels).cbegin();
+            auto end = std::get<k>(levels).cend();
             auto data_begin = detail::make_node_id_iterator<decltype(begin), const SimplexID<k> >(begin);
             auto data_end   = detail::make_node_id_iterator<decltype(end), const SimplexID<k> >(end);
             return util::make_range(data_begin, data_end);
         }
 
         /**
-         * @brief      Create an iterator to traverse the simplex data of a dimension.
+         * @brief      Create an iterator to traverse the simplex data of a
+         *             dimension.
          *
          * @tparam     k     The simplex dimension to traverse.
          *
-         * @return     An iterator across the data of all k-simplices in the complex.
+         * @return     An iterator across the data of all k-simplices in the
+         * complex.
          */
         template <std::size_t k>
         auto get_level()
         {
-            auto begin      = std::get<k>(levels).begin();
-            auto end        = std::get<k>(levels).end();
+            auto begin = std::get<k>(levels).begin();
+            auto end = std::get<k>(levels).end();
             auto data_begin = detail::make_node_data_iterator<decltype(begin), NodeData<k> >(begin);
             auto data_end   = detail::make_node_data_iterator<decltype(end), NodeData<k> >(end);
             return util::make_range(data_begin, data_end);
         }
 
         /**
-         * @brief      Create an iterator to traverse the simplex data of a dimension.
+         * @brief      Create an iterator to traverse the simplex data of a
+         *             dimension.
          *
          * @tparam     k     The simplex dimension to traverse.
          *
-         * @return     An iterator across the data of all k-simplices in the complex.
+         * @return     An iterator across the data of all k-simplices in the
+         * complex.
          */
         template <std::size_t k>
         auto get_level() const
         {
-            auto begin      = std::get<k>(levels).cbegin();
-            auto end        = std::get<k>(levels).cend();
+            auto begin = std::get<k>(levels).cbegin();
+            auto end = std::get<k>(levels).cend();
             auto data_begin = detail::make_node_data_iterator<decltype(begin), const NodeData<k> >(begin);
             auto data_end   = detail::make_node_data_iterator<decltype(end), const NodeData<k> >(end);
             return util::make_range(data_begin, data_end);
@@ -1286,7 +1381,8 @@ class simplicial_complex
         /**
          * @brief      Remove a simplex and all dependent simplices by name.
          *
-         * @param[in]  s     C-style array with the name of the simplex to remove.
+         * @param[in]  s     C-style array with the name of the simplex to
+         *                   remove.
          *
          * @tparam     k     The dimension of the simplex.
          *
@@ -1318,7 +1414,8 @@ class simplicial_complex
         }
 
         /**
-         * @brief      Remove a simplex and all dependent simplices by SimplexID.
+         * @brief      Remove a simplex and all dependent simplices by
+         *             SimplexID.
          *
          * @param[in]  s     SimplexID of the simplex to remove.
          *
@@ -1334,7 +1431,8 @@ class simplicial_complex
         }
 
         /**
-         * @brief      Less than or equal to comparison operator of two SimplexIDs.
+         * @brief      Less than or equal to comparison operator of two
+         *             SimplexIDs.
          *
          * @param[in]  lhs   The left hand side
          * @param[in]  rhs   The right hand side
@@ -1347,8 +1445,8 @@ class simplicial_complex
         template <std::size_t L, std::size_t R>
         bool leq(SimplexID<L> lhs, SimplexID<R> rhs) const
         {
-            auto name_lhs = get_name(lhs);
-            auto name_rhs = get_name(rhs);
+            auto        name_lhs = get_name(lhs);
+            auto        name_rhs = get_name(rhs);
 
             std::size_t i = 0;
             for (std::size_t j = 0; i < L && j < R; ++j)
@@ -1370,7 +1468,7 @@ class simplicial_complex
          * @tparam     L     Dimension of lhs simplex.
          * @tparam     R     Dimension of rhs simplex.
          *
-         * @return     Always false as L != R. The L==R case is overloaded by 
+         * @return     Always false as L != R. The L==R case is overloaded by
          *             partial specialization.
          */
         template <std::size_t L, std::size_t R>
@@ -1503,20 +1601,20 @@ class simplicial_complex
         /**
          * @brief      Recursively retrieve a simplex of interest.
          *
-         * @tparam     i     { description }
-         * @tparam     n     { description }
+         * @tparam     level  The current simplex dimension.
+         * @tparam     n      Number of remaining times to recurse.
          */
         template <size_t level, size_t n>
         struct get_recurse
         {
             /**
-             * @brief      { function_description }
+             * @brief      Get the simplex of interest.
              *
-             * @param[in]  that  The that
-             * @param[in]  s     { parameter_description }
-             * @param      root  The root
+             * @param[in]  that  The simplicial complex to search.
+             * @param[in]  s     Pointer to an array of Keys.
+             * @param      root  The current simplex
              *
-             * @return     { description_of_the_return_value }
+             * @return     Returns a pointer to the node.
              */
             static Node<level+n>* apply(const type_this* that, const KeyType* s, Node<level>* root)
             {
@@ -1540,23 +1638,22 @@ class simplicial_complex
                 }
             }
         };
-
         /**
-         * @brief      { struct_description }
+         * @brief      Recursively retrieve a simplex of interest.
          *
-         * @tparam     level  { description }
+         * @tparam     level  The current simplex dimension.
          */
         template <size_t level>
         struct  get_recurse<level, 0>
         {
             /**
-             * @brief      { function_description }
+             * @brief      Get the simplex of interest.
              *
-             * @param[in]  that  The that
-             * @param[in]  s     { parameter_description }
-             * @param      root  The root
+             * @param[in]  that  The simplicial complex to search.
+             * @param[in]  s     Pointer to an array of Keys.
+             * @param      root  The current simplex
              *
-             * @return     { description_of_the_return_value }
+             * @return     Returns a pointer to the node.
              */
             static Node<level>* apply(const type_this* that, const KeyType* s, Node<level>* root)
             {
@@ -1565,22 +1662,22 @@ class simplicial_complex
         };
 
         /**
-         * @brief      { struct_description }
+         * @brief      Recursively retrieve a simplex of interest going down.
          *
-         * @tparam     level  { description }
-         * @tparam     n      { description }
+         * @tparam     level  The current simplex dimension.
+         * @tparam     n      Number of remaining times to recurse.
          */
         template <size_t level, size_t n>
         struct get_down_recurse
         {
             /**
-             * @brief      { function_description }
+             * @brief      Get the simplex of interest.
              *
-             * @param[in]  that  The that
-             * @param[in]  s     { parameter_description }
-             * @param      root  The root
+             * @param[in]  that  The simplicial complex to search.
+             * @param[in]  s     Pointer to an array of Keys.
+             * @param      root  The current simplex
              *
-             * @return     { description_of_the_return_value }
+             * @return     Returns a pointer to the node.
              */
             static Node<level-n>* apply(const type_this* that, const KeyType* s, Node<level>* root)
             {
@@ -1604,21 +1701,21 @@ class simplicial_complex
         };
 
         /**
-         * @brief      { struct_description }
+         * @brief      Recursively retrieve a simplex of interest going down.
          *
-         * @tparam     level  { description }
+         * @tparam     level  The current simplex dimension.
          */
         template <size_t level>
         struct  get_down_recurse<level, 0>
         {
             /**
-             * @brief      { function_description }
+             * @brief      Get the simplex of interest.
              *
-             * @param[in]  that  The that
-             * @param[in]  s     { parameter_description }
-             * @param      root  The root
+             * @param[in]  that  The simplicial complex to search.
+             * @param[in]  s     Pointer to an array of Keys.
+             * @param      root  The current simplex
              *
-             * @return     { description_of_the_return_value }
+             * @return     Returns a pointer to the node.
              */
             static Node<level>* apply(const type_this* that, const KeyType* s, Node<level>* root)
             {
@@ -1627,22 +1724,23 @@ class simplicial_complex
         };
 
         /**
-         * @brief      { struct_description }
+         * @brief      Insert a simplex and all dependent simplices into the
+         *             complex.
          *
-         * @tparam     level  { description }
-         * @tparam     n      { description }
+         * @tparam     level  Dimension of the current root simplex
+         * @tparam     n      The number of times to recurse.
          */
         template <size_t level, size_t n>
         struct insert_full
         {
             /**
-             * @brief      { function_description }
+             * @brief      Kick off a for loop to insert all cofaces. 
              *
-             * @param      that   The that
-             * @param      root   The root
-             * @param[in]  begin  The begin
+             * @param      that   The simplicial complex
+             * @param      root   The current simplex to insert at.
+             * @param[in]  begin  Pointer to an array of Keys.
              *
-             * @return     { description_of_the_return_value }
+             * @return     Returns the node to insert.
              */
             static Node<level+n>* apply(type_this* that, Node<level>* root, const KeyType* begin)
             {
@@ -1650,22 +1748,24 @@ class simplicial_complex
             }
         };
 
+
         /**
-         * @brief      { struct_description }
+         * @brief      Insert a simplex and all dependent simplices into the
+         *             complex.
          *
-         * @tparam     level  { description }
+         * @tparam     level  Dimension of the current root simplex
          */
         template <size_t level>
         struct insert_full<level, 0>
         {
             /**
-             * @brief      { function_description }
+             * @brief      Terminal case.
              *
-             * @param      that   The that
-             * @param      root   The root
-             * @param[in]  begin  The begin
+             * @param      that   The simplicial complex
+             * @param      root   The current simplex to insert at.
+             * @param[in]  begin  Pointer to an array of Keys.
              *
-             * @return     { description_of_the_return_value }
+             * @return     Returns the node to insert.
              */
             static Node<level>* apply(type_this* that, Node<level>* root, const KeyType* begin)
             {
@@ -1674,23 +1774,23 @@ class simplicial_complex
         };
 
         /**
-         * @brief      { struct_description }
+         * @brief      Iterate over antistep 
          *
-         * @tparam     level     { description }
-         * @tparam     antistep  { description }
-         * @tparam     n         { description }
+         * @tparam     level     Dimension of the current root simplex
+         * @tparam     antistep  Antistep to track which indices to append to root.
+         * @tparam     n         Original antistep.
          */
         template <size_t level, size_t antistep, size_t n>
         struct insert_for
         {
             /**
-             * @brief      { function_description }
+             * @brief      Call insert_raw and continue for loop
              *
-             * @param      that   The that
-             * @param      root   The root
-             * @param[in]  begin  The begin
+             * @param      that   The simplicial complex
+             * @param      root   The current simplex to insert at.
+             * @param[in]  begin  Pointer to an array of Keys.
              *
-             * @return     { description_of_the_return_value }
+             * @return     Returns the node to insert.
              */
             static Node<level+n>* apply(type_this* that, Node<level>* root, const KeyType* begin)
             {
@@ -1700,22 +1800,22 @@ class simplicial_complex
         };
 
         /**
-         * @brief      { struct_description }
+         * @brief      Terminal case.
          *
-         * @tparam     level  { description }
-         * @tparam     n      { description }
+         * @tparam     level  Dimension of the current root simplex.
+         * @tparam     n      Original antistep.
          */
         template <size_t level, size_t n>
         struct insert_for<level, 1, n>
         {
             /**
-             * @brief      { function_description }
+             * @brief      Call insert_raw and stop loop
              *
-             * @param      that   The that
-             * @param      root   The root
-             * @param[in]  begin  The begin
+             * @param      that   The simplicial complex
+             * @param      root   The current simplex to insert at.
+             * @param[in]  begin  Pointer to an array of Keys.
              *
-             * @return     { description_of_the_return_value }
+             * @return     Returns the node to insert.
              */
             static Node<level+n>* apply(type_this* that, Node<level>* root, const KeyType* begin)
             {
@@ -1726,20 +1826,20 @@ class simplicial_complex
         /**
          * @brief      Actually insert the node and connect up and down.
          *
-         * @tparam     level  { description }
-         * @tparam     n      { description }
+         * @tparam     level  Dimension of the current root simplex.
+         * @tparam     n      The index to append to root.
          */
         template <size_t level, size_t n>
         struct insert_raw
         {
             /**
-             * @brief      { function_description }
+             * @brief      Create the node and connect up and down.
              *
-             * @param      that   The that
-             * @param      root   The root
-             * @param[in]  begin  The begin
+             * @param      that   The simplicial complex
+             * @param      root   The current simplex to insert at.
+             * @param[in]  begin  Pointer to an array of Keys.
              *
-             * @return     { description_of_the_return_value }
+             * @return     Returns the node to insert.
              */
             static Node<level+n+1>* apply(type_this* that, Node<level>* root, const KeyType* begin)
             {
@@ -1772,7 +1872,7 @@ class simplicial_complex
          * @param      value  is the exposed id of nn
          * @return     void
          *
-         * @tparam     level  { description }
+         * @tparam     level  Dimension of the current root simplex.
          */
         template <size_t level>
         void backfill(Node<level>* root, Node<level+1>* nn, KeyType value)
@@ -1803,27 +1903,24 @@ class simplicial_complex
         }
 
         /**
-         * @brief      Creates a node.
+         * @brief      Creates a new node of some dimension.
          *
-         * @param[in]  x      { parameter_description }
+         * @param[in]  x      Argument to help deduce the new node dimension 
          *
-         * @tparam     level  { description }
+         * @tparam     level  Simplex dimension
          *
-         * @return     { description_of_the_return_value }
+         * @return     A pointer to the new node.
          */
         template <size_t level>
         Node<level>* create_node(std::integral_constant<std::size_t, level> x)
         {
+            // Create the new node
             auto p = new Node<level>(node_count++);
-            ++(level_count[level]);
+            ++(level_count[level]); // Increment the count in the level
 
+            // node_count-1 to match the internal IDs correctly.
             bool ret = std::get<level>(levels).insert(
-                    std::pair<size_t, NodePtr<level> >(node_count-1, p)).second; // node_count-1
-                                                                                 // to
-                                                                                 // match
-                                                                                 // the
-                                                                                 // id's
-                                                                                 // correctly
+                    std::pair<size_t, NodePtr<level> >(node_count-1, p)).second;
             assert(ret);
             /*
                // sanity check to make sure there aren't duplicate keys...
@@ -1838,9 +1935,9 @@ class simplicial_complex
         /**
          * @brief      Removes a node.
          *
-         * @param      p      { parameter_description }
+         * @param      p      Simplex to remove 
          *
-         * @tparam     level  { description }
+         * @tparam     level  Dimension of the simplex
          */
         template <size_t level>
         void remove_node(Node<level>* p)
@@ -1861,7 +1958,7 @@ class simplicial_complex
         /**
          * @brief      Removes a node.
          *
-         * @param      p     { parameter_description }
+         * @param      p     Simplex to remove 
          */
         void remove_node(Node<1>* p)
         {
@@ -1883,7 +1980,7 @@ class simplicial_complex
         /**
          * @brief      Removes a node.
          *
-         * @param      p     { parameter_description }
+         * @param      p     Simplex to remove 
          */
         void remove_node(Node<0>* p)
         {
@@ -1899,7 +1996,7 @@ class simplicial_complex
         /**
          * @brief      Removes a node.
          *
-         * @param      p     { parameter_description }
+         * @param      p     Simplex to remove 
          */
         void remove_node(Node<topLevel>* p)
         {
@@ -1912,19 +2009,25 @@ class simplicial_complex
             delete p;
         }
 
+        /// The root node
         NodePtr<0> _root;
+        /// A counter of the total number of nodes.
         size_t node_count;
+        /// A counter of the number of simplices per level.
         std::array<size_t, numLevels> level_count;
-
+        /// Typename of a tuple of LevelIndex broadcasted with NodePtr<k>.
         using NodePtrLevel = typename util::int_type_map<std::size_t, std::tuple, LevelIndex, NodePtr>::type;
+        /// Typename of a map of levels to NodePtr<k>*'s.
         typename util::type_map<NodePtrLevel, detail::map>::type levels;
+        /// B-tree of unused vertex indices.
         index_tracker<KeyType> unused_vertices;
 };
 
 
 /**
- * Alias to generate a CASC from a list of traits. 
- * See also simplicial_complex_traits_default. Example -- To create a tetrahedral 
+ * Alias to generate a CASC from a list of traits.
+ * See also simplicial_complex_traits_default. Example -- To create a
+ * tetrahedral
  * mesh with integer data on all simplices:
  * ~~~~~~~~~~~~~~~{.cpp}
  * auto mesh = AbstractSimplicialComplex<
@@ -1939,189 +2042,35 @@ class simplicial_complex
  */
 template <typename KeyType, typename ... Ts>
 using AbstractSimplicialComplex = simplicial_complex<
-        simplicial_complex_traits_default<KeyType, Ts...>>;
-
-
+            simplicial_complex_traits_default<KeyType, Ts...> >;
 
 /**
- * @brief      Push the immediate face neighbors into the provided iterator.
+ * @brief      Template to compute a hash for a SimplexID.
  * 
- *  This function gets the set of neighbors which share a common face. We compute
- *  this by traversing to all faces of the simplex of interest. Then we get all
- *  cofaces of this set. Depending on the type of iterator passed, duplicate simplices
- *  will be included or excluded. Note that this is the traditional definition of
- *  neighbor. For example, faces which share an edge are neighbors.
+ * Since SimplexID is actually a wrapper around a Node* we have to hash it
+ * accordingly. The static_cast calls the defined explicit operator which 
+ * reinterprets the stored Node* pointer as a uintptr_t which we can hash
+ * directly.    
  *
- * @param      F           The simplicial complex
- * @param[in]  nid         Simplex to get neighbors of.
- * @param[in]  iter        The iterator to push members into.
- *
- * @tparam     Complex     Type of the simplicial complex
- * @tparam     level       The integral level of the node
- * @tparam     InsertIter  Typename of the iterator.
- */
-template <class Complex, std::size_t level, class InsertIter>
-void neighbors(Complex &F, typename Complex::template SimplexID<level> nid, InsertIter iter)
-{
-    for (auto a : F.get_name(nid))
-    {
-        auto id = F.get_simplex_down(nid, a);
-        for (auto b : F.get_cover(id))
-        {
-            auto nbor = F.get_simplex_up(id, b);
-            if (nbor != nid)
-            {
-                *iter++ = nbor;
-            }
-        }
-    }
-}
-
-/**
- * @brief      This is a helper function to assist neighbors to automatically
- *             deduce the integral level.
- *
- * @param      F           The simplicial complex.
- * @param[in]  nid         Simplex to get neighbors of.
- * @param[in]  iter        The iterator to push members into.
- *
- * @tparam     Complex     Type of the simplicial complex
- * @tparam     level       The integral level of the node
- * @tparam     InsertIter  Typename of the iterator.
- */
-template <class Complex, class SimplexID, class InsertIter>
-void neighbors(Complex &F, SimplexID nid, InsertIter iter)
-{
-    neighbors<Complex, SimplexID::level, InsertIter>(F, nid, iter);
-}
-
-/**
- * @brief      Push the immediate coface neighbors into the provided iterator.
- *
- * @param      F           The simplicial complex.
- * @param[in]  nid         Simplex to get neighbors of.
- * @param[in]  iter        The iterator to push members into.
- *
- * @tparam     Complex     Type of the simplicial complex
- * @tparam     level       The integral level of the node
- * @tparam     InsertIter  Typename of the iterator.
- */
-template <class Complex, std::size_t level, class InsertIter>
-void neighbors_up(Complex &F, typename Complex::template SimplexID<level> nid, InsertIter iter)
-{
-    for (auto a : F.get_cover(nid))
-    {
-        auto id = F.get_simplex_up(nid, a);
-        for (auto b : F.get_name(id))
-        {
-            auto nbor = F.get_simplex_down(id, b);
-            if (nbor != nid)
-            {
-                *iter++ = nbor;
-            }
-        }
-    }
-}
-
-/**
- * @brief      This is a helper function to assist neighbors to automatically
- *             deduce the integral level.
- *
- * @param      F           The simplicial complex.
- * @param[in]  nid         Simplex to get neighbors of.
- * @param[in]  iter        The iterator to push members into.
- *
- * @tparam     Complex     Type of the simplicial complex
- * @tparam     level       The integral level of the node
- * @tparam     InsertIter  Typename of the iterator.
- */
-template <class Complex, class SimplexID, class InsertIter>
-void neighbors_up(Complex &F, SimplexID nid, InsertIter iter)
-{
-    neighbors_up<Complex, SimplexID::level, InsertIter>(F, nid, iter);
-}
-
-
-// TODO: convert this to use an iterator inserter (1)
-/**
- * @brief      Code for returning a set of k-ring neighbors. Currently obseleted by
- *             neighbors_up visitor pattern.
- *
- * @param      F        { parameter_description }
- * @param      nodes    The nodes
- * @param[in]  next     The next
- * @param[in]  ring     The ring
- *
- * @tparam     Complex  { description }
- * @tparam     level    { description }
- *
- * @return     { description_of_the_return_value }
- */
-template <class Complex, std::size_t level>
-std::set<typename Complex::template SimplexID<level> > kneighbors_up(
-    Complex                                                &F,
-    std::set<typename Complex::template SimplexID<level> > &nodes,
-    std::set<typename Complex::template SimplexID<level> >  next,
-    int                                                     ring)
-{
-    if (ring == 0)
-    {
-        return nodes;
-    }
-    std::set<typename Complex::template SimplexID<level> > tmp;
-    for (auto nid : next)
-    {
-        for (auto a : F.get_cover(nid))
-        {
-            auto id = F.get_simplex_up(nid, a);
-            for (auto b : F.get_name(id))
-            {
-                auto nbor = F.get_simplex_down(id, b);
-                if (nodes.insert(nbor).second)
-                {
-                    tmp.insert(nbor);
-                }
-            }
-        }
-    }
-    return neighbors_up<Complex, level>(F, nodes, tmp, ring-1);
-}
-
-/**
- * @brief      { function_description }
- *
- * @param      F          { parameter_description }
- * @param[in]  nid        The nid
- * @param[in]  ring       The ring
- *
- * @tparam     Complex    { description }
- * @tparam     SimplexID  { description }
- *
- * @return     { description_of_the_return_value }
- */
-template <class Complex, class SimplexID>
-std::set<SimplexID> kneighbors_up(Complex &F, SimplexID nid, int ring)
-{
-    std::set<SimplexID> nodes{
-        nid
-    };
-    return neighbors_up<Complex, SimplexID::level>(F, nodes, nodes, ring);
-}
-
-/**
- * @brief      { struct_description }
- *
- * @tparam     SimplexID  { description }
+ * @tparam     SimplexID  Typename of the SimplexID.
  */
 template <typename SimplexID>
 struct hashSimplexID{
+    /**
+     * @brief   Compute the hash.
+     * 
+     * ~~~~~~~~~~~~~~~~~(.cpp)
+     * std::cout << hashSimplexID<decltype(nid)>{}(nid) << std::endl;
+     * ~~~~~~~~~~~~~~~~~
+     * 
+     * @param[in]  nid   The simplex of interest.
+     * @return     Resultant hash.
+     */
     size_t operator()(const SimplexID nid) const
     {
         return std::hash<std::uintptr_t>()(static_cast<uintptr_t>(nid));
     }
 };
 
-/**
- * Helpful alias defining a unordered_set of simplices. See also hashSimplexID.
- */
+/// Helpful alias defining a unordered_set of simplices. See also hashSimplexID.
 template <typename T> using NodeSet = std::unordered_set<T, hashSimplexID<T> >;

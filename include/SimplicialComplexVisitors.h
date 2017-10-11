@@ -25,7 +25,7 @@
 /**
  * @file SimplicialComplexVisitors.h
  * @brief Implementations of breadth-first visitor design pattern for easy
- * traversal of CASC.
+ *        traversal of CASC.
  */
 
 #pragma once
@@ -38,6 +38,8 @@
 #include <utility>
 #include "SimplicialComplex.h"
 
+namespace casc_visitor_detail
+{
 template <typename Visitor, typename Traits, typename Complex, typename K>
 struct BFS_Up_Node {};
 
@@ -331,11 +333,14 @@ struct BFS_NoRepeat_Edge_Traits
     template <typename T> using Container = NodeSet<T>;
     // template <typename Complex, typename SimplexID> auto node_next(Complex F, SimplexID s);
 };
+}
+
 
 template <typename Visitor, typename SimplexID>
 void visit_node_up(Visitor&& v, typename SimplexID::complex& F, SimplexID s)
 {
-    BFS_Up_Node<Visitor, BFS_NoRepeat_Node_Traits, typename SimplexID::complex, 
+    namespace cvd = casc_visitor_detail;
+    cvd::BFS_Up_Node<Visitor, cvd::BFS_NoRepeat_Node_Traits, typename SimplexID::complex, 
             std::integral_constant<std::size_t,SimplexID::level>>::apply(
                     std::forward<Visitor>(v),F,&s,&s+1);
 }
@@ -343,7 +348,8 @@ void visit_node_up(Visitor&& v, typename SimplexID::complex& F, SimplexID s)
 template <typename Visitor, typename SimplexID>
 void visit_node_down(Visitor&& v, typename SimplexID::complex& F, SimplexID s)
 {
-    BFS_Down_Node<Visitor, BFS_NoRepeat_Node_Traits, typename SimplexID::complex, 
+    namespace cvd = casc_visitor_detail;
+    cvd::BFS_Down_Node<Visitor, cvd::BFS_NoRepeat_Node_Traits, typename SimplexID::complex, 
             std::integral_constant<std::size_t,SimplexID::level>>::apply(
                     std::forward<Visitor>(v),F,&s,&s+1);
 }
@@ -351,7 +357,8 @@ void visit_node_down(Visitor&& v, typename SimplexID::complex& F, SimplexID s)
 template <typename Visitor, typename EdgeID>
 void edge_up(Visitor&& v, typename EdgeID::complex& F, EdgeID s)
 {
-    BFS_Edge<Visitor, BFS_NoRepeat_Edge_Traits, typename EdgeID::complex, 
+    namespace cvd = casc_visitor_detail;
+    cvd::BFS_Edge<Visitor, cvd::BFS_NoRepeat_Edge_Traits, typename EdgeID::complex, 
             std::integral_constant<std::size_t,EdgeID::level>>::apply(
                     std::forward<Visitor>(v),F,&s,&s+1);
 }
@@ -360,7 +367,8 @@ template <std::size_t rings, typename Visitor, typename SimplexID>
 void visit_neighbors_up(Visitor&& v, typename SimplexID::complex& F, SimplexID s)
 {
     NodeSet<SimplexID> nodes{s};
-    Neighbors_Up_Node<Visitor,typename SimplexID::complex,SimplexID::level,rings>::apply(
+    namespace cvd = casc_visitor_detail;
+    cvd::Neighbors_Up_Node<Visitor,typename SimplexID::complex,SimplexID::level,rings>::apply(
             std::forward<Visitor>(v),F,nodes,&s,&s+1);
 }
 
@@ -368,6 +376,176 @@ template <std::size_t rings, typename Visitor, typename SimplexID>
 void visit_neighbors_down(Visitor&& v, typename SimplexID::complex& F, SimplexID s)
 {
     NodeSet<SimplexID> nodes{s};
-    Neighbors_Down_Node<Visitor,typename SimplexID::complex,SimplexID::level,rings>::apply(
+    namespace cvd = casc_visitor_detail;
+    cvd::Neighbors_Down_Node<Visitor,typename SimplexID::complex,SimplexID::level,rings>::apply(
             std::forward<Visitor>(v),F,nodes,&s,&s+1);
 }
+
+
+/**
+ * @brief      Push the immediate face neighbors into the provided iterator.
+ *
+ *  This function gets the set of neighbors which share a common face. We
+ *  compute this by traversing to all faces of the simplex of interest. Then we
+ *  get all cofaces of this set. Depending on the type of iterator passed,
+ *  duplicate simplices will be included or excluded. Note that this is the
+ *  traditional definition of neighbor. For example, faces which share an edge
+ *  are neighbors.
+ *
+ * @param      F           The simplicial complex
+ * @param[in]  nid         Simplex to get neighbors of.
+ * @param[in]  iter        The iterator to push members into.
+ *
+ * @tparam     Complex     Type of the simplicial complex
+ * @tparam     level       The integral level of the node
+ * @tparam     InsertIter  Typename of the iterator.
+ */
+template <class Complex, std::size_t level, class InsertIter>
+void neighbors(Complex &F, typename Complex::template SimplexID<level> nid, InsertIter iter)
+{
+    for (auto a : F.get_name(nid))
+    {
+        auto id = F.get_simplex_down(nid, a);
+        for (auto b : F.get_cover(id))
+        {
+            auto nbor = F.get_simplex_up(id, b);
+            if (nbor != nid)
+            {
+                *iter++ = nbor;
+            }
+        }
+    }
+}
+
+/**
+ * @brief      This is a helper function to assist neighbors to automatically
+ *             deduce the integral level.
+ *
+ * @param      F           The simplicial complex.
+ * @param[in]  nid         Simplex to get neighbors of.
+ * @param[in]  iter        The iterator to push members into.
+ *
+ * @tparam     Complex     Type of the simplicial complex
+ * @tparam     level       The integral level of the node
+ * @tparam     InsertIter  Typename of the iterator.
+ */
+template <class Complex, class SimplexID, class InsertIter>
+void neighbors(Complex &F, SimplexID nid, InsertIter iter)
+{
+    neighbors<Complex, SimplexID::level, InsertIter>(F, nid, iter);
+}
+
+/**
+ * @brief      Push the immediate coface neighbors into the provided iterator.
+ *
+ * @param      F           The simplicial complex.
+ * @param[in]  nid         Simplex to get neighbors of.
+ * @param[in]  iter        The iterator to push members into.
+ *
+ * @tparam     Complex     Type of the simplicial complex
+ * @tparam     level       The integral level of the node
+ * @tparam     InsertIter  Typename of the iterator.
+ */
+template <class Complex, std::size_t level, class InsertIter>
+void neighbors_up(Complex &F, typename Complex::template SimplexID<level> nid, InsertIter iter)
+{
+    for (auto a : F.get_cover(nid))
+    {
+        auto id = F.get_simplex_up(nid, a);
+        for (auto b : F.get_name(id))
+        {
+            auto nbor = F.get_simplex_down(id, b);
+            if (nbor != nid)
+            {
+                *iter++ = nbor;
+            }
+        }
+    }
+}
+
+/**
+ * @brief      This is a helper function to assist neighbors to automatically
+ *             deduce the integral level.
+ *
+ * @param      F           The simplicial complex.
+ * @param[in]  nid         Simplex to get neighbors of.
+ * @param[in]  iter        The iterator to push members into.
+ *
+ * @tparam     Complex     Type of the simplicial complex
+ * @tparam     level       The integral level of the node
+ * @tparam     InsertIter  Typename of the iterator.
+ */
+template <class Complex, class SimplexID, class InsertIter>
+void neighbors_up(Complex &F, SimplexID nid, InsertIter iter)
+{
+    neighbors_up<Complex, SimplexID::level, InsertIter>(F, nid, iter);
+}
+
+
+// TODO: convert this to use an iterator inserter (1)
+/**
+ * @brief      Code for returning a set of k-ring neighbors.
+ *
+ * @param      F        { parameter_description }
+ * @param      nodes    The nodes
+ * @param[in]  next     The next
+ * @param[in]  ring     The ring
+ *
+ * @tparam     Complex  { description }
+ * @tparam     level    { description }
+ *
+ * @return     { description_of_the_return_value }
+ */
+template <class Complex, std::size_t level>
+std::set<typename Complex::template SimplexID<level> > kneighbors_up(
+    Complex                                                &F,
+    std::set<typename Complex::template SimplexID<level> > &nodes,
+    std::set<typename Complex::template SimplexID<level> >  next,
+    int                                                     ring)
+{
+    if (ring == 0)
+    {
+        return nodes;
+    }
+    std::set<typename Complex::template SimplexID<level> > tmp;
+    for (auto nid : next)
+    {
+        for (auto a : F.get_cover(nid))
+        {
+            auto id = F.get_simplex_up(nid, a);
+            for (auto b : F.get_name(id))
+            {
+                auto nbor = F.get_simplex_down(id, b);
+                if (nodes.insert(nbor).second)
+                {
+                    tmp.insert(nbor);
+                }
+            }
+        }
+    }
+    return neighbors_up<Complex, level>(F, nodes, tmp, ring-1);
+}
+
+/**
+ * @brief      Helper function to help kneighbors_up to deduce the integral
+ *             level of SimplexID.
+ *
+ * @param[in]  F          The simplicial complex
+ * @param[in]  nid        Simplex of interest to get the nieghbors of.
+ * @param[in]  ring       The number of rings to include as a neighbor
+ *
+ * @tparam     Complex    Typename of the complex.
+ * @tparam     SimplexID  Typename of the SimplexID.
+ *
+ * @return     The set of k-ring neighbors.
+ */
+template <class Complex, class SimplexID>
+std::set<SimplexID> kneighbors_up(Complex &F, SimplexID nid, int ring)
+{
+    std::set<SimplexID> nodes{
+        nid
+    };
+    return neighbors_up<Complex, SimplexID::level>(F, nodes, nodes, ring);
+}
+
+
