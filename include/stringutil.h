@@ -26,6 +26,9 @@
 
 #include <string>
 
+namespace casc
+{
+/// String utilities
 namespace cascstringutil
 {
     /**
@@ -57,4 +60,5 @@ namespace cascstringutil
         out += "}";
         return out;
     }
-}
+} // end namespace casc
+} // end namespace cascstringutil

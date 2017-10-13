@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <array>
+#include <map>
 #include "util.h"
 #include "stringutil.h"
 
