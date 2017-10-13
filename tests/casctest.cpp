@@ -38,7 +38,7 @@
 int  main(int argc, char *argv[])
 {
 
-    auto mesh = AbstractSimplicialComplex<
+    auto mesh = casc::AbstractSimplicialComplex<
         int, // KEYTYPE
         int, // Root data
         int, // Vertex data

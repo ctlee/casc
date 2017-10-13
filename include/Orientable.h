@@ -28,11 +28,16 @@
 #include <queue>
 #include <set>
 
+
+namespace casc{
+
 struct Orientable {
 	int orientation;
 };
 
 
+/// Namespace for orientation helpers
+namespace casc_orientable{
 
 template <class Complex, class SizeT >
 struct init_orientation_helper {};
@@ -72,7 +77,7 @@ struct init_orientation_helper<Complex, std::integral_constant<std::size_t, Comp
 {
 	static void f(Complex& F) {}
 };
-
+} // end namespace casc_orientable
 
 // TODO: Implement this as a disjoint set operation during insertion (0)
 template <typename Complex>
@@ -80,7 +85,7 @@ std::tuple<int, bool, bool> compute_orientation(Complex& F)
 {
 	// TODO: separate out init and clear orientation for speed (5)
 	// init orientation
-	init_orientation_helper<Complex,std::integral_constant<std::size_t,0>>::f(F);
+	casc_orientable::init_orientation_helper<Complex,std::integral_constant<std::size_t,0>>::f(F);
 
 	// clear orientation
 	for(auto& curr : F.template get_level<Complex::topLevel>())
@@ -187,3 +192,4 @@ std::tuple<int, bool, bool> compute_orientation(Complex& F)
 
 	return std::make_tuple(connected_components, orientable, psuedo_manifold);
 }
+} // end namespace casc

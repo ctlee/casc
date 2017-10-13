@@ -175,7 +175,9 @@ namespace casc
         return S.template get<k>();
     }
 
-    namespace simplex_set_detail{
+    /// Namespace for simplex container related helpers
+    namespace simplex_set_detail
+    {
         template <typename Complex>
         struct UnionH
         {
@@ -292,31 +294,29 @@ namespace casc
     }
 
 
-    template <typename Complex>
-    struct SimplexDataSet
-    {
-        using KeyType = typename Complex::KeyType;
+    // template <typename Complex>
+    // struct SimplexDataSet
+    // {
+    //     using KeyType = typename Complex::KeyType;
 
-        template <std::size_t k, typename T>
-        struct DataType
-        {
-            using type = std::pair<std::array<KeyType,k>, T>;
-        };
+    //     template <std::size_t k, typename T>
+    //     struct DataType
+    //     {
+    //         using type = std::pair<std::array<KeyType,k>, T>;
+    //     };
 
-        template <std::size_t k>
-        struct DataType<k, void>
-        {
-            using type = std::array<KeyType,k>;
-        };
+    //     template <std::size_t k>
+    //     struct DataType<k, void>
+    //     {
+    //         using type = std::array<KeyType,k>;
+    //     };
 
-        template <std::size_t j>
-        using DataSet = typename DataType<j, typename Complex::template NodeData<j>>::type;
-        using LevelIndex = typename std::make_index_sequence<Complex::numLevels>;
-        using SimplexIDLevel = typename util::int_type_map<std::size_t, 
-                std::tuple, LevelIndex, DataSet>::type;
-        using type = typename util::type_map<SimplexIDLevel, casc::vector>::type;
-    };
-
-    
+    //     template <std::size_t j>
+    //     using DataSet = typename DataType<j, typename Complex::template NodeData<j>>::type;
+    //     using LevelIndex = typename std::make_index_sequence<Complex::numLevels>;
+    //     using SimplexIDLevel = typename util::int_type_map<std::size_t, 
+    //             std::tuple, LevelIndex, DataSet>::type;
+    //     using type = typename util::type_map<SimplexIDLevel, casc::vector>::type;
+    // };  
 } // end namespace casc
 

@@ -31,7 +31,10 @@
 #include <cstdlib>
 #include <limits>
 
-
+/// Index tracker namespace
+namespace index_tracker
+{
+/// B-tree internal data structures
 namespace index_tracker_detail {
 	template <typename T>
 	struct Interval
@@ -859,7 +862,7 @@ namespace index_tracker_detail {
 		}
 		return curr;
 	}
-}
+} // End namespace index_tracker_detail
 
 template <typename T, int d>
 std::ostream& operator<<(std::ostream& out, const index_tracker_detail::BTreeNode<T,d>* head)
@@ -932,3 +935,4 @@ public:
 private:
 	index_tracker_detail::Pointer<Node> head;
 };
+} // end namespace index_tracker

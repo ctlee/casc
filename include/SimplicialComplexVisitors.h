@@ -38,6 +38,10 @@
 #include <utility>
 #include "SimplicialComplex.h"
 
+namespace casc
+{
+
+/// Visitor design pattern helper templates
 namespace casc_visitor_detail
 {
 template <typename Visitor, typename Traits, typename Complex, typename K>
@@ -319,8 +323,6 @@ struct Neighbors_Down_Node<Visitor, Complex, k, 0>
     }
 };
 
-
-
 template <typename T> using AllowRepeat = std::vector<T>;
 
 struct BFS_NoRepeat_Node_Traits
@@ -333,11 +335,10 @@ struct BFS_NoRepeat_Edge_Traits
     template <typename T> using Container = NodeSet<T>;
     // template <typename Complex, typename SimplexID> auto node_next(Complex F, SimplexID s);
 };
-}
-
+} // End namespace casc_visitor_detail
 
 template <typename Visitor, typename SimplexID>
-void visit_node_up(Visitor&& v, typename SimplexID::complex& F, SimplexID s)
+void visit_BFS_up(Visitor&& v, typename SimplexID::complex& F, SimplexID s)
 {
     namespace cvd = casc_visitor_detail;
     cvd::BFS_Up_Node<Visitor, cvd::BFS_NoRepeat_Node_Traits, typename SimplexID::complex, 
@@ -346,7 +347,7 @@ void visit_node_up(Visitor&& v, typename SimplexID::complex& F, SimplexID s)
 }
 
 template <typename Visitor, typename SimplexID>
-void visit_node_down(Visitor&& v, typename SimplexID::complex& F, SimplexID s)
+void visit_BFS_down(Visitor&& v, typename SimplexID::complex& F, SimplexID s)
 {
     namespace cvd = casc_visitor_detail;
     cvd::BFS_Down_Node<Visitor, cvd::BFS_NoRepeat_Node_Traits, typename SimplexID::complex, 
@@ -547,5 +548,5 @@ std::set<SimplexID> kneighbors_up(Complex &F, SimplexID nid, int ring)
     };
     return neighbors_up<Complex, SimplexID::level>(F, nodes, nodes, ring);
 }
-
+} // End namespace casc
 

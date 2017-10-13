@@ -42,7 +42,7 @@ endif()
 
 # Define where to put the libraries and binaries
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
-# set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 # set(TEST_DATA_PATH ${PROJECT_SOURCE_DIR}/data)
 
 include_directories(include)
