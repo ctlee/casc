@@ -33,7 +33,7 @@
 #include <string>
 #include <vector>
 #include "SimplicialComplex.h"
-#include "SimplicialComplexVisitors.h"
+#include "CASCTraversals.h"
 
 int  main(int argc, char *argv[])
 {

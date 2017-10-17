@@ -2,7 +2,7 @@
  * ***************************************************************************
  * This file is part of the Colored Abstract Simplicial Complex library.
  * Copyright (C) 2016-2017
- * by Christopher Lee, John Moody, Rommie Amaro, J. Andrew McCammon, 
+ * by Christopher Lee, John Moody, Rommie Amaro, J. Andrew McCammon,
  *    and Michael Holst
  *
  * This library is free software; you can redistribute it and/or
@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- * 
- * ****************************************************************************
+ *
+ * ***************************************************************************
  */
 
 #pragma once
@@ -30,293 +30,472 @@
 #include "stringutil.h"
 
 namespace casc
-{   
-    template <class T> using set = std::set<T>;
-    template <class T> using vector = std::vector<T>;
+{
 
-    template <typename Complex>
-    struct SimplexSet
+/**
+ * @brief      A multiset to store simplices in a simplicial_complex.
+ * 
+ * This is really a tuple of sets where each set corresponds to a simplex 
+ * dimension. Many convenience functions are wrapped so this behaves much like
+ * a std::set.
+ *
+ * @tparam     Complex  Typename of the simplicial_complex.
+ */
+template <typename Complex>
+struct SimplexSet
+{
+    /// Alias for SimplexID
+    template <std::size_t j>
+    using SimplexID = typename Complex::template SimplexID<j>;
+    /// Index sequence of types from the simplicial_complex
+    using LevelIndex = typename Complex::LevelIndex;
+    /// Index sequence starting at 1
+    using cLevelIndex = typename util::remove_first_val<std::size_t,
+                                                        LevelIndex>::type;
+    /// Reversed index sequence                                                         
+    using RevIndex = typename util::reverse_sequence<std::size_t,
+                                                     LevelIndex>::type;
+    /// Reversed index sequence stops at 1                                                     
+    using cRevIndex = typename util::reverse_sequence<std::size_t,
+                                                      cLevelIndex>::type;
+    /// Typename of this                                                      
+    using type_this = SimplexSet<Complex>;
+
+    /// Default constructor
+    SimplexSet() {};
+
+    /**
+     * @brief      Insert a simplex into the set. 
+     *
+     * @param[in]  s     Simplex to insert.
+     *
+     * @tparam     k     Simplex dimension of 's'.
+     */
+    template <size_t k>
+    inline void insert(SimplexID<k> s)
     {
-        template <std::size_t j>
-        using SimplexID           = typename Complex::template SimplexID<j>;
-        using LevelIndex        = typename Complex::LevelIndex;
-        using cLevelIndex       = typename util::remove_first_val<std::size_t,
-                LevelIndex>::type;
-        using RevIndex          = typename util::reverse_sequence<std::size_t,
-                LevelIndex>::type;
-        using cRevIndex         = typename util::reverse_sequence<std::size_t,
-                cLevelIndex>::type;
-        using type_this         = SimplexSet<Complex>;
+        std::get<k>(tupleSet).insert(s);
+    }
 
-        /**
-         * @brief      Default constructor does nothing. 
-         */
-        SimplexSet() {};
+    /**
+     * @brief      Insert a SimplexSet into this.
+     *
+     * @param[in]  s     The SimplexSet to insert.
+     */
+    void insert(const SimplexSet<Complex> &s)
+    {
+        util::int_for_each<std::size_t, LevelIndex>(
+            InsertHelper(), this, s);
+    }
 
-        template <size_t k>
-        inline void insert(SimplexID<k> s){
-            std::get<k>(tupleSet).insert(s);
-        }
+    /**
+     * @brief      Remove a simplex from the set.
+     *
+     * @param[in]  s     Simplex to remove.
+     *
+     * @tparam     k     Simplex dimension of 's'.
+     */
+    template <size_t k>
+    inline void erase(SimplexID<k> s)
+    {
+        std::get<k>(tupleSet).erase(s);
+    }
 
-        void insert(const SimplexSet<Complex>& s){
-             util::int_for_each<std::size_t,LevelIndex>(
-                    InsertHelper(), this, s);
-        }
+    /**
+     * @brief      Remove a set of simplices.
+     *
+     * @param[in]  s     SimplexSet to remove.
+     */
+    void erase(const SimplexSet<Complex> &s)
+    {
+        util::int_for_each<std::size_t, LevelIndex>(
+            EraseHelper(), this, s);
+    }
 
-        template <size_t k>
-        inline void erase(SimplexID<k> s){
-            std::get<k>(tupleSet).erase(s);
-        }
+    /**
+     * @brief      Get the simplex of interest.
+     *
+     * @param[in]  s     The simplex to search for.
+     *
+     * @tparam     k     Simplex dimension of 's'.
+     *
+     * @return     Iterator to an element with key equivalent to s. If no such 
+     *             element is found, past-the-end iterator (see end()) is 
+     *             returned.
+     */
+    template <size_t k>
+    inline auto find(const SimplexID<k> s)
+    {
+        return std::get<k>(tupleSet).find(s);
+    }
 
-        void erase(const SimplexSet<Complex>& s){
-                util::int_for_each<std::size_t,LevelIndex>(
-                    EraseHelper(), this, s);
-        }
+    /**
+     * @brief      Get the simplex of interest.
+     *
+     * @param[in]  s     The simplex to search for.
+     *
+     * @tparam     k     Simplex dimension of 's'.
+     *
+     * @return     Iterator to an element with key equivalent to s. If no such 
+     *             element is found, past-the-end iterator (see end()) is 
+     *             returned.
+     */
+    template <size_t k>
+    inline auto find(const SimplexID<k> s) const
+    {
+        return std::get<k>(tupleSet).find(s);
+    }
 
-        template <size_t k>
-        inline auto find(SimplexID<k> s){
-            return std::get<k>(tupleSet).find(s);
-        }
+    /**
+     * @brief      Get the past-the-end iterator. 
+     *
+     * @tparam     k     The simplex dimension to get iterator of.
+     *
+     * @return     Returns an iterator to the element following the last element
+     *             of the set for the specified simplex dimension.
+     */
+    template <size_t k>
+    inline auto end()
+    {
+        return std::get<k>(tupleSet).end();
+    }
 
-        template <size_t k>
-        inline auto end(){
-            return std::get<k>(tupleSet).end();
-        }
+    /**
+     * @brief      Get the past-the-end iterator. 
+     *
+     * @tparam     k     The simplex dimension to get iterator of.
+     *
+     * @return     Returns an iterator to the element following the last element
+     *             of the set for the specified simplex dimension.
+     */
+    template <size_t k>
+    inline const auto cend() const
+    {
+        return std::get<k>(tupleSet).cend();
+    }
 
-        template <size_t k>
-        inline auto begin(){
-            return std::get<k>(tupleSet).begin();
-        }
+    /**
+     * @brief      Get an interator to the first element of the container.
+     *
+     * @tparam     k    The simplex dimension to get iterator of.
+     *
+     * @return     Returns an iterator to the first element.
+     */
+    template <size_t k>
+    inline auto begin()
+    {
+        return std::get<k>(tupleSet).begin();
+    }
 
-        template <size_t k>
-        inline auto& get(){
-            return std::get<k>(tupleSet);
-        }
-        
-        template <size_t k>
-        inline auto& get() const {
-            return std::get<k>(tupleSet);
-        }
+    /**
+     * @brief      Get an interator to the first element of the container.
+     *
+     * @tparam     k    The simplex dimension to get iterator of.
+     *
+     * @return     Returns an iterator to the first element.
+     */
+    template <size_t k>
+    inline auto cbegin() const
+    {
+        return std::get<k>(tupleSet).cbegin();
+    }
 
-        void clear(){
-            util::int_for_each<std::size_t, LevelIndex>(ClearHelper(), this);
-        }
+    /**
+     * @brief      Get the NodeSet for a particular simplex dimension.
+     *
+     * @tparam     k     Simplex dimension to get.
+     *
+     * @return     Returns the NodeSet corresponding to the requested dimension.
+     */
+    template <size_t k>
+    inline auto &get()
+    {
+        return std::get<k>(tupleSet);
+    }
 
-        friend std::ostream& operator<<(std::ostream& output, const SimplexSet<Complex>& S){
-            output << "SimplexSet(";
-            util::int_for_each<std::size_t, LevelIndex>(PrintHelper(), 
-                    output,S);
-            output << ")";
-            return output;
-        }
+    /**
+     * @brief      Get the NodeSet for a particular simplex dimension.
+     *
+     * @tparam     k     Simplex dimension to get.
+     *
+     * @return     Returns the NodeSet corresponding to the requested dimension.
+     */
+    template <size_t k>
+    inline auto &get() const
+    {
+        return std::get<k>(tupleSet);
+    }
 
-        using SimplexIDLevel    = typename util::int_type_map<std::size_t, 
-                std::tuple, LevelIndex, SimplexID>::type;
-        typename util::type_map<SimplexIDLevel, NodeSet>::type tupleSet;
-    
+    /**
+     * @brief      Clear all values from the SimplexSet.
+     */
+    void clear()
+    {
+        util::int_for_each<std::size_t, LevelIndex>(ClearHelper(), this);
+    }
+
+    /**
+     * @brief      Print the SimplexSet.
+     * 
+     * See also casc::simplicial_complex::SimplexID::operator<<.
+     *
+     * @param      output  Handle to the stream to print to.
+     * @param[in]  S       SimplexSet to print.
+     *
+     * @return     Handle to the stream.
+     */
+    friend std ::ostream &operator<<(std::ostream &output, const SimplexSet<Complex> &S)
+    {
+        output << "SimplexSet(";
+        util::int_for_each<std::size_t, LevelIndex>(PrintHelper(),
+                                                    output, S);
+        output << ")";
+        return output;
+    }
+
+
     private:
+        /**
+         * @brief      Helper struct to insert a SimplexSet.
+         */
         struct InsertHelper
         {
+            /**
+             * @brief      Perform the insertion for a dimension.
+             *
+             * @param      that  Typename of this SimplexSet.
+             * @param[in]  S     SimplexSet to insert
+             *
+             * @tparam     k     Simplex dimension to insert.
+             */
             template <std::size_t k>
-            static void apply(type_this* that, const SimplexSet<Complex>& S)
+            static void apply(type_this* that, const SimplexSet<Complex> &S)
             {
                 auto s = std::get<k>(S.tupleSet);
-                for(auto simplex : s){
+                for (auto simplex : s)
+                {
                     that->insert(simplex);
                 }
             }
         };
-        
+
+        /**
+         * @brief      Helper struct to compute a set difference.
+         */
         struct EraseHelper
         {
+            /**
+             * @brief      Perform the set difference for a dimension.
+             *
+             * @param      that  Typename of this SimplexSet.
+             * @param[in]  S     SimplexSet to remove from this.
+             *
+             * @tparam     k     Simplex dimension to erase.
+             */
             template <std::size_t k>
-            static void apply(type_this* that, const SimplexSet<Complex>& S)
+            static void apply(type_this* that, const SimplexSet<Complex> &S)
             {
                 auto s = std::get<k>(S.tupleSet);
-                for(auto simplex : s){
+                for (auto simplex : s)
+                {
                     that->erase(simplex);
                 }
             }
         };
-        
+
+        /**
+         * @brief      Helper struct to print the SimplexSet
+         */
         struct PrintHelper
         {
+            /**
+             * @brief      Print the simplices in the level.
+             *
+             * @param      output  Handle to the stream to output to.
+             * @param[in]  S       SimplexSet to print.
+             *
+             * @tparam     k       Simplex dimension to print.
+             */
             template <std::size_t k>
-            static void apply(std::ostream& output, const SimplexSet<Complex>& S)
+            static void apply(std::ostream &output, const SimplexSet<Complex> &S)
             {
                 output << "[l=" << k;
                 auto s = std::get<k>(S.tupleSet);
-                for(auto simplex : s){
+                for (auto simplex : s)
+                {
                     output << ", " << simplex;
                 }
                 output << "]";
             }
         };
 
+        /**
+         * @brief      Helper struct to clear the SimplexSet.
+         */
         struct ClearHelper
         {
+            /**
+             * @brief      Clear a dimension.
+             *
+             * @param      that  Typename of this SimplexSet.
+             *
+             * @tparam     k     Simplex dimension to clear.
+             */
             template <std::size_t k>
             void apply(type_this* that)
             {
-                auto& s = std::get<k>(that->tupleSet);
+                auto &s = std::get<k>(that->tupleSet);
                 s.clear();
             }
         };
 
-    };
+    /// Tuple of SimplexIDs wrt an integral level.
+    using SimplexIDLevel = typename util::int_type_map<std::size_t,
+                                                       std::tuple, LevelIndex, SimplexID>::type;
+    /// Tuple of NodeSets per level.
+    typename util::type_map<SimplexIDLevel, NodeSet>::type tupleSet;
 
-    template <std::size_t k, typename Complex>
-    static inline auto& get(SimplexSet<Complex>& S){
-        return S.template get<k>();
-    }
+};
 
-    template <std::size_t k, typename Complex>
-    static inline auto& get(const SimplexSet<Complex>& S){
-        return S.template get<k>();
-    }
+template <std::size_t k, typename Complex>
+static inline auto &get(SimplexSet<Complex> &S)
+{
+    return S.template get<k>();
+}
 
-    /// Namespace for simplex container related helpers
-    namespace simplex_set_detail
+template <std::size_t k, typename Complex>
+static inline auto &get(const SimplexSet<Complex> &S)
+{
+    return S.template get<k>();
+}
+
+/// Namespace for simplex container related helpers
+namespace simplex_set_detail
+{
+template <typename Complex>
+struct UnionH
+{
+    template <std::size_t k>
+    static void apply(const SimplexSet<Complex> &A,
+                      const SimplexSet<Complex> &B,
+                      SimplexSet<Complex>       &dest)
     {
-        template <typename Complex>
-        struct UnionH
+        auto  a = std::get<k>(A.tupleSet);
+        auto  b = std::get<k>(B.tupleSet);
+        auto &d = std::get<k>(dest.tupleSet);
+        d.insert(a.begin(), a.end());
+        d.insert(b.begin(), b.end());
+    }
+};
+
+template <typename Complex>
+struct IntersectH
+{
+    template <std::size_t k>
+    static void apply(const SimplexSet<Complex> &A,
+                      const SimplexSet<Complex> &B,
+                      SimplexSet<Complex>       &dest)
+    {
+        auto  a = casc::get<k>(A);
+        auto  b = casc::get<k>(B);
+        auto &d = casc::get<k>(dest);
+
+        if (a.size() < b.size())
         {
-            template <std::size_t k>
-            static void apply(const SimplexSet<Complex>& A, 
-                    const SimplexSet<Complex>& B, 
-                    SimplexSet<Complex>& dest){
-                auto a = std::get<k>(A.tupleSet);
-                auto b = std::get<k>(B.tupleSet);
-                auto& d = std::get<k>(dest.tupleSet);
-                d.insert(a.begin(), a.end());
-                d.insert(b.begin(), b.end());
+            for (auto item : a)
+            {
+                if (b.find(item) != b.end())
+                    d.insert(item);
             }
-        };
-
-        template <typename Complex>
-        struct IntersectH
+        }
+        else
         {
-            template <std::size_t k>
-            static void apply(const SimplexSet<Complex>& A, 
-                    const SimplexSet<Complex>& B, 
-                    SimplexSet<Complex>& dest){
-                auto a = casc::get<k>(A);
-                auto b = casc::get<k>(B);
-                auto& d = casc::get<k>(dest);
-
-                if(a.size() < b.size()){
-                    for(auto item : a){
-                        if(b.find(item) != b.end())
-                            d.insert(item);
-                    }
-                }else{
-                    for(auto item : b){
-                        if(a.find(item) != a.end())
-                            d.insert(item);
-                    }
-                }
+            for (auto item : b)
+            {
+                if (a.find(item) != a.end())
+                    d.insert(item);
             }
-        };
+        }
+    }
+};
 
-        template <typename Complex>
-        struct DifferenceH
+template <typename Complex>
+struct DifferenceH
+{
+    template<std::size_t k>
+    static void apply(const SimplexSet<Complex> &A,
+                      const SimplexSet<Complex> &B,
+                      SimplexSet<Complex>       &dest)
+    {
+        auto  a = casc::get<k>(A);
+        auto  b = casc::get<k>(B);
+        auto &d = casc::get<k>(dest);
+
+        for (auto item : a)
         {
-            template<std::size_t k>
-            static void apply(const SimplexSet<Complex>& A,
-                    const SimplexSet<Complex>& B,
-                    SimplexSet<Complex>& dest){
-                auto a = casc::get<k>(A);
-                auto b = casc::get<k>(B);
-                auto& d = casc::get<k>(dest);
-
-                for(auto item : a){
-                    if(b.find(item) == b.end())
-                        d.insert(item);
-                }
-            }
-        };
-    } // end namespace simplex_set_detail
-    
-    template <typename Complex>
-    static SimplexSet<Complex>&& set_union(const SimplexSet<Complex>& A, 
-            const SimplexSet<Complex>& B){
-        SimplexSet<Complex> dest;
-        dest.insert(A);
-        dest.insert(B);
-        return std::move(dest);
+            if (b.find(item) == b.end())
+                d.insert(item);
+        }
     }
+};
+}     // end namespace simplex_set_detail
 
-    template <typename Complex>
-    static void set_union(const SimplexSet<Complex>& A, 
-            const SimplexSet<Complex>& B, 
-            SimplexSet<Complex>& dest){
-        util::int_for_each<std::size_t, 
-                typename Complex::LevelIndex>(
-                simplex_set_detail::UnionH<Complex>(), A, B, dest);
-    }
+template <typename Complex>
+static SimplexSet<Complex>&& set_union(const SimplexSet<Complex>&A,
+                                       const SimplexSet<Complex>&B){
+    SimplexSet<Complex> dest;
+    dest.insert(A);
+    dest.insert(B);
+    return std::move(dest);
+}
 
-    template <typename Complex>
-    static SimplexSet<Complex>&& set_intersection(const SimplexSet<Complex>& A, 
-            const SimplexSet<Complex>& B){
-        SimplexSet<Complex> dest;
-        util::int_for_each<std::size_t, 
-                typename Complex::LevelIndex>(
-                simplex_set_detail::IntersectH<Complex>(), A, B, dest);
-        return std::move(dest);
-    }
+template <typename Complex>
+static void set_union(const SimplexSet<Complex> &A,
+                      const SimplexSet<Complex> &B,
+                      SimplexSet<Complex>       &dest)
+{
+    util::int_for_each<std::size_t,
+                       typename Complex::LevelIndex>(
+        simplex_set_detail::UnionH<Complex>(), A, B, dest);
+}
 
-    template <typename Complex>
-    static void set_intersection(const SimplexSet<Complex>& A, 
-            const SimplexSet<Complex>& B, 
-            SimplexSet<Complex>& dest){
-        util::int_for_each<std::size_t, 
-                typename Complex::LevelIndex>(
-                simplex_set_detail::IntersectH<Complex>(), A, B, dest);
-    }
+template <typename Complex>
+static SimplexSet<Complex>&& set_intersection(const SimplexSet<Complex>&A,
+                                              const SimplexSet<Complex>&B){
+    SimplexSet<Complex> dest;
+    util::int_for_each<std::size_t,
+                       typename Complex::LevelIndex>(
+        simplex_set_detail::IntersectH<Complex>(), A, B, dest);
+    return std::move(dest);
+}
 
-    template <typename Complex>
-    static SimplexSet<Complex>&& set_difference(const SimplexSet<Complex>& A, 
-            const SimplexSet<Complex>& B){
-        SimplexSet<Complex> dest;
-        util::int_for_each<std::size_t,
-                typename Complex::LevelIndex>(
-                simplex_set_detail::DifferenceH<Complex>(), A, B, dest);
-        return std::move(dest);
-    }
+template <typename Complex>
+static void set_intersection(const SimplexSet<Complex> &A,
+                             const SimplexSet<Complex> &B,
+                             SimplexSet<Complex>       &dest)
+{
+    util::int_for_each<std::size_t,
+                       typename Complex::LevelIndex>(
+        simplex_set_detail::IntersectH<Complex>(), A, B, dest);
+}
 
-    template <typename Complex>
-    static void set_difference(const SimplexSet<Complex>& A, 
-            const SimplexSet<Complex>& B, 
-            SimplexSet<Complex>& dest){
-        util::int_for_each<std::size_t,
-                typename Complex::LevelIndex>(
-                simplex_set_detail::DifferenceH<Complex>(), A, B, dest);
-    }
+template <typename Complex>
+static SimplexSet<Complex>&& set_difference(const SimplexSet<Complex>&A,
+                                            const SimplexSet<Complex>&B){
+    SimplexSet<Complex> dest;
+    util::int_for_each<std::size_t,
+                       typename Complex::LevelIndex>(
+        simplex_set_detail::DifferenceH<Complex>(), A, B, dest);
+    return std::move(dest);
+}
 
-
-    // template <typename Complex>
-    // struct SimplexDataSet
-    // {
-    //     using KeyType = typename Complex::KeyType;
-
-    //     template <std::size_t k, typename T>
-    //     struct DataType
-    //     {
-    //         using type = std::pair<std::array<KeyType,k>, T>;
-    //     };
-
-    //     template <std::size_t k>
-    //     struct DataType<k, void>
-    //     {
-    //         using type = std::array<KeyType,k>;
-    //     };
-
-    //     template <std::size_t j>
-    //     using DataSet = typename DataType<j, typename Complex::template NodeData<j>>::type;
-    //     using LevelIndex = typename std::make_index_sequence<Complex::numLevels>;
-    //     using SimplexIDLevel = typename util::int_type_map<std::size_t, 
-    //             std::tuple, LevelIndex, DataSet>::type;
-    //     using type = typename util::type_map<SimplexIDLevel, casc::vector>::type;
-    // };  
+template <typename Complex>
+static void set_difference(const SimplexSet<Complex> &A,
+                           const SimplexSet<Complex> &B,
+                           SimplexSet<Complex>       &dest)
+{
+    util::int_for_each<std::size_t,
+                       typename Complex::LevelIndex>(
+        simplex_set_detail::DifferenceH<Complex>(), A, B, dest);
+}
 } // end namespace casc
-

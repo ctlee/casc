@@ -51,7 +51,7 @@
 namespace casc
 {
 /// Namespace for CASC internal data structures
-namespace casc_detail
+namespace detail
 {
 /// Data structure to store simplices by level.
 template <class T> using map = std::map<size_t, T>;
@@ -446,7 +446,7 @@ struct simplicial_complex_traits_default
                                                   typename std::make_index_sequence<sizeof ... (Ts)-1>,
                                                   all_int>::type;
 };
-} // end namespace casc_detail
+} // end namespace detail
 
 
 /**
@@ -492,7 +492,7 @@ class simplicial_complex
         using LevelIndex = typename std::make_index_sequence<numLevels>;
     private:
         /// Alias templated asc_node<...> as Node<k>
-        template <std::size_t k> using Node = casc_detail::asc_Node<KeyType, k, topLevel, NodeDataTypes, EdgeDataTypes>;
+        template <std::size_t k> using Node = detail::asc_Node<KeyType, k, topLevel, NodeDataTypes, EdgeDataTypes>;
         /// Alias Node<k>* as NodePtr<k>
         template <std::size_t k> using NodePtr = Node<k>*;
 
@@ -1321,8 +1321,8 @@ class simplicial_complex
         {
             auto begin = std::get<k>(levels).begin();
             auto end = std::get<k>(levels).end();
-            auto data_begin = casc_detail::make_node_id_iterator<decltype(begin), SimplexID<k> >(begin);
-            auto data_end   = casc_detail::make_node_id_iterator<decltype(end), SimplexID<k> >(end);
+            auto data_begin = detail::make_node_id_iterator<decltype(begin), SimplexID<k> >(begin);
+            auto data_end   = detail::make_node_id_iterator<decltype(end), SimplexID<k> >(end);
             return util::make_range(data_begin, data_end);
         }
 
@@ -1339,8 +1339,8 @@ class simplicial_complex
         {
             auto begin = std::get<k>(levels).cbegin();
             auto end = std::get<k>(levels).cend();
-            auto data_begin = casc_detail::make_node_id_iterator<decltype(begin), const SimplexID<k> >(begin);
-            auto data_end   = casc_detail::make_node_id_iterator<decltype(end), const SimplexID<k> >(end);
+            auto data_begin = detail::make_node_id_iterator<decltype(begin), const SimplexID<k> >(begin);
+            auto data_end   = detail::make_node_id_iterator<decltype(end), const SimplexID<k> >(end);
             return util::make_range(data_begin, data_end);
         }
 
@@ -1358,8 +1358,8 @@ class simplicial_complex
         {
             auto begin = std::get<k>(levels).begin();
             auto end = std::get<k>(levels).end();
-            auto data_begin = casc_detail::make_node_data_iterator<decltype(begin), NodeData<k> >(begin);
-            auto data_end   = casc_detail::make_node_data_iterator<decltype(end), NodeData<k> >(end);
+            auto data_begin = detail::make_node_data_iterator<decltype(begin), NodeData<k> >(begin);
+            auto data_end   = detail::make_node_data_iterator<decltype(end), NodeData<k> >(end);
             return util::make_range(data_begin, data_end);
         }
 
@@ -1377,8 +1377,8 @@ class simplicial_complex
         {
             auto begin = std::get<k>(levels).cbegin();
             auto end = std::get<k>(levels).cend();
-            auto data_begin = casc_detail::make_node_data_iterator<decltype(begin), const NodeData<k> >(begin);
-            auto data_end   = casc_detail::make_node_data_iterator<decltype(end), const NodeData<k> >(end);
+            auto data_begin = detail::make_node_data_iterator<decltype(begin), const NodeData<k> >(begin);
+            auto data_end   = detail::make_node_data_iterator<decltype(end), const NodeData<k> >(end);
             return util::make_range(data_begin, data_end);
         }
 
@@ -2022,7 +2022,7 @@ class simplicial_complex
         /// Typename of a tuple of LevelIndex broadcasted with NodePtr<k>.
         using NodePtrLevel = typename util::int_type_map<std::size_t, std::tuple, LevelIndex, NodePtr>::type;
         /// Typename of a map of levels to NodePtr<k>*'s.
-        typename util::type_map<NodePtrLevel, casc_detail::map>::type levels;
+        typename util::type_map<NodePtrLevel, detail::map>::type levels;
         /// B-tree of unused vertex indices.
         index_tracker::index_tracker<KeyType> unused_vertices;
 };
@@ -2046,7 +2046,7 @@ class simplicial_complex
  */
 template <typename KeyType, typename ... Ts>
 using AbstractSimplicialComplex = simplicial_complex<
-            casc_detail::simplicial_complex_traits_default<KeyType, Ts...> >;
+            detail::simplicial_complex_traits_default<KeyType, Ts...> >;
 
 namespace simplex_set_detail{
 /**

@@ -28,14 +28,14 @@
 
 #include "SimplexSet.h"
 #include "SimplexMap.h"
-#include "SimplicialComplexVisitors.h"
-#include "SimplicialComplexFunctions.h"
+#include "CASCTraversals.h"
+#include "CASCFunctions.h"
 #include "stringutil.h"
 
 namespace casc
 {
 /// Namespace for decimation related helpers
-namespace casc_decimation_detail
+namespace decimation_detail
 {
     template <typename Complex>
     struct SimplexDataSet
@@ -329,7 +329,7 @@ namespace casc_decimation_detail
             }
         }
     };
-} // end namespace casc_decimation_detail
+} // end namespace decimation_detail
 
 /**
  * @brief      Remove simplex in SimplexSet S from complex F
@@ -344,7 +344,7 @@ void perform_removal(Complex& F, casc::SimplexSet<Complex>& S){
     using SimplexSet = typename casc::SimplexSet<Complex>;
     using LevelIndex = typename SimplexSet::cRevIndex;
     util::int_for_each<std::size_t, LevelIndex>(
-            casc_decimation_detail::PerformRemoval<Complex>(), F, S);
+            decimation_detail::PerformRemoval<Complex>(), F, S);
 }
 
 /**
@@ -357,23 +357,23 @@ void perform_removal(Complex& F, casc::SimplexSet<Complex>& S){
  */
 template <typename Complex>
 void perform_insertion(Complex& F, 
-        typename casc_decimation_detail::SimplexDataSet<Complex>::type& S){
+        typename decimation_detail::SimplexDataSet<Complex>::type& S){
     using SimplexSet = typename casc::SimplexSet<Complex>;
     using LevelIndex = typename SimplexSet::cLevelIndex;
     util::int_for_each<std::size_t, LevelIndex>(
-            casc_decimation_detail::PerformInsertion<Complex>(), F, S);
+            decimation_detail::PerformInsertion<Complex>(), F, S);
 }  
 
 template <typename Complex, template<typename> class Callback>
 void run_user_callback(Complex& F,
         casc::SimplexMap<Complex>& S,
         Callback<Complex>&& clbk,
-        typename casc_decimation_detail::SimplexDataSet<Complex>::type& rv){
+        typename decimation_detail::SimplexDataSet<Complex>::type& rv){
     using SimplexMap = typename casc::SimplexMap<Complex>;
     using LevelIndex = typename SimplexMap::cLevelIndex;
 
     util::int_for_each<std::size_t, LevelIndex>(
-            casc_decimation_detail::RunCallback<Complex, Callback>(), 
+            decimation_detail::RunCallback<Complex, Callback>(), 
                 F, S, std::forward<Callback<Complex>>(clbk), rv);  
 }
 
@@ -401,15 +401,15 @@ void decimate(Complex& F, Simplex s, Callback<Complex>&& clbk)
     SimplexMap simplexMap;
 
     visit_node_down(
-            casc_decimation_detail::GetCompleteNeighborhood<Complex>(&nbhd),
+            decimation_detail::GetCompleteNeighborhood<Complex>(&nbhd),
             F, s);
 
     SimplexSet doomed = nbhd; // Save the list of simplices
     visit_node_down(
-            casc_decimation_detail::MainVisitor<Complex>(
+            decimation_detail::MainVisitor<Complex>(
                     &nbhd, np, &simplexMap), 
             F, s);
-    typename casc_decimation_detail::SimplexDataSet<Complex>::type rv;
+    typename decimation_detail::SimplexDataSet<Complex>::type rv;
     run_user_callback(F, simplexMap, std::forward<Callback<Complex>>(clbk), rv);
     perform_removal(F, doomed); 
     perform_insertion(F, rv);

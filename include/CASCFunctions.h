@@ -19,11 +19,11 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
- * ****************************************************************************
+ * ***************************************************************************
  */
 
 /**
- * @file SimplicialComplexFunctions.h
+ * @file CASCFunctions.h
  * @brief Contains various functions that operate on simplicial complexes
  */
 
@@ -32,14 +32,14 @@
 #include <iostream>
 #include <fstream>
 #include "SimplicialComplex.h"
-#include "SimplicialComplexVisitors.h"
+#include "CASCTraversals.h"
 #include "SimplexSet.h"
 #include "stringutil.h"
 
 namespace casc
 {
 /// Namespace for templated helpers of convenience functions
-namespace casc_func_detail
+namespace func_detail
 {
 
 /**
@@ -246,7 +246,8 @@ struct GraphVisitor
     }
 
     /**
-     * @brief      Explicit specialization for visiting the facets of the complex.
+     * @brief      Explicit specialization for visiting the facets of the
+     *complex.
      *
      * @param[in]  F          Complex of interest.
      * @param[in]  s          Simplex to visit.
@@ -255,7 +256,7 @@ struct GraphVisitor
 };
 
 /**
- * @brief      Generic template for printing out DOT meta info. 
+ * @brief      Generic template for printing out DOT meta info.
  *
  * @tparam     Complex  Typename of the complex.
  * @tparam     K        Dimension to go through.
@@ -276,7 +277,7 @@ struct DotHelper<Complex, std::integral_constant<std::size_t, k> >
      * @brief      Print out a list of simplices in a simplex dimension.
      *
      * @param      fout  Stream to print to.
-     * @param[in]  F     Complex of interest. 
+     * @param[in]  F     Complex of interest.
      */
     static void printlevel(std::ofstream &fout, const Complex &F)
     {
@@ -301,10 +302,10 @@ template <typename Complex>
 struct DotHelper<Complex, std::integral_constant<std::size_t, Complex::topLevel> >
 {
     /**
-     * @brief      Print out a list of facets of the complex. 
+     * @brief      Print out a list of facets of the complex.
      *
      * @param      fout  Stream to print to.
-     * @param[in]  F     Complex of interest. 
+     * @param[in]  F     Complex of interest.
      */
     static void printlevel(std::ofstream &fout, const Complex &F)
     {
@@ -327,7 +328,7 @@ struct DotHelper<Complex, std::integral_constant<std::size_t, Complex::topLevel>
         fout << "\n}\n";
     }
 };
-}   // end namespace casc_func_detail
+}   // end namespace func_detail
 
 /**
  * @brief      Gets the star of a SimplexSet.
@@ -348,7 +349,7 @@ void getStar(Complex &F, casc::SimplexSet<Complex> &S,
     // Start at the top and work up. We can assume that if we've seen it then
     // everything after has been added.
     util::int_for_each<std::size_t, RevIndex>(
-        casc_func_detail::StarHelper<Complex>(), F, S, dest);
+        func_detail::StarHelper<Complex>(), F, S, dest);
 }
 
 /**
@@ -364,7 +365,7 @@ void getStar(Complex &F, casc::SimplexSet<Complex> &S,
 template <typename Complex, typename Simplex>
 void getStar(Complex &F, Simplex &s, casc::SimplexSet<Complex> &dest)
 {
-    visit_BFS_up(casc_func_detail::SimplexAggregator<Complex>(&dest), F, s);
+    visit_BFS_up(func_detail::SimplexAggregator<Complex>(&dest), F, s);
 }
 
 /**
@@ -385,7 +386,7 @@ void getClosure(Complex &F, casc::SimplexSet<Complex> &S,
     // Start at the bottom and work down.
     // We can assume that everything below has been looked at.
     util::int_for_each<std::size_t, LevelIndex>(
-        casc_func_detail::ClosureHelper<Complex>(), F, S, dest);
+        func_detail::ClosureHelper<Complex>(), F, S, dest);
 }
 
 /**
@@ -401,7 +402,7 @@ void getClosure(Complex &F, casc::SimplexSet<Complex> &S,
 template <typename Complex, typename Simplex>
 void getClosure(Complex &F, Simplex &s, casc::SimplexSet<Complex> &dest)
 {
-    visit_BFS_down(casc_func_detail::SimplexAggregator<Complex>(&dest), F, s);
+    visit_BFS_down(func_detail::SimplexAggregator<Complex>(&dest), F, s);
 }
 
 /**
@@ -460,9 +461,9 @@ void getLink(Complex &F, Simplex &s, casc::SimplexSet<Complex> &dest)
 }
 
 /**
- * @brief      Writes out the topology of an ASC into the dot format. 
+ * @brief      Writes out the topology of an ASC into the dot format.
  *
- * The resulting dot file can be rendered into an image using tools such as 
+ * The resulting dot file can be rendered into an image using tools such as
  * GraphViz.
  * ~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
  * dot -Tpng input.dot > output.png
@@ -490,11 +491,11 @@ void writeDOT(const std::string &filename, Complex &F)
          << "node [shape = record,height = .1]"
          << "splines=line;\n"
          << "dpi=300;\n";
-    auto v = casc_func_detail::GraphVisitor<Complex>(fout);
+    auto v = func_detail::GraphVisitor<Complex>(fout);
     visit_BFS_up(v, F, F.get_simplex_up());
 
     // List the simplices
-    casc_func_detail::DotHelper<Complex,
+    func_detail::DotHelper<Complex,
                            std::integral_constant<std::size_t, 0> >::printlevel(fout, F);
     fout << "}\n";
     fout.close();
