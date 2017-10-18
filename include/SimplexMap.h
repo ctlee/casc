@@ -2,7 +2,7 @@
  * ***************************************************************************
  * This file is part of the Colored Abstract Simplicial Complex library.
  * Copyright (C) 2016-2017
- * by Christopher Lee, John Moody, Rommie Amaro, J. Andrew McCammon, 
+ * by Christopher Lee, John Moody, Rommie Amaro, J. Andrew McCammon,
  *    and Michael Holst
  *
  * This library is free software; you can redistribute it and/or
@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- * 
- * ****************************************************************************
+ *
+ * ***************************************************************************
  */
 
 #pragma once
@@ -30,88 +30,136 @@
 #include "stringutil.h"
 
 namespace casc
-{   
-    template <class T> using set = std::set<T>;
-    template <class T> using vector = std::vector<T>;
+{
 
-    template <typename Complex>
-    struct SimplexMap
+/**
+ * @brief      A multimap to represent a map of simplex indices to a set of
+ *             simplices.
+ *
+ * @tparam     Complex  Typename of the simplicial_complex.
+ */
+template <typename Complex>
+struct SimplexMap
+{
+    /// Alias for SimplexID
+    template <std::size_t j>
+    using SimplexID = typename Complex::template SimplexID<j>;
+    /// Index sequence of types from the simplicial_complex
+    using LevelIndex = typename Complex::LevelIndex;
+    /// Index sequence starting at 1
+    using cLevelIndex = typename util::remove_first_val<std::size_t,
+                                                        LevelIndex>::type;
+    /// Reversed Index sequence
+    using RevIndex = typename util::reverse_sequence<std::size_t,
+                                                     LevelIndex>::type;
+    /// Reversed index sequence stops at 1
+    using cRevIndex = typename util::reverse_sequence<std::size_t,
+                                                      cLevelIndex>::type;
+    // Typename of this
+    using type_this = SimplexMap<Complex>;
+
+    /**
+     * @brief      Default constructor does nothing.
+     */
+    SimplexMap() {};
+
+    // TODO: Put in convenience functions for easy accession etc... (0)
+    /**
+     * @brief      Get the map for a particular simplex dimension.
+     *
+     * @tparam     k     Simplex dimension to retrieve.
+     *
+     * @return     A map of SimplexID<k> to SimplexSet.
+     */
+    template <size_t k>
+    inline auto &get()
     {
-        template <std::size_t j>
-        using SimplexID          = typename Complex::template SimplexID<j>;
-        using LevelIndex        = typename Complex::LevelIndex;
-        using cLevelIndex       = typename util::remove_first_val<std::size_t,
-                LevelIndex>::type;
-        using RevIndex          = typename util::reverse_sequence<std::size_t,
-                LevelIndex>::type;
-        using cRevIndex         = typename util::reverse_sequence<std::size_t,
-                cLevelIndex>::type;
-        using type_this         = SimplexMap<Complex>;
+        return std::get<k>(tupleMap);
+    }
 
-        /**
-         * @brief      Default constructor does nothing.
-         */
-        SimplexMap() {};
+    /**
+     * @overload
+     */
+    template <size_t k>
+    inline auto &get() const
+    {
+        return std::get<k>(tupleMap);
+    }
 
-        // TODO: Put in convenience functions for easy accession etc...
+    /**
+     * @brief      Print the SimplexMap.
+     *
+     * @param      output  Handle to the stream to print to.
+     * @param[in]  S       SimplexMap to print.
+     *
+     * @return     Handle to the stream.
+     */
+    friend std ::ostream &operator<<(std::ostream &output, const SimplexMap<Complex> &S)
+    {
+        output << "SimplexMap(";
+        util::int_for_each<std::size_t, LevelIndex>(PrintHelper(),
+                                                    output, S);
+        output << ")";
+        return output;
+    }
 
-        template <size_t k>
-        inline auto& get(){
-            return std::get<k>(tupleMap);
-        }
-        
-        template <size_t k>
-        inline auto& get() const {
-            return std::get<k>(tupleMap);
-        }
-
-        // template <size_t k>
-        // inline auto&& get(){
-        //     return std::move(std::get<k>(tupleMap));
-        // }
-        
-        // template <size_t k>
-        // inline auto&& get() const {
-        //     return std::move(std::get<k>(tupleMap));
-        // }
-
-        friend std::ostream& operator<<(std::ostream& output, const SimplexMap<Complex>& S){
-            output << "SimplexMap(";
-            util::int_for_each<std::size_t, LevelIndex>(PrintHelper(), 
-                    output,S);
-            output << ")";
-            return output;
-        }
-     
     private:
+        /**
+         * @brief      Helper struct to print the SimplexMap.
+         */
         struct PrintHelper
         {
+            /**
+             * @brief      Print the SimplexMap.
+             *
+             * @param      output  Handle to the stream to print to.
+             * @param[in]  S       SimplexMap to print.
+             *
+             * @tparam     k       The simplex dimension to print.
+             */
             template <std::size_t k>
-            static void apply(std::ostream& output, const SimplexMap<Complex>& S)
+            static void apply(std::ostream &output, const SimplexMap<Complex> &S)
             {
                 output << "[l=" << k;
                 auto s = std::get<k>(S.tupleMap);
-                for(auto simplex : s){
+                for (auto simplex : s)
+                {
                     output << ", " << cascstringutil::to_string(simplex.first) << ":" << simplex.second;
                 }
                 output << "]";
             }
         };
 
+        /// Alias to create an Array of size k to store keys.
         template <std::size_t k> using array = std::array<typename Complex::KeyType, k>;
+        /// A tuple of arrays of increasing size.
         using ArrayLevel = typename util::int_type_map<std::size_t, std::tuple, LevelIndex, array>::type;
-        template <class T> using map = std::map<T,SimplexSet<Complex>>;
+        /// Alias for a Map of type T to a SimplexSet.
+        template <class T> using map = std::map<T, SimplexSet<Complex> >;
+        /// The full tuple of maps of an Array of keys to SimplexSet.
         typename util::type_map<ArrayLevel, map>::type tupleMap;
-    };
+};
 
-    template <std::size_t k, typename Complex>
-    static inline auto& get(SimplexMap<Complex>& S){
-        return S.template get<k>();
-    }
+/**
+ * @brief      Get the map for a simplex dimension.
+ *
+ * @param      S        SimplexMap to retrieve from.
+ *
+ * @tparam     k        Simplex dimension.
+ * @tparam     Complex  Typename of the complex.
+ *
+ * @return     Returns a map of std::Array<KeyType, k> to SimplexSet.
+ */
+template <std::size_t k, typename Complex>
+static inline auto &get(SimplexMap<Complex> &S)
+{
+    return S.template get<k>();
+}
 
-    template <std::size_t k, typename Complex>
-    static inline auto& get(const SimplexMap<Complex>& S){
-        return S.template get<k>();
-    }
+/// @overload
+template <std::size_t k, typename Complex>
+static inline auto &get(const SimplexMap<Complex> &S)
+{
+    return S.template get<k>();
+}
 } // end namespace casc
-

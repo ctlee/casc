@@ -226,6 +226,16 @@ struct SimplexSet
         return std::get<k>(tupleSet);
     }
 
+    // template <size_t k>
+    // inline auto&& get(){
+    //     return std::move(std::get<k>(tupleSet));
+    // }
+    
+    // template <size_t k>
+    // inline auto&& get() const {
+    //     return std::move(std::get<k>(tupleSet));
+    // }
+
     /**
      * @brief      Clear all values from the SimplexSet.
      */
@@ -357,12 +367,26 @@ struct SimplexSet
 
 };
 
+/**
+ * @brief      Get the NodeSet for a simplex dimension from a SimplexSet.
+ *
+ * @param      S        SimplexSet of interest.
+ *
+ * @tparam     k        Simplex dimension desired.
+ * @tparam     Complex  Typename of the simplicial_complex.
+ *
+ * @return     A NodeSet which holds simplices of dimension 'k' and a member of 
+ *             SimplexSet 'S'.
+ */
 template <std::size_t k, typename Complex>
 static inline auto &get(SimplexSet<Complex> &S)
 {
     return S.template get<k>();
 }
 
+/**
+ * @overload
+ */
 template <std::size_t k, typename Complex>
 static inline auto &get(const SimplexSet<Complex> &S)
 {
@@ -372,9 +396,25 @@ static inline auto &get(const SimplexSet<Complex> &S)
 /// Namespace for simplex container related helpers
 namespace simplex_set_detail
 {
+/**
+ * @brief      Helper struct to compute the union of two SimplexSets.
+ *
+ * @tparam     Complex  Typename of the simplicial_complex.
+ */
 template <typename Complex>
 struct UnionH
 {
+    /**
+     * @brief      Compute the union of two SimplexSets.
+     *
+     * \f$A\cup B\f$
+     * 
+     * @param[in]  A     A SimplexSet
+     * @param[in]  B     Another SimplexSet
+     * @param[out] dest  The destination SimplexSet
+     *
+     * @tparam     k     The current simplex dimension to merge.
+     */
     template <std::size_t k>
     static void apply(const SimplexSet<Complex> &A,
                       const SimplexSet<Complex> &B,
@@ -388,9 +428,25 @@ struct UnionH
     }
 };
 
+/**
+ * @brief      Helper struct to compute the intersection of two SimplexSets.
+ *
+ * @tparam     Complex  Typename of the simplicial_complex.
+ */
 template <typename Complex>
 struct IntersectH
 {
+    /**
+     * @brief      Compute the intersection of two SimplexSets.
+     * 
+     * \f$A\cap B\f$
+     *
+     * @param[in]  A     A SimplexSet
+     * @param[in]  B     Another SimplexSet
+     * @param      dest  The destination SimplexSet.
+     *
+     * @tparam     k     The current simplex dimension to merge.
+     */
     template <std::size_t k>
     static void apply(const SimplexSet<Complex> &A,
                       const SimplexSet<Complex> &B,
@@ -419,9 +475,25 @@ struct IntersectH
     }
 };
 
+/**
+ * @brief      Helper struct to compute the set intersection.
+ *
+ * @tparam     Complex  Typename of the simplicial_complex.
+ */
 template <typename Complex>
 struct DifferenceH
 {
+    /**
+     * @brief      Compute the set difference for a simplex dimension.
+     * 
+     * \f$ dest = A \setminus B \f$
+     * 
+     * @param[in]  A     A SimplexSet.
+     * @param[in]  B     Remove this SimplexSet from A.
+     * @param      dest  The destination SimplexSet.
+     *
+     * @tparam     k     The simplex dimension to compute the difference of.
+     */
     template<std::size_t k>
     static void apply(const SimplexSet<Complex> &A,
                       const SimplexSet<Complex> &B,
@@ -440,6 +512,16 @@ struct DifferenceH
 };
 }     // end namespace simplex_set_detail
 
+/**
+ * @brief      Compute the set union.
+ *
+ * @param[in]  A        A SimplexSet
+ * @param[in]  B        Another SimplexSet
+ * 
+ * @tparam     Complex  Typename of the simplicial_complex.
+ * 
+ * @return     Returns a temporary SimplexSet with the union.
+ */
 template <typename Complex>
 static SimplexSet<Complex>&& set_union(const SimplexSet<Complex>&A,
                                        const SimplexSet<Complex>&B){
@@ -449,6 +531,15 @@ static SimplexSet<Complex>&& set_union(const SimplexSet<Complex>&A,
     return std::move(dest);
 }
 
+/**
+ * @brief      Compute the set union.
+ *
+ * @param[in]  A        A SimplexSet
+ * @param[in]  B        Another SimplexSet
+ * @param[out] dest     The destination SimplexSet.
+ *
+ * @tparam     Complex  Typename of the simplicial_complex.
+ */
 template <typename Complex>
 static void set_union(const SimplexSet<Complex> &A,
                       const SimplexSet<Complex> &B,
@@ -459,6 +550,16 @@ static void set_union(const SimplexSet<Complex> &A,
         simplex_set_detail::UnionH<Complex>(), A, B, dest);
 }
 
+/**
+ * @brief      Compute the set intersection.
+ *
+ * @param[in]  A        A SimplexSet
+ * @param[in]  B        Another SimplexSet
+ * 
+ * @tparam     Complex  Typename of the simplicial_complex.
+ * 
+ * @return     Returns a temporary SimplexSet with the union.
+ */
 template <typename Complex>
 static SimplexSet<Complex>&& set_intersection(const SimplexSet<Complex>&A,
                                               const SimplexSet<Complex>&B){
@@ -469,6 +570,15 @@ static SimplexSet<Complex>&& set_intersection(const SimplexSet<Complex>&A,
     return std::move(dest);
 }
 
+/**
+ * @brief      Compute the set intersection.
+ *
+ * @param[in]  A        A SimplexSet
+ * @param[in]  B        Another SimplexSet
+ * @param[out] dest     The destination SimplexSet.
+ *
+ * @tparam     Complex  Typename of the simplicial_complex.
+ */
 template <typename Complex>
 static void set_intersection(const SimplexSet<Complex> &A,
                              const SimplexSet<Complex> &B,
@@ -479,6 +589,14 @@ static void set_intersection(const SimplexSet<Complex> &A,
         simplex_set_detail::IntersectH<Complex>(), A, B, dest);
 }
 
+/**
+ * @brief      Compute the set difference.
+ *
+ * @param[in]  A        A SimplexSet
+ * @param[in]  B        Another SimplexSet
+ *
+ * @return     Returns a temporary SimplexSet with the union.
+ */
 template <typename Complex>
 static SimplexSet<Complex>&& set_difference(const SimplexSet<Complex>&A,
                                             const SimplexSet<Complex>&B){
@@ -489,6 +607,15 @@ static SimplexSet<Complex>&& set_difference(const SimplexSet<Complex>&A,
     return std::move(dest);
 }
 
+/**
+ * @brief      Compute the set difference.
+ *
+ * @param[in]  A        A SimplexSet
+ * @param[in]  B        Another SimplexSet
+ * @param[out] dest     The destination SimplexSet.
+ *
+ * @tparam     Complex  Typename of the simplicial_complex.
+ */
 template <typename Complex>
 static void set_difference(const SimplexSet<Complex> &A,
                            const SimplexSet<Complex> &B,
