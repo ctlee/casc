@@ -33,7 +33,10 @@ namespace util
 /**
  * @brief      A range object to support range based for loops.
  *
- * See also http://en.cppreference.com/w/cpp/language/range-for
+ * This is a basic data structure which implements a `begin()` and `end()` 
+ * functions for range based for lopping added in C++11.
+ * See also 
+ * <a href="http://en.cppreference.com/w/cpp/language/range-for">range-for</a>.
  *
  * @tparam     T     Typename of the iterator
  */
@@ -80,7 +83,7 @@ template<typename T> struct range
 };
 
 /**
- * @brief      Makes a range.
+ * @brief      Make a range object.
  *
  * @param[in]  b     Iterator to the beginning.
  * @param[in]  e     Iterator to the end.
@@ -95,7 +98,7 @@ template<typename T> range<T> make_range(T b, T e)
 }
 
 /**
- * @brief      Makes a range.
+ * @brief      Makes a range object.
  *
  * @param[in]  p     A pair containing begin and end iterators.
  *
@@ -109,7 +112,10 @@ template<typename T> range<T> make_range(std::pair<T, T> p)
 }
 
 /**
- * @brief      Queue like data structure to hold a list of types.
+ * @brief      Queue based data structure to hold list of types.
+ *
+ * Types in the type_holder can be accessed by accessing the `head` type.
+ * Subsequent types are in the `tail`. See also type_get.
  *
  * @tparam     Ts    List of typenames
  */
@@ -149,8 +155,8 @@ template <size_t k, typename T>
 struct type_get {};
 
 /**
- * @brief      Specialization to get the first type.
- *
+ * @brief      Specialization for terminal case.
+ * 
  * @tparam     Ts    Following typenames
  */
 template <typename ... Ts>
@@ -173,7 +179,7 @@ struct type_get<k, type_holder<Ts...> >
     using type = typename type_get<k-1, typename type_holder<Ts...>::tail>::type;
 };
 
-
+/// Namespace for utility helper functions
 namespace detail
 {
 /**
@@ -218,7 +224,11 @@ struct type_map_helper<G<T, Ts...>, V, Rs...>
 /**
  * @brief      Map the types in C into V<T>
  *
- * @tparam     C     Tuple of types to map into V
+ * Given a container of types `C<T1,T2,T3,...>` and template template type 
+ * `V<T>`, this function will apply the types in C to V<T>. This produces
+ * C<V<T1>, V<T2>, V<T3>, ...>. 
+ * 
+ * @tparam     C     Container of types to map into V<T>
  * @tparam     V     Type template <class T> class to map into
  */
 template <class C, template <typename> class V>
@@ -270,6 +280,9 @@ struct int_type_map_helper<Integer, OutHolder, InHolder<Integer, I, Is...>, F, A
 
 /**
  * @brief      Maps an integer sequence and typename, F<I>, into outholder
+ * 
+ * Given an Integer Sequence I<0,1,2,3,...> and template template type F<I>,
+ * this function produces Out<F<0>, F<1>, F<2>, ...>. 
  *
  * @tparam     IntegerType      Typename of an integer type
  * @tparam     OutHolder        Typename of a holder for types 
@@ -306,6 +319,16 @@ struct type_swap<TUPLE, HOLDER<Ts...> >
     using type = TUPLE<Ts...>;
 };
 
+
+namespace detail
+{
+/**
+ * @brief      { struct_description }
+ *
+ * @tparam     Integer          { description }
+ * @tparam     IntegerSequence  { description }
+ * @tparam     Accumulator      { description }
+ */
 template <class Integer, class IntegerSequence, Integer... Accumulator>
 struct reverse_sequence_helper {};
 
@@ -326,6 +349,7 @@ struct reverse_sequence_helper<Integer, InHolder<Integer, I, Is...>, Accumulator
     using type = typename reverse_sequence_helper<Integer,
                                                   InHolder<Integer, Is...>, I, Accumulator...>::type;
 };
+} // end namespace detail
 
 /**
  * @brief      Reverse an Integer Sequence
@@ -336,7 +360,7 @@ struct reverse_sequence_helper<Integer, InHolder<Integer, I, Is...>, Accumulator
 template <class Integer, class IntegerSequence>
 struct reverse_sequence
 {
-    using type = typename reverse_sequence_helper<Integer, IntegerSequence>::type;
+    using type = typename detail::reverse_sequence_helper<Integer, IntegerSequence>::type;
 };
 
 
@@ -351,8 +375,12 @@ struct remove_first_val<Integer, InHolder<Integer, I, Is...> >
     using type = InHolder<Integer, Is...>;
 };
 
+
+namespace detail
+{
 /**
  * @brief      Template type for future specialization
+ 
  */
 template <typename Integer, typename IntegerSequence, typename Fn, typename ... Args>
 struct int_for_each_helper {};
@@ -398,6 +426,7 @@ struct int_for_each_helper<Integer, InHolder<Integer, I, Is...>, Fn, Args...>
             std::forward<Args>(args) ...);
     }
 };
+} // end namespace detail
 
 /**
  * @brief      Calls a function f.apply<k>() for a sequence of integer k's
@@ -413,7 +442,7 @@ struct int_for_each_helper<Integer, InHolder<Integer, I, Is...>, Fn, Args...>
 template <class Integer, typename IntegerSequence, typename Fn, typename ... Args>
 void int_for_each(Fn &&f, Args && ... args)
 {
-    int_for_each_helper<Integer, IntegerSequence, Fn, Args...>::apply(std::forward<Fn>(f),
+    detail::int_for_each_helper<Integer, IntegerSequence, Fn, Args...>::apply(std::forward<Fn>(f),
                                                                       std::forward<Args>(args) ...);
 }
 } // End of namespace util

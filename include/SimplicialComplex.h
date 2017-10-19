@@ -2079,5 +2079,6 @@ struct hashSimplexID{
 } // end namespace simplex_set_detail
 
 /// Helpful alias defining a unordered_set of simplices. See also hashSimplexID.
-template <typename T> using NodeSet = std::unordered_set<T, simplex_set_detail::hashSimplexID<T> >;
+template <typename T> using NodeSet = 
+        std::unordered_set<T, simplex_set_detail::hashSimplexID<T> >;
 } // end namespace casc
