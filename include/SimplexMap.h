@@ -60,11 +60,11 @@ struct SimplexMap
     /// Reversed index sequence stops at 1
     using cRevIndex = typename util::reverse_sequence<std::size_t,
                                                       cLevelIndex>::type;
-    // Typename of this
+    /// Typename of this object
     using type_this = SimplexMap<Complex>;
 
     /**
-     * @brief      Default constructor does nothing.
+     * @brief      Default constructor. 
      */
     SimplexMap() {};
 

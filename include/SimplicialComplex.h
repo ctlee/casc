@@ -50,6 +50,7 @@
 /// Namespace for everything CASC
 namespace casc
 {
+/// @cond detail
 /// Namespace for CASC internal data structures
 namespace detail
 {
@@ -447,7 +448,7 @@ struct simplicial_complex_traits_default
                                                   all_int>::type;
 };
 } // end namespace detail
-
+/// @endcond
 
 /**
  * @class      simplicial_complex
@@ -2048,6 +2049,7 @@ template <typename KeyType, typename ... Ts>
 using AbstractSimplicialComplex = simplicial_complex<
             detail::simplicial_complex_traits_default<KeyType, Ts...> >;
 
+/// @cond detail
 namespace simplex_set_detail{
 /**
  * @brief      Template to compute a hash for a SimplexID.
@@ -2077,6 +2079,7 @@ struct hashSimplexID{
     }
 };
 } // end namespace simplex_set_detail
+/// @endcond
 
 /// Helpful alias defining a unordered_set of simplices. See also hashSimplexID.
 template <typename T> using NodeSet = 

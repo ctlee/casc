@@ -86,8 +86,10 @@ operator<<(std::ostream& os, static_string const& s)
 /**
  * @brief      Print the typename of an object at compile time.
  *
- * Example usage: 
- * `std::cout << "decltype(i) is " << type_name<decltype(i)>() << '\n';`
+ * Example usage:
+ * ~~~~~~~~~~~~~~~~{.cpp}
+ * std::cout << "decltype(i) is " << type_name<decltype(i)>() << '\n';
+ * ~~~~~~~~~~~~~~~~
  */
 template <class T>
 CONSTEXPR14_TN
