@@ -22,12 +22,16 @@
  * ***************************************************************************
  */
 
+/**
+ * @file  SimplexSet.h
+ * @brief SimplexSet data structure and associated convenience functions.
+ */
+
 #pragma once
 
 #include <algorithm>
 #include <unordered_set>
 #include "util.h"
-#include "stringutil.h"
 
 namespace casc
 {
@@ -393,9 +397,11 @@ static inline auto &get(const SimplexSet<Complex> &S)
     return S.template get<k>();
 }
 
+/// @cond detail
 /// Namespace for simplex container related helpers
 namespace simplex_set_detail
 {
+
 /**
  * @brief      Helper struct to compute the union of two SimplexSets.
  *
@@ -511,6 +517,7 @@ struct DifferenceH
     }
 };
 }     // end namespace simplex_set_detail
+/// @endcond
 
 /**
  * @brief      Compute the set union.

@@ -22,22 +22,28 @@
  * ****************************************************************************
  */
 
+/**
+ * @file  stringutil.h
+ * @brief String utilities for CASC.
+ */
+
 #pragma once
 
 #include <string>
 
 namespace casc
 {
-/// String utilities
-namespace cascstringutil
+/// String utilities for CASC
+namespace stringutil
 {
     /**
-     * @brief      Returns a string representation of the vertex subsimplicies of a given simplex
+     * @brief      Returns a string representation of the vertex subsimplicies 
+     *             of a given simplex
      *
-     * @param[in]  A     Array containing name of a simplex
+     * @param[in]  A     Array containing name of a simplex.
      *
-     * @tparam     T     Type of the array elements
-     * @tparam     k     Number of elements
+     * @tparam     T     Typename KeyType.
+     * @tparam     k     Dimension of the simplex.
      *
      * @return     String representation of the object.
      */

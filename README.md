@@ -1,12 +1,17 @@
 # Colored Abstract Simplicial Complex (CASC) Library
 
-CASC is a header-only C++ library which provides a data structure to represent arbitrary dimension abstract simplicial complexes.
-It also allows for user-defined classes to be stored on simplices at each dimension. This library is released as a part of the Finite Elements Toolkit ([FETK](http://www.fetk.org/))
+CASC is a header-only C++ library which provides a data structure to represent 
+arbitrary dimension abstract simplicial complexes. It also allows for 
+user-defined classes to be stored on simplices at each dimension. This library 
+is released as a part of the Finite Elements Toolkit 
+([FETK](http://www.fetk.org/)).
 
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the project up and running on your 
+local machine for development and testing purposes. See deployment for notes on 
+how to deploy the project on a live system.
 
 ### Prerequisites
 
@@ -41,7 +46,9 @@ make casc_doc
 
 ## Versioning
 
-We use [Bitbucket](https://bitbucket.org/fetk/casc) for versioning. For the versions available, see the [tags on this repository](https://bitbucket.org/fetk/casc/downloads/?tab=tags). 
+We use [Bitbucket](https://bitbucket.org/fetk/casc) for versioning. For the 
+versions available, see the 
+[tags on this repository](https://bitbucket.org/fetk/casc/downloads/?tab=tags). 
 
 ## Authors
 
@@ -50,8 +57,11 @@ We use [Bitbucket](https://bitbucket.org/fetk/casc) for versioning. For the vers
 
 ## License
 
-This project is licensed under the ... License - see the [COPYING.md](COPYING.md) file for details
+This project is licensed under the GNU Lesser General Public License v2.1 - 
+please see the [COPYING.md](COPYING.md) file for details.
 
 ## Acknowledgments
 
-This project is supported by grants...
+This project is supported by the National Institutes of Health under grant
+numbers P41-GM103426, T32-GM008326, and R01-GM31749. It's also supported in part
+by the National Science Foundation under awards DMS-CM1620366 and DMS-FRG1262982.

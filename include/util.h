@@ -22,6 +22,11 @@
  * ***************************************************************************
  */
 
+/**
+ * @file  util.h
+ * @brief Metatemplate pack expansion helpers
+ */
+
 #pragma once
 
 #include <utility>
@@ -179,6 +184,7 @@ struct type_get<k, type_holder<Ts...> >
     using type = typename type_get<k-1, typename type_holder<Ts...>::tail>::type;
 };
 
+/// @cond detail
 /// Namespace for utility helper functions
 namespace detail
 {
@@ -206,7 +212,7 @@ struct type_map_helper<G<>, V, Rs...>
 };
 
 /**
- * @brief      Iteratively map the types in G into V<T>.
+ * @brief      Map types into 
  *
  * @tparam     G     Tuple of types
  * @tparam     T     Current type
@@ -220,23 +226,26 @@ struct type_map_helper<G<T, Ts...>, V, Rs...>
     using type = typename type_map_helper<G<Ts...>, V, Rs..., V<T> >::type;
 };
 }     // end of namespace detail
+/// @endcond
 
 /**
- * @brief      Map the types in C into V<T>
+ * @brief      Map the types in C into `V<T>`.
  *
  * Given a container of types `C<T1,T2,T3,...>` and template template type 
- * `V<T>`, this function will apply the types in C to V<T>. This produces
- * C<V<T1>, V<T2>, V<T3>, ...>. 
+ * `V<T>`, this function will apply the types in C to `V<T>`. This produces
+ * `C<V<T1>, V<T2>, V<T3>, ...>`. 
  * 
- * @tparam     C     Container of types to map into V<T>
- * @tparam     V     Type template <class T> class to map into
+ * @tparam     C     Container of compile time types.
+ * @tparam     V     Template template class `V<T>` to map into.
  */
 template <class C, template <typename> class V>
 struct type_map
 {
+    /// Tuple of `C<V<T1>, V<T2>, V<T3>, ...>`
     using type = typename detail::type_map_helper<C, V>::type;
 };
 
+/// @cond detail
 namespace detail
 {
 /**
@@ -277,12 +286,13 @@ struct int_type_map_helper<Integer, OutHolder, InHolder<Integer, I, Is...>, F, A
     using type = typename int_type_map_helper<Integer, OutHolder, InHolder<Integer, Is...>, F, Accumulator..., F<I> >::type;
 };
 } // end namespace detail
+/// @endcond
 
 /**
- * @brief      Maps an integer sequence and typename, F<I>, into outholder
+ * @brief      Maps an integer sequence and typename, F, into outholder.
  * 
- * Given an Integer Sequence I<0,1,2,3,...> and template template type F<I>,
- * this function produces Out<F<0>, F<1>, F<2>, ...>. 
+ * Given an Integer Sequence `I<0,1,2,3,...>` and template template type `F<I>`,
+ * this function produces `Out<F<0>, F<1>, F<2>, ...>`. 
  *
  * @tparam     IntegerType      Typename of an integer type
  * @tparam     OutHolder        Typename of a holder for types 
@@ -292,6 +302,7 @@ struct int_type_map_helper<Integer, OutHolder, InHolder<Integer, I, Is...>, F, A
 template <class IntegerType, template <class ...> class OutHolder, class IntegerSequence, template <IntegerType> class F>
 struct int_type_map
 {
+    /// Tuple of `Out<F<0>, F<1>, F<2>, ...>`.
     using type = typename detail::int_type_map_helper<IntegerType, OutHolder, IntegerSequence, F>::type;
 };
 
@@ -319,63 +330,100 @@ struct type_swap<TUPLE, HOLDER<Ts...> >
     using type = TUPLE<Ts...>;
 };
 
-
+/// @cond detail
 namespace detail
 {
 /**
- * @brief      { struct_description }
+ * @brief      Helper struct to reverse a typed sequence.
  *
- * @tparam     Integer          { description }
- * @tparam     IntegerSequence  { description }
- * @tparam     Accumulator      { description }
+ * @tparam     Integer          Typename of integer class.
+ * @tparam     IntegerSequence  Sequence of integral types.
+ * @tparam     Accumulator      Bucket ot hold types.
  */
 template <class Integer, class IntegerSequence, Integer... Accumulator>
 struct reverse_sequence_helper {};
 
+/**
+ * @brief      Terminal case of typed sequence reversal.
+ *
+ * @tparam     Integer      Typename of an integer class
+ * @tparam     InHolder     Template template type holder
+ * @tparam     Accumulator  List of reverse ordered typenames.
+ */
 template <class Integer,
           template<class, Integer...> class InHolder,
           Integer... Accumulator>
 struct reverse_sequence_helper<Integer, InHolder<Integer>, Accumulator...>
 {
+    /// Reversed sequence of types.
     using type = InHolder<Integer, Accumulator...>;
 };
 
+/**
+ * @brief      Helper struct to reverse a typed sequence.
+ *
+ * @tparam     Integer      Typename of integer class.
+ * @tparam     InHolder     Type holder.
+ * @tparam     I            First type in InHolder.
+ * @tparam     Is           The following types in InHolder.
+ * @tparam     Accumulator  List of reversed typenames.
+ */
 template <class Integer,
           template<class, Integer...> class InHolder,
           Integer I, Integer... Is,
           Integer... Accumulator>
 struct reverse_sequence_helper<Integer, InHolder<Integer, I, Is...>, Accumulator...>
 {
+    // Push the first type into the Accumulator and recurse.
+    /// Reversed sequence of types.
     using type = typename reverse_sequence_helper<Integer,
                                                   InHolder<Integer, Is...>, I, Accumulator...>::type;
 };
 } // end namespace detail
+/// @endcond
 
 /**
  * @brief      Reverse an Integer Sequence
  *
- * @tparam     Integer          { description }
- * @tparam     IntegerSequence  { description }
+ * @tparam     Integer          Typename of an integer class.
+ * @tparam     IntegerSequence  Sequence of compile-time integers.
  */
 template <class Integer, class IntegerSequence>
 struct reverse_sequence
 {
+    /// Reversed sequence of types.
     using type = typename detail::reverse_sequence_helper<Integer, IntegerSequence>::type;
 };
 
 
+/**
+ * @brief      General template for removing the first value from a type holder.
+ *
+ * @tparam     Integer          Typename of integer.
+ * @tparam     IntegerSequence  Sequence of compile time integers.
+ */
 template <class Integer, class IntegerSequence>
 struct remove_first_val {};
 
+/**
+ * @brief      Specialization for removing first integer from a sequence of 
+ *             compile time integers.
+ *
+ * @tparam     Integer   Typename of integer type.
+ * @tparam     InHolder  Type holder of integer sequence.
+ * @tparam     I         The first integer
+ * @tparam     Is        Remaining integers
+ */
 template <class Integer,
           template<class, Integer...> class InHolder,
           Integer I, Integer... Is>
 struct remove_first_val<Integer, InHolder<Integer, I, Is...> >
 {
+    /// Type holder with first value removed.
     using type = InHolder<Integer, Is...>;
 };
 
-
+/// @cond detail
 namespace detail
 {
 /**
@@ -427,12 +475,13 @@ struct int_for_each_helper<Integer, InHolder<Integer, I, Is...>, Fn, Args...>
     }
 };
 } // end namespace detail
+/// @endcond
 
 /**
- * @brief      Calls a function f.apply<k>() for a sequence of integer k's
+ * @brief      Calls a function `f.apply<k>()` for a sequence of integer k's
  *
  * @param[in]  args             Arguments to f
- * @param[in]  f                Functor with apply<k>() method
+ * @param[in]  f                Functor with `apply<k>()` method
  *
  * @tparam     Integer          Integer type
  * @tparam     IntegerSequence  Sequence of integers to iterate

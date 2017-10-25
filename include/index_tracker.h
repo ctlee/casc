@@ -22,6 +22,11 @@
  * ****************************************************************************
  */
 
+/**
+ * @file  index_tracker.h
+ * @brief B-tree based interval tracker.
+ */
+
 #pragma once
 
 #include <iostream>
@@ -31,6 +36,9 @@
 #include <cstdlib>
 #include <limits>
 
+
+// TODO: (0) Actually document the index_tracker
+/// @cond index_tracker
 /// Index tracker namespace
 namespace index_tracker
 {
@@ -936,3 +944,4 @@ private:
 	index_tracker_detail::Pointer<Node> head;
 };
 } // end namespace index_tracker
+/// @endcond

@@ -38,6 +38,7 @@
 
 namespace casc
 {
+/// @cond detail
 /// Namespace for templated helpers of convenience functions
 namespace func_detail
 {
@@ -329,6 +330,7 @@ struct DotHelper<Complex, std::integral_constant<std::size_t, Complex::topLevel>
     }
 };
 }   // end namespace func_detail
+/// @endcond
 
 /**
  * @brief      Gets the star of a SimplexSet.

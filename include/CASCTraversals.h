@@ -23,7 +23,7 @@
  */
 
 /**
- * @file CASCTraversals.h
+ * @file  CASCTraversals.h
  * @brief Implementations of various advanced traversals such as by neighborhood
  *        and breadth first search.
  */
@@ -40,7 +40,7 @@
 
 namespace casc
 {
-
+/// @cond detail
 /// Visitor design pattern helper templates
 namespace visitor_detail
 {
@@ -390,6 +390,7 @@ struct BFS_NoRepeat_Edge_Traits
     // SimplexID s);
 };
 }   // End namespace visitor_detail
+/// @endcond
 
 /**
  * @brief      Traverse BFS up the complex and apply a visitor function to each

@@ -22,6 +22,11 @@
  * ****************************************************************************
  */
 
+/**
+ * @file  decimate.h
+ * @brief Meta-data aware decimation functions.
+ */
+
 #pragma once
 
 #include <typeinfo>
@@ -30,35 +35,58 @@
 #include "SimplexMap.h"
 #include "CASCTraversals.h"
 #include "CASCFunctions.h"
-#include "stringutil.h"
 
 namespace casc
 {
+/// @cond detail
 /// Namespace for decimation related helpers
 namespace decimation_detail
 {
+    /**
+     * @brief      A map of
+     *
+     * @tparam     Complex  Typename of the simplicial_complex.
+     */
     template <typename Complex>
     struct SimplexDataSet
     {
+        /// Typename of vertices
         using KeyType = typename Complex::KeyType;
 
+        /**
+         * @brief      Data type makes a pair of array of keys to data type.
+         *
+         * @tparam     k     Dimension of simplex.
+         * @tparam     T     Typename of the data.
+         */
         template <std::size_t k, typename T>
         struct DataType
         {
+            /// Pair of array to type
             using type = std::pair<std::array<KeyType,k>, T>;
         };
 
+        /**
+         * @brief      DataType for simplices with no data. 
+         *
+         * @tparam     k     Dimension of the simplex.
+         */
         template <std::size_t k>
         struct DataType<k, void>
         {
+            /// Array
             using type = std::array<KeyType,k>;
         };
 
+        /// Template to resolve NodeData types for DataType.
         template <std::size_t j>
         using DataSet = typename DataType<j, typename Complex::template NodeData<j>>::type;
+        /// Sequence of compile time integers.
         using LevelIndex = typename std::make_index_sequence<Complex::numLevels>;
+        /// Tuple of DataSets corresponding to an integral level.
         using SimplexIDLevel = typename util::int_type_map<std::size_t, 
                 std::tuple, LevelIndex, DataSet>::type;
+        /// Vector of DataTypes for each integral level.
         using type = typename util::type_map<SimplexIDLevel, casc::vector>::type;
     };
 
@@ -396,7 +424,6 @@ void decimate(Complex& F, Simplex s, Callback<Complex>&& clbk)
     using SimplexMap = typename casc::SimplexMap<Complex>;
 
     int np = F.add_vertex();
-    //typename casc::SimplexDataSet<Complex>::type rv;
     SimplexSet nbhd;
     SimplexMap simplexMap;
 

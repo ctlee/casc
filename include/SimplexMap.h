@@ -22,6 +22,11 @@
  * ***************************************************************************
  */
 
+/**
+ * @file  SimplexMap.h
+ * @brief SimplexMap data structure and associated convenience functions.
+ */
+
 #pragma once
 
 #include <array>
@@ -124,7 +129,7 @@ struct SimplexMap
                 auto s = std::get<k>(S.tupleMap);
                 for (auto simplex : s)
                 {
-                    output << ", " << cascstringutil::to_string(simplex.first) << ":" << simplex.second;
+                    output << ", " << stringutil::to_string(simplex.first) << ":" << simplex.second;
                 }
                 output << "]";
             }

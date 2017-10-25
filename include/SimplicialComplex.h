@@ -23,7 +23,7 @@
  */
 
 /**
- * @file SimplicialComplex.h
+ * @file  SimplicialComplex.h
  * @brief This header contains the main CASC data structure and associated
  *        components.
  */

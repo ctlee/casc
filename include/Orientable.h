@@ -22,6 +22,12 @@
  * ***************************************************************************
  */
 
+/**
+ * @file  Orientable.h
+ * @brief Data type for orientability
+ */
+
+
 #pragma once
 
 #include <iostream>
@@ -30,14 +36,17 @@
 
 
 namespace casc{
-
+/**
+ * @brief      Class representing the orientation.
+ */
 struct Orientable {
+	/// Integer representing +/- 1 orientation.
 	int orientation;
 };
 
-
+/// @cond detail
 /// Namespace for orientation helpers
-namespace casc_orientable{
+namespace orientation_detail{
 
 template <class Complex, class SizeT >
 struct init_orientation_helper {};
@@ -77,15 +86,27 @@ struct init_orientation_helper<Complex, std::integral_constant<std::size_t, Comp
 {
 	static void f(Complex& F) {}
 };
-} // end namespace casc_orientable
+} // end namespace orientable_detail
+/// @endcond
 
-// TODO: Implement this as a disjoint set operation during insertion (0)
+// TODO: Implement this as a disjoint set operation during insertion (2)
+/**
+ * @brief      Calculates the orientation of a simplicial_complex.
+ *
+ * @param      F        Simplicial_complex
+ *
+ * @tparam     Complex  Typename of the simplicial_complex.
+ *
+ * @return     A tuple of the number of connected components, where the complex 
+ * 			   is orientable, and if it is psuedo manifold.
+ */
+
 template <typename Complex>
 std::tuple<int, bool, bool> compute_orientation(Complex& F)
 {
 	// TODO: separate out init and clear orientation for speed (5)
 	// init orientation
-	casc_orientable::init_orientation_helper<Complex,std::integral_constant<std::size_t,0>>::f(F);
+	orientable_detail::init_orientation_helper<Complex,std::integral_constant<std::size_t,0>>::f(F);
 
 	// clear orientation
 	for(auto& curr : F.template get_level<Complex::topLevel>())

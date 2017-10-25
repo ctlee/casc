@@ -34,6 +34,7 @@
 #include <vector>
 #include "SimplicialComplex.h"
 #include "CASCTraversals.h"
+#include "typetraits.h"
 
 int  main(int argc, char *argv[])
 {
@@ -46,6 +47,8 @@ int  main(int argc, char *argv[])
         int, // Face data
         int  // Volume data
     >();
+
+    std::cout << type_name<decltype(mesh)>() << std::endl;
 
     mesh.insert<3>({0,1,2});
 
