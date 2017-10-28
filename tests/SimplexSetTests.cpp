@@ -82,15 +82,52 @@ TEST_F(SimplexSetTest, SimplexSetInsertRemove){
 TEST_F(SimplexSetTest, SimplexSetUnion){
 	SimplexSet S2, dest;
 
-	S2.insert(mesh.get_simplex_up({1}));
+	S.insert(mesh.get_simplex_up({1}));
+	S.insert(mesh.get_simplex_up({2}));
 	S2.insert(mesh.get_simplex_up({2}));
-	S.insert(mesh.get_simplex_up({1,2,3,4}));
+	S2.insert(mesh.get_simplex_up({1,2,3,4}));
 
 	casc::set_union(S, S2, dest);
 	EXPECT_EQ(2, dest.size<1>());
 	EXPECT_EQ(0, dest.size<2>());
 	EXPECT_EQ(0, dest.size<3>());
 	EXPECT_EQ(1, dest.size<4>());
+}
+
+TEST_F(SimplexSetTest, SimplexSetIntersection){
+	SimplexSet S2, dest;
+
+	S.insert(mesh.get_simplex_up({1}));
+	S.insert(mesh.get_simplex_up({2}));
+	S2.insert(mesh.get_simplex_up({2}));
+	S2.insert(mesh.get_simplex_up({1,2,3,4}));
+
+	casc::set_intersection(S, S2, dest);
+	EXPECT_EQ(1, dest.size<1>());
+	EXPECT_EQ(0, dest.size<2>());
+	EXPECT_EQ(0, dest.size<3>());
+	EXPECT_EQ(0, dest.size<4>());
+
+	auto it = dest.find(mesh.get_simplex_up({2}));
+	EXPECT_NE(it, dest.end<1>());
+}
+
+TEST_F(SimplexSetTest, SimplexSetDifference){
+	SimplexSet S2, dest;
+
+	S.insert(mesh.get_simplex_up({1}));
+	S.insert(mesh.get_simplex_up({2}));
+	S2.insert(mesh.get_simplex_up({2}));
+	S2.insert(mesh.get_simplex_up({1,2,3,4}));
+
+	casc::set_difference(S, S2, dest);
+	EXPECT_EQ(1, dest.size<1>());
+	EXPECT_EQ(0, dest.size<2>());
+	EXPECT_EQ(0, dest.size<3>());
+	EXPECT_EQ(0, dest.size<4>());
+
+	EXPECT_EQ(dest.find(mesh.get_simplex_up({2})), dest.end<1>());
+	EXPECT_NE(dest.find(mesh.get_simplex_up({1})), dest.end<1>());
 }
 
 
