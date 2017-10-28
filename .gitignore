@@ -3,6 +3,7 @@
 ## files being edited
 *.swp
 .~
+*.DS_Store
 
 # Ignore the build directory 
 build/
@@ -44,3 +45,4 @@ debug/
 *.exe
 *.out
 *.app
+

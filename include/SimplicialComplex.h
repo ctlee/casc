@@ -566,9 +566,9 @@ class simplicial_complex
             /// Dereferencing a SimplexID returns the data stored.
             auto &&operator*() { return ptr->_data; }
 
-            /// Get the data stored.
+            /// Get a handle to the stored data.
             auto const &&data() const { return ptr->_data; }
-            /// Get the data stored.
+            /// Get a handle to the stored data.
             auto        &&data() { return ptr->_data; }
 
             /**

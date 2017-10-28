@@ -15,7 +15,10 @@ how to deploy the project on a live system.
 
 ### Prerequisites
 
-To use this library you need to have a C++ compiler which supports C++14.
+To use this library you need to have a C++ compiler which supports C++14. There
+is a known issue with Clang 4.x.x versioned compilers (including XCode version 9)
+, where the most specialized unique specialization is not selected leading to a 
+compiler error. The current workaround to this problem 
 
 ### Installing
 

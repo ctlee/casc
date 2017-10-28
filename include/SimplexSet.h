@@ -65,8 +65,41 @@ struct SimplexSet
     /// Typename of this                                                      
     using type_this = SimplexSet<Complex>;
 
+    /// Tuple of SimplexIDs wrt an integral level.
+    using SimplexIDLevel = typename util::int_type_map<std::size_t,
+                                                       std::tuple, LevelIndex, SimplexID>::type;
+    // No real sense to hide this tuple of sets from the end users.
+    // Making it private, we'd have to introduce lots of friend structs.
+    /// Tuple of NodeSets per level.
+    typename util::type_map<SimplexIDLevel, NodeSet>::type tupleSet;
+
     /// Default constructor
     SimplexSet() {};
+
+    /**
+     * @brief      Checks if a level has no elements.
+     *
+     * @tparam     k     Level to check.
+     *
+     * @return     True if the container is empty, false otherwise.
+     */
+    template <size_t k>
+    inline auto empty() const noexcept{
+        return std::get<k>(tupleSet).empty(); 
+    }
+
+    /**
+     * @brief      Return the number of elements in a level.
+     *
+     * @tparam     k     Simplex dimension to query
+     *
+     * @return     Returns the number of simplices of dimension `k` are in the 
+     *             set.
+     */
+    template <size_t k>
+    inline auto size() const noexcept{
+        return std::get<k>(tupleSet).size(); 
+    }
 
     /**
      * @brief      Insert a simplex into the set. 
@@ -362,13 +395,6 @@ struct SimplexSet
                 s.clear();
             }
         };
-
-    /// Tuple of SimplexIDs wrt an integral level.
-    using SimplexIDLevel = typename util::int_type_map<std::size_t,
-                                                       std::tuple, LevelIndex, SimplexID>::type;
-    /// Tuple of NodeSets per level.
-    typename util::type_map<SimplexIDLevel, NodeSet>::type tupleSet;
-
 };
 
 /**
@@ -524,25 +550,6 @@ struct DifferenceH
  *
  * @param[in]  A        A SimplexSet
  * @param[in]  B        Another SimplexSet
- * 
- * @tparam     Complex  Typename of the simplicial_complex.
- * 
- * @return     Returns a temporary SimplexSet with the union.
- */
-template <typename Complex>
-static SimplexSet<Complex>&& set_union(const SimplexSet<Complex>&A,
-                                       const SimplexSet<Complex>&B){
-    SimplexSet<Complex> dest;
-    dest.insert(A);
-    dest.insert(B);
-    return std::move(dest);
-}
-
-/**
- * @brief      Compute the set union.
- *
- * @param[in]  A        A SimplexSet
- * @param[in]  B        Another SimplexSet
  * @param[out] dest     The destination SimplexSet.
  *
  * @tparam     Complex  Typename of the simplicial_complex.
@@ -562,26 +569,6 @@ static void set_union(const SimplexSet<Complex> &A,
  *
  * @param[in]  A        A SimplexSet
  * @param[in]  B        Another SimplexSet
- * 
- * @tparam     Complex  Typename of the simplicial_complex.
- * 
- * @return     Returns a temporary SimplexSet with the union.
- */
-template <typename Complex>
-static SimplexSet<Complex>&& set_intersection(const SimplexSet<Complex>&A,
-                                              const SimplexSet<Complex>&B){
-    SimplexSet<Complex> dest;
-    util::int_for_each<std::size_t,
-                       typename Complex::LevelIndex>(
-        simplex_set_detail::IntersectH<Complex>(), A, B, dest);
-    return std::move(dest);
-}
-
-/**
- * @brief      Compute the set intersection.
- *
- * @param[in]  A        A SimplexSet
- * @param[in]  B        Another SimplexSet
  * @param[out] dest     The destination SimplexSet.
  *
  * @tparam     Complex  Typename of the simplicial_complex.
@@ -594,24 +581,6 @@ static void set_intersection(const SimplexSet<Complex> &A,
     util::int_for_each<std::size_t,
                        typename Complex::LevelIndex>(
         simplex_set_detail::IntersectH<Complex>(), A, B, dest);
-}
-
-/**
- * @brief      Compute the set difference.
- *
- * @param[in]  A        A SimplexSet
- * @param[in]  B        Another SimplexSet
- *
- * @return     Returns a temporary SimplexSet with the union.
- */
-template <typename Complex>
-static SimplexSet<Complex>&& set_difference(const SimplexSet<Complex>&A,
-                                            const SimplexSet<Complex>&B){
-    SimplexSet<Complex> dest;
-    util::int_for_each<std::size_t,
-                       typename Complex::LevelIndex>(
-        simplex_set_detail::DifferenceH<Complex>(), A, B, dest);
-    return std::move(dest);
 }
 
 /**
