@@ -85,10 +85,12 @@ TEST_F(SimplexSetTest, SimplexSetUnion){
 	S2.insert(mesh.get_simplex_up({1}));
 	S2.insert(mesh.get_simplex_up({2}));
 	S.insert(mesh.get_simplex_up({1,2,3,4}));
-	S.insert(mesh.get_simplex_up({2}));
 
 	casc::set_union(S, S2, dest);
-	auto test = casc::set_intersection(S,S2);
+	EXPECT_EQ(2, dest.size<1>());
+	EXPECT_EQ(0, dest.size<2>());
+	EXPECT_EQ(0, dest.size<3>());
+	EXPECT_EQ(1, dest.size<4>());
 }
 
 
