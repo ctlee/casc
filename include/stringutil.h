@@ -67,4 +67,4 @@ namespace stringutil
         return out;
     }
 } // end namespace casc
-} // end namespace cascstringutil
+} // end namespace stringutil

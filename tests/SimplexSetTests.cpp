@@ -74,6 +74,9 @@ TEST_F(SimplexSetTest, SimplexSetInsertRemove){
 	EXPECT_EQ(0, S.size<3>());
 	EXPECT_EQ(0, S.size<4>());
 
+	auto t1 = S.get<1>();
+	EXPECT_EQ(4, t1.size());
+
 	auto s = mesh.get_simplex_up({4});
 	S.erase(s);
 	EXPECT_EQ(3, S.size<1>());
@@ -128,6 +131,24 @@ TEST_F(SimplexSetTest, SimplexSetDifference){
 
 	EXPECT_EQ(dest.find(mesh.get_simplex_up({2})), dest.end<1>());
 	EXPECT_NE(dest.find(mesh.get_simplex_up({1})), dest.end<1>());
+}
+
+
+TEST_F(SimplexSetTest, SimplexSetComparisons){
+	SimplexSet S2;
+	S.insert(mesh.get_simplex_up({1}));
+	S.insert(mesh.get_simplex_up({2}));
+	S.insert(mesh.get_simplex_up({1,2,3,4}));
+
+	S2.insert(mesh.get_simplex_up({1}));
+	S2.insert(mesh.get_simplex_up({2}));
+	S2.insert(mesh.get_simplex_up({1,2,3,4}));
+	EXPECT_TRUE(S == S2);
+	EXPECT_TRUE(S2 == S);
+
+	S2.erase(mesh.get_simplex_up({1,2,3,4}));
+	EXPECT_TRUE(S != S2);
+	EXPECT_TRUE(S2 != S);
 }
 
 

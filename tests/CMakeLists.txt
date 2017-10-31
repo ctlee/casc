@@ -60,7 +60,7 @@ set_target_properties(libgmock PROPERTIES
 include_directories("${source_dir}/googletest/include"
                     "${source_dir}/googlemock/include")
 
-add_executable(casctests main.cpp CASCTests.cpp SimplexSetTests.cpp)
+add_executable(casctests main.cpp CASCTests.cpp SimplexSetTests.cpp FunctionsTests.cpp)
 set_target_properties(casctests PROPERTIES COMPILE_FLAGS "-std=c++14")
 target_link_libraries(casctests libgtest)
 

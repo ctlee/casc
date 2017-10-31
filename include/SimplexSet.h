@@ -75,6 +75,16 @@ struct SimplexSet
 
     /// Default constructor
     SimplexSet() {};
+    /// Default destructor
+    ~SimplexSet() {};
+
+    type_this& operator=(const type_this& other){
+        util::int_for_each<std::size_t, LevelIndex>(CopyHelper(), this, other);
+    }
+
+    type_this& operator=(type_this&& other){
+        util::int_for_each<std::size_t, LevelIndex>(CopyHelper(), this, other);
+    }
 
     /**
      * @brief      Checks if a level has no elements.
@@ -99,6 +109,14 @@ struct SimplexSet
     template <size_t k>
     inline auto size() const noexcept{
         return std::get<k>(tupleSet).size(); 
+    }
+
+    /**
+     * @brief      Clear the contents.
+     */
+    void clear()
+    {
+        util::int_for_each<std::size_t, LevelIndex>(ClearHelper(), this);
     }
 
     /**
@@ -237,48 +255,30 @@ struct SimplexSet
         return std::get<k>(tupleSet).cbegin();
     }
 
-    /**
-     * @brief      Get the NodeSet for a particular simplex dimension.
-     *
-     * @tparam     k     Simplex dimension to get.
-     *
-     * @return     Returns the NodeSet corresponding to the requested dimension.
-     */
+    // /**
+    //  * @brief      Get the NodeSet for a particular simplex dimension.
+    //  *
+    //  * @tparam     k     Simplex dimension to get.
+    //  *
+    //  * @return     Returns the NodeSet corresponding to the requested dimension.
+    //  */
     template <size_t k>
     inline auto &get()
     {
         return std::get<k>(tupleSet);
     }
 
-    /**
-     * @brief      Get the NodeSet for a particular simplex dimension.
-     *
-     * @tparam     k     Simplex dimension to get.
-     *
-     * @return     Returns the NodeSet corresponding to the requested dimension.
-     */
+    // /**
+    //  * @brief      Get the NodeSet for a particular simplex dimension.
+    //  *
+    //  * @tparam     k     Simplex dimension to get.
+    //  *
+    //  * @return     Returns the NodeSet corresponding to the requested dimension.
+    //  */
     template <size_t k>
     inline auto &get() const
     {
         return std::get<k>(tupleSet);
-    }
-
-    // template <size_t k>
-    // inline auto&& get(){
-    //     return std::move(std::get<k>(tupleSet));
-    // }
-    
-    // template <size_t k>
-    // inline auto&& get() const {
-    //     return std::move(std::get<k>(tupleSet));
-    // }
-
-    /**
-     * @brief      Clear all values from the SimplexSet.
-     */
-    void clear()
-    {
-        util::int_for_each<std::size_t, LevelIndex>(ClearHelper(), this);
     }
 
     /**
@@ -393,6 +393,24 @@ struct SimplexSet
             {
                 auto &s = std::get<k>(that->tupleSet);
                 s.clear();
+            }
+        };
+
+        /**
+         * @brief
+         */
+        struct CopyHelper
+        {
+            template <std::size_t k>
+            void apply(type_this& that, type_this& other){
+                auto &s = that.get<k>();
+                s = other.get<k>();
+            }
+
+            template <std::size_t k>
+            void apply(type_this& that, type_this&& other){
+                auto &s = that.get<k>();
+                s = other.get<k>();
             }
         };
 };
@@ -542,8 +560,72 @@ struct DifferenceH
         }
     }
 };
+
+/**
+ * @brief      Helper struct to compute set equivalence.
+ *
+ * @tparam     Complex  Typename of the simplicial_complex.
+ */
+template <typename Complex>
+struct OperatorEQH
+{
+    /// Result of the comparison
+    bool result;
+
+    /// Default constructor
+    OperatorEQH(): result(true) {}
+
+    /**
+     * @brief      Compare the two sets by level.
+     *
+     * @param[in]  lhs   The left hand side
+     * @param[in]  rhs   The right hand side
+     *
+     * @tparam     k     Level to compare.
+     */
+    template <std::size_t k>
+    void apply(const SimplexSet<Complex> &lhs, 
+                      const SimplexSet<Complex> &rhs){
+        auto a = casc::get<k>(lhs);
+        auto b = casc::get<k>(rhs);
+        result &= a==b;
+    }
+};
 }     // end namespace simplex_set_detail
 /// @endcond
+
+/**
+ * @brief      Compare if the sets are equivalent
+ *
+ * @param[in]  lhs      The left hand side
+ * @param[in]  rhs      The right hand side
+ *
+ * @tparam     Complex  Typename of the simplicial_complex
+ *
+ * @return     True if the sets are equal, false otherwise.
+ */
+template <typename Complex>
+bool operator==(const SimplexSet<Complex> &lhs, const SimplexSet<Complex> &rhs){
+    auto func = simplex_set_detail::OperatorEQH<Complex>();
+    util::int_for_each<std::size_t, typename Complex::LevelIndex>(
+        func, lhs, rhs);
+    return func.result;
+}
+
+/**
+ * @brief      Compare if the sets are not equivalent.
+ *
+ * @param[in]  lhs      The left hand side
+ * @param[in]  rhs      The right hand side
+ *
+ * @tparam     Complex  Typename of the simplicial_complex.
+ *
+ * @return     True if the sets are inequal, false otherwise.
+ */
+template <typename Complex>
+bool operator!=(const SimplexSet<Complex> &lhs, const SimplexSet<Complex> &rhs){
+    return !(lhs == rhs);
+}
 
 /**
  * @brief      Compute the set union.
