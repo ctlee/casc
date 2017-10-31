@@ -86,7 +86,7 @@ struct init_orientation_helper<Complex, std::integral_constant<std::size_t, Comp
 {
 	static void f(Complex& F) {}
 };
-} // end namespace orientable_detail
+} // end namespace orientation_detail
 /// @endcond
 
 // TODO: Implement this as a disjoint set operation during insertion (2)
@@ -106,7 +106,7 @@ std::tuple<int, bool, bool> compute_orientation(Complex& F)
 {
 	// TODO: separate out init and clear orientation for speed (5)
 	// init orientation
-	orientable_detail::init_orientation_helper<Complex,std::integral_constant<std::size_t,0>>::f(F);
+	orientation_detail::init_orientation_helper<Complex,std::integral_constant<std::size_t,0>>::f(F);
 
 	// clear orientation
 	for(auto& curr : F.template get_level<Complex::topLevel>())

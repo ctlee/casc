@@ -86,8 +86,10 @@ struct SimplexDataSet
     /// Tuple of DataSets corresponding to an integral level.
     using SimplexIDLevel = typename util::int_type_map<std::size_t,
                                                        std::tuple, LevelIndex, DataSet>::type;
+    /// Helper vector definition for util.
+    template <class T> using vector = std::vector<T>;
     /// Vector of DataTypes for each integral level.
-    using type = typename util::type_map<SimplexIDLevel, casc::vector>::type;
+    using type = typename util::type_map<SimplexIDLevel, vector>::type;
 };
 
 /**
@@ -130,8 +132,8 @@ struct GetCompleteNeighborhood
      */
     bool visit(Complex &F, typename Complex::template SimplexID<1> s)
     {
-        visit_node_up(
-            casc_detail::SimplexAggregator<Complex>(pLevels), F, s);
+        visit_BFS_up(
+            func_detail::SimplexAggregator<Complex>(pLevels), F, s);
         return false;
     }
 
@@ -238,7 +240,7 @@ struct InnerVisitor
             }
 
             SimplexSet grab;
-            visit_node_down(GrabVisitor<Complex>(pLevels, &grab), F, s);
+            visit_BFS_down(GrabVisitor<Complex>(pLevels, &grab), F, s);
 
             auto &levelMap = casc::get<NewLevel>(*data);
             auto  it = levelMap.find(new_name);
@@ -278,7 +280,7 @@ struct MainVisitor
     bool visit(Complex &F, typename Complex::template SimplexID<level> s)
     {
         //std::cout << "MainVisitor: " << s << std::endl;
-        visit_node_up(
+        visit_BFS_up(
             InnerVisitor<Complex, level>(
                 pLevels, s, new_point, data),
             F, s);
@@ -471,13 +473,13 @@ void decimate(Complex &F, Simplex s, Callback<Complex> &&clbk)
     SimplexMap simplexMap;
 
     // Get the complete neighborhood
-    visit_node_down(
+    visit_BFS_down(
         decimation_detail::GetCompleteNeighborhood<Complex>(&nbhd),
         F, s);
 
     SimplexSet doomed = nbhd; // Backup the neighborhood
     // Call MainVisitor -> InnerVisitor -> GrabVisitor sequence
-    visit_node_down(
+    visit_BFS_down(
         decimation_detail::MainVisitor<Complex>(
             &nbhd, np, &simplexMap),
         F, s);

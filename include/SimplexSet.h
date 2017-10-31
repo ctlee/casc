@@ -78,13 +78,13 @@ struct SimplexSet
     /// Default destructor
     ~SimplexSet() {};
 
-    type_this& operator=(const type_this& other){
-        util::int_for_each<std::size_t, LevelIndex>(CopyHelper(), this, other);
-    }
+    // type_this& operator=(const type_this& other){
+    //     util::int_for_each<std::size_t, LevelIndex>(CopyHelper(), this, other);
+    // }
 
-    type_this& operator=(type_this&& other){
-        util::int_for_each<std::size_t, LevelIndex>(CopyHelper(), this, other);
-    }
+    // type_this& operator=(type_this&& other){
+    //     util::int_for_each<std::size_t, LevelIndex>(CopyHelper(), this, other);
+    // }
 
     /**
      * @brief      Checks if a level has no elements.

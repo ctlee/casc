@@ -152,7 +152,6 @@ TEST_F(CASCFunctionsTest, Link){
 	cmp.insert(mesh.get_simplex_up({1,4}));
 	cmp.insert(mesh.get_simplex_up({4,5}));
 	EXPECT_TRUE(dest == cmp);
-	std::cout << cmp << std::endl;
 }
 
 
