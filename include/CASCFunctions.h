@@ -183,13 +183,13 @@ struct GraphVisitor
     template <std::size_t level>
     bool visit(const Complex &F, typename Complex::template SimplexID<level> s)
     {
-        auto name = stringutil::to_string(F.get_name(s));
+        auto name = to_string(F.get_name(s));
 
         auto covers = F.get_cover(s);
         for (auto cover : covers)
         {
             auto edge = F.get_edge_up(s, cover);
-            auto nextName = stringutil::to_string(F.get_name(edge.up()));
+            auto nextName = to_string(F.get_name(edge.up()));
             if ((*edge).orientation == 1)
             {
                 fout << "   \"" << name << "\" -> \""
@@ -216,12 +216,12 @@ struct GraphVisitor
     bool visit(const Complex &F, typename Complex::template SimplexID<Complex::topLevel-1> s)
     {
 
-        auto name   = stringutil::to_string(F.get_name(s));
+        auto name   = to_string(F.get_name(s));
         auto covers = F.get_cover(s);
         for (auto cover : covers)
         {
             auto edge = F.get_edge_up(s, cover);
-            auto nextName = stringutil::to_string(F.get_name(edge.up()));
+            auto nextName = to_string(F.get_name(edge.up()));
             auto orient   = (*edge.up()).orientation;
             if (orient == 1)
             {
@@ -286,7 +286,7 @@ struct DotHelper<Complex, std::integral_constant<std::size_t, k> >
              << "label=\"Level " << k << "\"\n";
         for (auto node : nodes)
         {
-            fout << "\"" << stringutil::to_string(F.get_name(node)) << "\";";
+            fout << "\"" << to_string(F.get_name(node)) << "\";";
         }
         fout << "\n}\n";
         DotHelper<Complex, std::integral_constant<std::size_t, k+1> >::printlevel(fout, F);
@@ -323,7 +323,7 @@ struct DotHelper<Complex, std::integral_constant<std::size_t, Complex::topLevel>
             {
                 fout << "\"- ";
             }
-            fout << stringutil::to_string(F.get_name(node)) << "\";";
+            fout << to_string(F.get_name(node)) << "\";";
         }
         fout << "\n}\n";
     }

@@ -396,23 +396,20 @@ struct SimplexSet
             }
         };
 
-        /**
-         * @brief
-         */
-        struct CopyHelper
-        {
-            template <std::size_t k>
-            void apply(type_this& that, type_this& other){
-                auto &s = that.get<k>();
-                s = other.get<k>();
-            }
+        // struct CopyHelper
+        // {
+        //     template <std::size_t k>
+        //     void apply(type_this& that, type_this& other){
+        //         auto &s = that.get<k>();
+        //         s = other.get<k>();
+        //     }
 
-            template <std::size_t k>
-            void apply(type_this& that, type_this&& other){
-                auto &s = that.get<k>();
-                s = other.get<k>();
-            }
-        };
+        //     template <std::size_t k>
+        //     void apply(type_this& that, type_this&& other){
+        //         auto &s = that.get<k>();
+        //         s = other.get<k>();
+        //     }
+        // };
 };
 
 /**

@@ -129,7 +129,7 @@ struct SimplexMap
                 auto s = std::get<k>(S.tupleMap);
                 for (auto simplex : s)
                 {
-                    output << ", " << stringutil::to_string(simplex.first) << ":" << simplex.second;
+                    output << ", " << to_string(simplex.first) << ":" << simplex.second;
                 }
                 output << "]";
             }
