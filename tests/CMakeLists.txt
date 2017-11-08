@@ -66,7 +66,8 @@ if(NOT TARGET gtest)
                         CASCTests.cpp 
                         SimplexSetTests.cpp 
                         FunctionsTests.cpp
-                        DecimationTests.cpp)
+                        DecimationTests.cpp
+                        TraversalTests.cpp)
     set_target_properties(casctests PROPERTIES COMPILE_FLAGS "-std=c++14")
     target_link_libraries(casctests libgtest)
 
