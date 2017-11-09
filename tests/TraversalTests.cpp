@@ -42,21 +42,21 @@ using SurfaceMeshType = casc::AbstractSimplicialComplex<
         int // Face data
     >;
 
-template <typename T, std::size_t k>
-std::ostream& operator<<(std::ostream& out, const std::array<T,k>& A)
-{
-    out << "[";
-    for(int i = 0; i + 1 < k; ++i)
-    {
-        out << A[i] << " ";
-    }
-    if(k > 0)
-    {
-        out << A[k-1];
-    }
-    out << "]";
-    return out;
-}
+// template <typename T, std::size_t k>
+// std::ostream& operator<<(std::ostream& out, const std::array<T,k>& A)
+// {
+//     out << "[";
+//     for(int i = 0; i + 1 < k; ++i)
+//     {
+//         out << A[i] << " ";
+//     }
+//     if(k > 0)
+//     {
+//         out << A[k-1];
+//     }
+//     out << "]";
+//     return out;
+// }
 
 class CASCTraversalTest : public testing::Test {
 protected:

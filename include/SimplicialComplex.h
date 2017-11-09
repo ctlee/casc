@@ -911,6 +911,19 @@ class simplicial_complex
         }
 
         /**
+         * @brief      Add a new vertex to the complex with data.
+         * 
+         * @return     The key of the new vertex.
+         */
+        KeyType add_vertex(const NodeData<1> &data)
+        {
+            KeyType v[1] = {unused_vertices.pop()};
+            insert<1>(v, data);
+            return v[0];
+        }
+
+
+        /**
          * @brief      Apply a lambda function the name of a simplex.
          *
          * @param[in]  id      SimplexID of the simplex of interest.

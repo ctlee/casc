@@ -24,11 +24,11 @@ cmake_minimum_required(VERSION 3.0)
 
 project(CASC VERSION 1.0.0)
 
-option(BUILD_TESTS "Build the test scripts" OFF)
+option(BUILD_CASCTESTS "Build the test scripts" OFF)
 
-if(BUILD_TESTS)
+if(BUILD_CASCTESTS)
     enable_testing()
-endif(BUILD_TESTS)
+endif(BUILD_CASCTESTS)
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
   message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may need to remove CMakeCache.txt. ")
@@ -53,9 +53,9 @@ foreach(dir ${dirs})
     message(STATUS "dir='${dir}'")
 endforeach()
 
-if(BUILD_TESTS)
+if(BUILD_CASCTESTS)
     add_subdirectory(tests)
-endif(BUILD_TESTS)
+endif(BUILD_CASCTESTS)
 
 #install(DIRECTORY include DESTINATION include/casc FILES_MATCHING PATTERN "*.h")
 
