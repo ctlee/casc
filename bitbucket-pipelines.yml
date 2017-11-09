@@ -13,6 +13,6 @@ pipelines:
           - apt-get install -y cmake
           - mkdir build
           - cd build
-          - cmake -DBUILD_TESTS=on ..
+          - cmake -DBUILD_CASCTESTS=on ..
           - make
           - make test
