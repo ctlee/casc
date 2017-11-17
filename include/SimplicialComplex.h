@@ -562,12 +562,12 @@ class simplicial_complex
             explicit operator std::uintptr_t () const { return reinterpret_cast<std::uintptr_t>(ptr); }
 
             /// Dereferencing a SimplexID returns the data stored.
-            auto const &&operator*() const { return ptr->_data; }
+            auto const &&operator*() const { return std::move(ptr->_data); }
             /// Dereferencing a SimplexID returns the data stored.
             auto &&operator*() { return ptr->_data; }
-
+ 
             /// Get a handle to the stored data.
-            auto const &&data() const { return ptr->_data; }
+            auto const &&data() const { return std::move(ptr->_data); }
             /// Get a handle to the stored data.
             auto        &&data() { return ptr->_data; }
 
@@ -1153,6 +1153,29 @@ class simplicial_complex
          * @return     The set of coboundary simplices.
          */
         template <size_t k>
+        std::set<SimplexID<k+1> > up(const std::set<SimplexID<k> > &&simplices) const
+        {
+            std::set<SimplexID<k+1> > rval;
+            for (auto simplex : simplices)
+            {
+                for (auto p : simplex.ptr->_up)
+                {
+                    rval.insert(SimplexID<k+1>(p.second));
+                }
+            }
+            return rval;
+        }
+
+        /**
+         * @brief      Get the coboundary of a set of simplices.
+         *
+         * @param      simplices  The set of simplices
+         *
+         * @tparam     k          The dimension of the simplices.
+         *
+         * @return     The set of coboundary simplices.
+         */
+        template <size_t k>
         std::set<SimplexID<k+1> > up(const std::set<SimplexID<k> > &simplices) const
         {
             std::set<SimplexID<k+1> > rval;
@@ -1182,6 +1205,29 @@ class simplicial_complex
             for (auto p : nid.ptr->_up)
             {
                 rval.insert(SimplexID<k+1>(p.second));
+            }
+            return rval;
+        }
+
+        /**
+         * @brief      Get the boundary of a set of simplices.
+         *
+         * @param      nodes  The set of simplicies.
+         *
+         * @tparam     k      The dimension of the simplices.
+         *
+         * @return     The set of boundary simplices.
+         */
+        template <size_t k>
+        std::set<SimplexID<k-1> > down(const std::set<SimplexID<k> > &&nodes) const
+        {
+            std::set<SimplexID<k-1> > rval;
+            for (auto nid : nodes)
+            {
+                for (auto p : nid.ptr->_down)
+                {
+                    rval.insert(SimplexID<k-1>(p.second));
+                }
             }
             return rval;
         }
