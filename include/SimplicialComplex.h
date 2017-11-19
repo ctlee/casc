@@ -1352,7 +1352,7 @@ class simplicial_complex
         bool exists(const KeyType (&s)[k]) const
         {
 
-            return get_recurse<0, k>::apply(this, s, _root) != 0;
+            return get_recurse<0, k>::apply(this, s, _root) != nullptr;
         }
 
         /**
