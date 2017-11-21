@@ -117,26 +117,23 @@ std::tuple<int, bool, bool> compute_orientation(Complex& F)
 	// compute orientation
 	constexpr std::size_t k = Complex::topLevel - 1;
 
-	std::queue<typename Complex::template SimplexID<k>> frontier;
+	std::deque<typename Complex::template SimplexID<k>> frontier;
 	std::set<typename Complex::template SimplexID<k>> visited;
 	int connected_components = 0;
 	bool orientable = true;
 	bool psuedo_manifold = true;
 	for(auto outer : F.template get_level_id<k>())
 	{
-//		if(!F.get(outer))
 		if(visited.find(outer) == visited.end())
 		{
 			++connected_components;
-			frontier.push(outer);
+			frontier.push_back(outer);
 
 			while(!frontier.empty())
 			{
 				typename Complex::template SimplexID<k> curr = frontier.front();
-//				if(!F.get(curr))
 				if(visited.find(curr) == visited.end())
 				{
-//					F.get(curr) = 1;
 					visited.insert(curr);
 
 					auto w = F.get_cover(curr);
@@ -193,24 +190,17 @@ std::tuple<int, bool, bool> compute_orientation(Complex& F)
 								}
 							}
 						}
-
-						std::vector<typename Complex::template SimplexID<k>> tmp;
-						neighbors_up<Complex, k, decltype(std::back_inserter(tmp))>(F, curr, std::back_inserter(tmp));
-						for(auto nid : tmp)
-						{
-							frontier.push(nid);
-						}
+						neighbors_up(F, curr, std::back_inserter(frontier));	
 					}
 					else
 					{
 						psuedo_manifold = false;
 					}
 				}
-				frontier.pop();
+				frontier.pop_front();
 			}
 		}
 	}
-
 	return std::make_tuple(connected_components, orientable, psuedo_manifold);
 }
 } // end namespace casc
