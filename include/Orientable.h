@@ -156,7 +156,7 @@ std::tuple<int, bool, bool> compute_orientation(Complex& F)
 						{
 							if(node1.orientation == 0)
 							{
-								node0.orientation = 1;
+								node0.orientation = -1;
 								node1.orientation = -edge1.orientation * edge0.orientation * node0.orientation;
 							}
 							else

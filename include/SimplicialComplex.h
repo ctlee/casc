@@ -2091,8 +2091,7 @@ class simplicial_complex
 /**
  * Alias to generate a CASC from a list of traits.
  * See also simplicial_complex_traits_default. Example -- To create a
- * tetrahedral
- * mesh with integer data on all simplices:
+ * tetrahedral mesh with integer data on all simplices:
  * ~~~~~~~~~~~~~~~{.cpp}
  * auto mesh = AbstractSimplicialComplex<
  *     int, // KEYTYPE
