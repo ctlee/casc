@@ -996,6 +996,13 @@ class simplicial_complex
             return get_recurse<0, n>::apply(this, s, _root);
         }
 
+        template <size_t n>
+        SimplexID<n> get_simplex_up(const std::array<KeyType, n> &arr) const
+        {
+
+            return get_recurse<0, n>::apply(this, arr.data(), _root);
+        }
+
         /**
          * @brief      Get the simplex identifier which has the name 's'
          *             relative to the simplex 'id'.
@@ -1013,6 +1020,13 @@ class simplicial_complex
         {
             return get_recurse<i, j>::apply(this, s, id);
         }
+
+        template <size_t i, size_t j>
+        SimplexID<i+j> get_simplex_up(const SimplexID<i> id, const std::array<KeyType, j> &arr) const
+        {
+            return get_recurse<i, j>::apply(this, arr.data(), id);
+        }
+
 
         /**
          * @brief      Convenience version of get_simplex_up when the name 's'
@@ -1059,6 +1073,12 @@ class simplicial_complex
         SimplexID<i-j> get_simplex_down(const SimplexID<i> id, const KeyType (&s)[j]) const
         {
             return get_down_recurse<i, j>::apply(this, s, id.ptr);
+        }
+
+        template <size_t i, size_t j>
+        SimplexID<i-j> get_simplex_down(const SimplexID<i> id, const std::array<KeyType, j> &arr) const
+        {
+            return get_down_recurse<i, j>::apply(this, arr.data(), id.ptr);
         }
 
         /**
