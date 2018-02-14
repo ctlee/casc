@@ -13,7 +13,8 @@ local machine for development and testing purposes.
 To use this library you need to have a C++ compiler which supports C++14. There
 is a known issue with Clang 4.x.x versioned compilers (including XCode version 9)
 , where the most specialized unique specialization is not selected leading to a 
-compiler error. The current workaround to this problem 
+compiler error. The current workaround to this problem is to obtain and use Clang
+version 5+. 
 
 ### Installing
 This library is header only. The desired headers can be included as necessary.
@@ -49,5 +50,5 @@ please see the [COPYING.md](COPYING.md) file for details.
 
 ## Acknowledgments
 This project is supported by the National Institutes of Health under grant
-numbers P41-GM103426, T32-GM008326, and R01-GM31749. It's also supported in part
+numbers P41-GM103426, T32-GM008326, and R01-GM31749. It is also supported in part
 by the National Science Foundation under awards DMS-CM1620366 and DMS-FRG1262982.
