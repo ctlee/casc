@@ -1,0 +1,30 @@
+language: cpp
+dist: trusty
+sudo: false
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - george-edison55-precise-backports
+    packages:
+      - clang
+      - cmake
+matrix:
+  include:
+    - { os: linux, env: COMPILER=gnu BUILD_TYPE=install BUILD_FLAGS="-DBUILD_CASCTESTS=on"}
+    - { os: linux, env: COMPILER=clang BUILD_TYPE=install BUILD_FLAGS="-DBUILD_CASCTESTS=on" TRAVIS_BUILD_DOCS}
+    - { os: osx, osx_image: xcode9.2, env: COMPILER=CLANG BUILD_TYPE=install BUILD_FLAGS="-DBUILD_CASCTESTS=on"}
+install:
+  - mkdir build;
+    cmake .. $BUILD_FLAGS -DCOMPILER=$COMPILER
+    make -j2
+script:
+  - make $TEST_TYPE;
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN  # Set in travis-ci.org dashboard, marked secure
+  keep-history: true
+  local-dir: build/html
+  on:
+    branch: gh-pages
