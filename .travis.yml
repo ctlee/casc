@@ -13,11 +13,6 @@ addons:
       - clang
       - cmake
       - doxygen
-matrix:
-  include:
-    - { os: linux, env: COMPILER=gnu BUILD_TYPE=install BUILD_FLAGS="-DBUILD_CASCTESTS=on"}
-    - { os: linux, env: COMPILER=clang BUILD_TYPE=install BUILD_FLAGS="-DBUILD_CASCTESTS=on" TRAVIS_BUILD_DOCS}
-    - { os: osx, osx_image: xcode9.2, env: COMPILER=CLANG BUILD_TYPE=install BUILD_FLAGS="-DBUILD_CASCTESTS=on"}
 install:
   - mkdir build;
     cmake .. $BUILD_FLAGS -DCOMPILER=$COMPILER
