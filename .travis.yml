@@ -1,7 +1,4 @@
 language: cpp
-branches:
-  except:
-    - gh-pages
 dist: trusty
 sudo: false
 addons:
@@ -11,24 +8,14 @@ addons:
       - george-edison55-precise-backports
     packages:
       - clang
+      - cmake-data
       - cmake
-      - doxygen
+compiler:
+  - clang
 install:
-  - mkdir build;
+  - >-
+    mkdir build;
     cmake .. $BUILD_FLAGS -DCOMPILER=$COMPILER
     make -j2
 script:
   - make $TEST_TYPE;
-after_success:
-    - >-
-    if [[ "$TRAVIS_BRANCH" = "master" && -n "$TRAVIS_BUILD_DOCS" && "$TRAVIS_PULL_REQUEST" = "false" ]] ; then
-      make casc_docs;
-    fi
-deploy:
-  provider: pages
-  skip-cleanup: true
-  github-token: $GITHUB_TOKEN  # Set in travis-ci.org dashboard, marked secure
-  keep-history: true
-  local-dir: build/html
-  on:
-    branch: gh-pages
