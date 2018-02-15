@@ -15,7 +15,8 @@ compiler:
 install:
   - >-
     mkdir build;
-    cmake .. $BUILD_FLAGS -DCOMPILER=$COMPILER
-    make -j2
+    cd build;
+    cmake .. -DBUILD_CASCTESTS=on;
+    make -j2;
 script:
   - make $TEST_TYPE;
