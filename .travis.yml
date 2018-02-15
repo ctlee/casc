@@ -1,4 +1,7 @@
 language: cpp
+branches:
+  except:
+    - gh-pages
 dist: trusty
 sudo: false
 addons:
@@ -9,6 +12,7 @@ addons:
     packages:
       - clang
       - cmake
+      - doxygen
 matrix:
   include:
     - { os: linux, env: COMPILER=gnu BUILD_TYPE=install BUILD_FLAGS="-DBUILD_CASCTESTS=on"}
@@ -20,6 +24,11 @@ install:
     make -j2
 script:
   - make $TEST_TYPE;
+after_success:
+    - >-
+    if [[ "$TRAVIS_BRANCH" = "master" && -n "$TRAVIS_BUILD_DOCS" && "$TRAVIS_PULL_REQUEST" = "false" ]] ; then
+      make casc_docs;
+    fi
 deploy:
   provider: pages
   skip-cleanup: true
