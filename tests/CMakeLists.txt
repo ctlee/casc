@@ -68,11 +68,11 @@ if(NOT TARGET gtest)
                         FunctionsTests.cpp
                         DecimationTests.cpp
                         TraversalTests.cpp)
-    set_target_properties(casctests PROPERTIES COMPILE_FLAGS "-std=c++14")
+    # set_target_properties(casctests PROPERTIES COMPILE_FLAGS "-std=c++14")
     target_link_libraries(casctests libgtest)
 
     add_test(casctests ${EXECUTABLE_OUTPUT_PATH}/casctests)
 endif()
 
     add_executable(cascscratch cascscratch.cpp)
-    set_target_properties(cascscratch PROPERTIES COMPILE_FLAGS "-std=c++14")
+    # set_target_properties(cascscratch PROPERTIES COMPILE_FLAGS "-std=c++14")
