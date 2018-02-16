@@ -1,18 +1,10 @@
 language: cpp
 dist: trusty
 sudo: false
-addons:
-  apt:
-    sources:
-      - llvm-toolchain-trusty-5.0
-    packages:
-      - clang-5.0
 compiler:
-  - clang
+  - gcc
 install:
-  - export CC=clang-5.0; 
-    export CXX=clang++-5.0;
-    mkdir build;
+  - mkdir build;
     cd build;
     cmake .. -DBUILD_CASCTESTS=on;
     make;
