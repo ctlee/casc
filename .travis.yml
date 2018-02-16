@@ -27,6 +27,6 @@ install:
   - mkdir build;
     cd build;
     cmake .. -DBUILD_CASCTESTS=on;
-    make;
+    make VERBOSE=1;
 script:
   - make test;
