@@ -7,14 +7,12 @@ addons:
       - llvm-toolchain-trusty-5.0
     packages:
       - clang-5.0
- env:
-        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
 compiler:
   - clang
-before_install:
-  - eval "${MATRIX_EVAL}"
 install:
-  - mkdir build;
+  - export CC=clang-5.0; 
+    export CXX=clang++-5.0;
+    mkdir build;
     cd build;
     cmake .. -DBUILD_CASCTESTS=on;
     make;
