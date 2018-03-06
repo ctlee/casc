@@ -1,12 +1,10 @@
 # Colored Abstract Simplicial Complex (CASC) Library
-CASC is a modern and header-only C++ library which provides a data structure to represent arbitrary dimension abstract simplicial complexes with user-defined classes stored directly on the simplices at each dimension.
+[![Build Status](https://travis-ci.org/ctlee/casc.svg?branch=master)](https://travis-ci.org/ctlee/casc)  
+CASC is a modern and header-only C++ library which provides a data structure 
+to represent arbitrary dimension abstract simplicial complexes with user-defined classes stored directly on the simplices at each dimension.
 This is achieved by taking advantage of the combinatorial nature of simplicial complexes and new C++ code features such as: variadic templates and automatic function return type deduction.
 Essentially CASC stores the full topology of the complex according to a [Hasse diagram](https://en.wikipedia.org/wiki/Hasse_diagram).
 The representation of the topology is decoupled from interactions of user data through the use of metatemplate programming.
-
-## Build Status
-
-[![Build Status](https://travis-ci.org/ctlee/casc.svg?branch=master)](https://travis-ci.org/ctlee/casc)
 
 ## Getting Started
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
@@ -19,7 +17,7 @@ CASC is a pure template library defined in the headers.
 
 We use the CMake build system (version 3+), but only to build the documentation and unit-tests, and to automate installation. 
 
-Doxygen is used to generate the documentation.
+Doxygen and Graphviz is used to generate the documentation.
 
 To use CASC in your software all you will need is a working C++ compiler with full C++14 support.
 This includes:
@@ -54,7 +52,9 @@ make tests  		# Run tests through make
 ```
 Additional examples provided with CASC can be built in a similar fashion by passing the `-DBUILD_CASCEXAMPLES=on` flag to CMake.
 
-The CASC documentation can be built if you have Doxygen on your system.
+### Documentation
+A current version of the documentation is available online via [github pages](https://ctlee.github.io/casc). 
+You can also build the documentation locally if you have Doxygen and Graphviz on your system.
 CMake will automatically try to find a working Doxygen installation.
 If Doxygen is found then the documentation can be built using `make casc_doc`. 
 Otherwise CMake will report that it could not find Doxygen.
@@ -64,13 +64,13 @@ We use [Github](https://github.com/ctlee/CASC) for versioning. For the
 versions available, please see the [releases](https://github.com/ctlee/CASC/releases/). If you find a bug or with to request additional functionality please file an issue in the [CASC Github project](https://github.com/ctlee/CASC/issues).
 
 ## Authors
-**John Moody**
-Department of Mathematics
-University of California, San Diego
+**John Moody**  
+Department of Mathematics  
+University of California, San Diego  
 
-**[Christopher Lee](https://github.com/ctlee)**
-Department of Chemistry & Biochemistry
-University of California, San Diego
+**[Christopher Lee](https://github.com/ctlee)**  
+Department of Chemistry & Biochemistry  
+University of California, San Diego  
 
 See also the list of [contributors](https://github.com/ctlee/CASC/contributors) who participated in this project.
 
