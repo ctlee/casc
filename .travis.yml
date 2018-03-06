@@ -52,7 +52,7 @@ after_success:
     fi;
 deploy:
   provider: pages
-  local-dir: $TRAVIS_BUILD_DIR/build/html
+  local-dir: html
   skip-cleanup: true
   github-token: $GITHUB_TOKEN
   keep-history: true
