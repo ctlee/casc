@@ -46,12 +46,13 @@ script:
 after_success:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       brew install doxygen;
+      brew install graphviz;
       cmake ..;
-      make casc_docs;
+      make casc_doc;
     fi;
 deploy:
   provider: pages
-  local-dir: #TRAVIS_BUILD_DIR/build/html
+  local-dir: $TRAVIS_BUILD_DIR/build/html
   skip-cleanup: true
   github-token: $GITHUB_TOKEN
   keep-history: true
