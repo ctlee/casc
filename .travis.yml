@@ -58,3 +58,4 @@ deploy:
   keep-history: false
   on:
     branch: master
+    condition: $TRAVIS_OS_NAME == osx
