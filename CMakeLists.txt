@@ -29,20 +29,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(BUILD_CASCTESTS "Build the test scripts" OFF)
+option(BUILD_CASCEXAMPLES "Build the CASC surface mesh example" OFF)
+
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+  message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may wish to remove CMakeCache.txt and CMakeFiles/. ")
+endif()
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release")
+endif()
 
 if(BUILD_CASCTESTS)
     enable_testing()
 endif(BUILD_CASCTESTS)
-
-if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-  message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may need to remove CMakeCache.txt. ")
-endif()
-
-if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release")
-endif()
-
-#MESSAGE( STATUS "CMAKE_VERBOSE_MAKEFILE: " ${CMAKE_VERBOSE_MAKEFILE} )
 
 # Define where to put the libraries and binaries
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
@@ -51,29 +50,39 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 include_directories(include)
 
+# Install directive for the header files
+install(DIRECTORY include DESTINATION casc FILES_MATCHING PATTERN "*.h")
+
 # List the include directories...
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 foreach(dir ${dirs})
-    message(STATUS "dir='${dir}'")
+    message(STATUS "CASC include_dir: ${dir}")
 endforeach()
 
 if(BUILD_CASCTESTS)
     add_subdirectory(tests)
 endif(BUILD_CASCTESTS)
 
-#install(DIRECTORY include DESTINATION include/casc FILES_MATCHING PATTERN "*.h")
+if(BUILD_CASCEXAMPLES)
+    add_subdirectory(examples)
+endif(BUILD_CASCEXAMPLES)
 
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen)
 
-message(STATUS "Doxygen ${DOXYGEN_EXECUTABLE}")
+
 if(DOXYGEN_FOUND)
+    message(STATUS "Doxygen Executable: ${DOXYGEN_EXECUTABLE}")
+    message(STATUS "Build the documentation using `make casc_doc`")
     # Parse Doxyfile.in and replace CMake @macros@.
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+
 
     add_custom_target(casc_doc
         ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating API documentation with Doxygen" VERBATIM
     )
+else()
+    message(STATUS "CMake could not find Doxygen. Please install Doxygen or help me find your Doxygen binary to build the documentation!")
 endif(DOXYGEN_FOUND)

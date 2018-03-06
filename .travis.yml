@@ -1,6 +1,12 @@
 language: cpp
 dist: trusty
 sudo: false
+
+# Blacklist
+branches:
+  only:
+    - master
+
 matrix:
   include:
     - os: osx
@@ -12,6 +18,9 @@ matrix:
     #         - ubuntu-toolchain-r-test
     #       packages:
     #         - g++ 7
+    #         - doxygen
+    #         - doxygen-doc
+    #         - graphviz
     #   env:
     #     - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
     # - os: linux
@@ -32,4 +41,19 @@ install:
   - cmake .. -DBUILD_CASCTESTS=on;
   - make;
 script:
-  - make test;
+  - ./bin/casctests;
+
+after_success:
+  - if[[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew install doxygen;
+      cmake ..;
+      make casc_docs;
+
+deploy:
+  provider: pages
+  local-dir: #TRAVIS_BUILD_DIR/build/html
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN
+  keep-history: true
+  on:
+    branch: master
