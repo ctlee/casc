@@ -25,7 +25,7 @@
 #pragma once
 
 // Metatemplate utilities
-#include "util.h"
+#include "include/util.h"
 
 // Core casc functionality
 #include "include/SimplicialComplex.h"
