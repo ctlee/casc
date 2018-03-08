@@ -35,8 +35,9 @@ if(NOT TARGET gtest)
     # Get GTest source and binary directories from CMake project
     ExternalProject_Get_Property(gtest source_dir binary_dir)
 
-    message(STATUS "source_dir ${source_dir}")
-    message(STATUS "binary_dir ${binary_dir}")
+    message(STATUS "GTest source_dir: ${source_dir}")
+    message(STATUS "GTest binary_dir: ${binary_dir}")
+
     # Create a libgtest target to be used as a dependency by test programs
     add_library(libgtest IMPORTED STATIC GLOBAL)
     add_dependencies(libgtest gtest)
@@ -68,11 +69,9 @@ if(NOT TARGET gtest)
                         FunctionsTests.cpp
                         DecimationTests.cpp
                         TraversalTests.cpp)
-    # set_target_properties(casctests PROPERTIES COMPILE_FLAGS "-std=c++14")
     target_link_libraries(casctests libgtest)
 
     add_test(casctests ${EXECUTABLE_OUTPUT_PATH}/casctests)
 endif()
 
-    add_executable(cascscratch cascscratch.cpp)
-    # set_target_properties(cascscratch PROPERTIES COMPILE_FLAGS "-std=c++14")
+    # add_executable(cascscratch cascscratch.cpp)

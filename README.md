@@ -1,54 +1,83 @@
 # Colored Abstract Simplicial Complex (CASC) Library
-CASC is a header-only C++ library which provides a data structure to represent 
-arbitrary dimension abstract simplicial complexes. It also allows for 
-user-defined classes to be stored on simplices at each dimension. This library 
-is released as a part of the Finite Elements Toolkit 
-([FETK](http://www.fetk.org/)).
+[![Build Status](https://travis-ci.org/ctlee/casc.svg?branch=master)](https://travis-ci.org/ctlee/casc)  
+CASC is a modern and header-only C++ library which provides a data structure 
+to represent arbitrary dimension abstract simplicial complexes with user-defined classes stored directly on the simplices at each dimension.
+This is achieved by taking advantage of the combinatorial nature of simplicial complexes and new C++ code features such as: variadic templates and automatic function return type deduction.
+Essentially CASC stores the full topology of the complex according to a [Hasse diagram](https://en.wikipedia.org/wiki/Hasse_diagram).
+The representation of the topology is decoupled from interactions of user data through the use of metatemplate programming.
 
 ## Getting Started
-These instructions will get you a copy of the project up and running on your 
-local machine for development and testing purposes.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ### Prerequisites
-To use this library you need to have a C++ compiler which supports C++14. There
-is a known issue with Clang 4.x.x versioned compilers (including XCode version 9)
-, where the most specialized unique specialization is not selected leading to a 
-compiler error. The current workaround to this problem is to obtain and use Clang
-version 5+. 
+CASC does not have any dependencies other than the C++ standard library.
+If you wish to use CASC, you can use the header files right away.
+There is no binary library to link to, and no configured header file.
+CASC is a pure template library defined in the headers.
+
+We use the CMake build system (version 3+), but only to build the documentation and unit-tests, and to automate installation. 
+
+Doxygen and Graphviz is used to generate the documentation.
+
+To use CASC in your software all you will need is a working C++ compiler with full C++14 support.
+This includes:
+- GCC Versions 5+
+- Clang Versions 3, 5+<sup>†</sup>
+- XCode 8<sup>†</sup>
+
+<sup>†</sup> Note that there is a known issue with Clang 4.x.x versioned compilers (including XCode version 9.[0-2]), where the most specialized unique specialization is not selected leading to a compiler error. 
+The current workaround to this problem is to either use GCC or to obtain Clang version 5+ (XCode version 9.3beta+).
 
 ### Installing
-This library is header only. The desired headers can be included as necessary.
-```
+CASC is header only meaning that there is nothing to compile out of the box.
+To use CASC, simply copy the desired headers into your project and included as necessary.
+If you wish to install CASC using CMake to your system, even though the library is header only, you must first create a new folder to prevent in-source "builds".
+```bash
 mkdir build
 cd build
-cmake -DBUILD_TESTS=ON ..
 ```
-If you wish to build examples...
-```
--DBUILD_EXAMPLES=ON 
-make 
+Subsequently run CMake specifying the installation prefix and the path to the root level `CMakeLists.txt` file. 
+```bash 
+cmake -DCMAKE_INSTALL_PREFIX=/usr/local/ ..
 make install
 ```
-
-In order to build the documentation:
+Unit tests are also packaged along with CASC and are dependent upon [Googles C++ test framework](https://github.com/google/googletest).
+If you wish to build and run the tests, set the flag `-DBUILD_CASCTESTS=on` in your CMake command.
+CMake will then download and build `googletest` and link it with the CASC unit tests.
+```bash
+cmake -DBUILD_CASCTESTS=on ..
+make
+make tests  		# Run tests through make
+./bin/casctests 	# Alternatively run the tests directly (more verbose)
 ```
-make casc_doc
-```
+Additional examples provided with CASC can be built in a similar fashion by passing the `-DBUILD_CASCEXAMPLES=on` flag to CMake.
 
-## Versioning
+### Documentation
+A current version of the documentation is available online via [github pages](https://ctlee.github.io/casc). 
+You can also build the documentation locally if you have Doxygen and Graphviz on your system.
+CMake will automatically try to find a working Doxygen installation.
+If Doxygen is found then the documentation can be built using `make casc_doc`. 
+Otherwise CMake will report that it could not find Doxygen.
 
+## Versioning & Contributing
 We use [Github](https://github.com/ctlee/CASC) for versioning. For the 
-versions available, please see the [releases](https://github.com/ctlee/CASC/releases/). 
+versions available, please see the [releases](https://github.com/ctlee/CASC/releases/). If you find a bug or with to request additional functionality please file an issue in the [CASC Github project](https://github.com/ctlee/CASC/issues).
 
 ## Authors
-* **John Moody** <jbmoody@ucsd.edu>
-* **Christopher Lee** <ctlee@ucsd.edu>
+**John Moody**  
+Department of Mathematics  
+University of California, San Diego  
+
+**[Christopher Lee](https://github.com/ctlee)**  
+Department of Chemistry & Biochemistry  
+University of California, San Diego  
+
+See also the list of [contributors](https://github.com/ctlee/CASC/contributors) who participated in this project.
 
 ## License
 This project is licensed under the GNU Lesser General Public License v2.1 - 
 please see the [COPYING.md](COPYING.md) file for details.
 
 ## Acknowledgments
-This project is supported by the National Institutes of Health under grant
-numbers P41-GM103426, T32-GM008326, and R01-GM31749. It is also supported in part
-by the National Science Foundation under awards DMS-CM1620366 and DMS-FRG1262982.
+This project is supported by the National Institutes of Health under grant numbers P41-GM103426 ([NBCR](http://nbcr.ucsd.edu/)), T32-GM008326, and R01-GM31749. 
+It is also supported in part by the National Science Foundation under awards DMS-CM1620366 and DMS-FRG1262982.
