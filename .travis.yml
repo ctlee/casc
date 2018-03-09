@@ -15,7 +15,7 @@ matrix:
     - os: osx
       osx_image: xcode9.3beta
       env:
-        - MATRIX_EVAL="CC=clang && CXX=clang++"
+        - MATRIX_EVAL="CC=clang && CXX=clang++ && BUILD_DOCS=1"
     - os: linux
       addons:
         apt:
@@ -26,7 +26,7 @@ matrix:
             - doxygen
             - graphviz
       env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && BUILD_DOC=TRUE"
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 before_install:
   - eval "${MATRIX_EVAL}"
 install:
@@ -36,7 +36,9 @@ install:
 script:
   - ./bin/casctests;
 after_success:
-  - if [ $BUILD_DOC ]; then
+  - if [[ "$BUILD_DOCS" == "1" ]; then
+      brew install doxygen;
+      brew install graphviz;
       cmake ..;
       make casc_doc;
     fi;
@@ -50,4 +52,4 @@ deploy:
   keep-history: false
   on:
     branch: master
-    condition: "$BUILD_DOC"
+    condition: "$BUILD_DOCS" == "1"
