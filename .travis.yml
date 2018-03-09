@@ -55,7 +55,8 @@ deploy:
   local-dir: build/html
   skip-cleanup: true
   github-token: $GITHUB_TOKEN
-  keep-history: true
+  keep-history: false
+  verbose: true
   on:
     branch: master
-    condition: $TRAVIS_OS_NAME == osx
+    condition: "$TRAVIS_OS_NAME == osx"
