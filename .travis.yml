@@ -39,7 +39,7 @@ install:
   - mkdir build;
     cd build;
   - cmake .. -DBUILD_CASCTESTS=on;
-  - make;
+  - make -j4;
 script:
   - ./bin/casctests;
 
@@ -56,7 +56,6 @@ deploy:
   skip-cleanup: true
   github-token: $GITHUB_TOKEN
   keep-history: false
-  verbose: true
   on:
     branch: master
     condition: "$TRAVIS_OS_NAME == osx"
