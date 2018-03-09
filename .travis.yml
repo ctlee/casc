@@ -26,7 +26,7 @@ matrix:
             - doxygen
             - graphviz
       env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && BUILD_DOC=TRUE"
 before_install:
   - eval "${MATRIX_EVAL}"
 install:
@@ -36,9 +36,7 @@ install:
 script:
   - ./bin/casctests;
 after_success:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew install doxygen;
-      brew install graphviz;
+  - if [ $BUILD_DOC ]; then
       cmake ..;
       make casc_doc;
     fi;
@@ -52,4 +50,4 @@ deploy:
   keep-history: false
   on:
     branch: master
-    condition: "$TRAVIS_OS_NAME == osx"
+    condition: "$BUILD_DOC"
