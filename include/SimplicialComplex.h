@@ -1388,6 +1388,8 @@ class simplicial_complex
             return std::get<k>(levels).size();
         }
 
+
+        template <std::size_t k> using SimplexIDIterator = detail::node_id_iterator<typename std::map<size_t, NodePtr<k>>::iterator, SimplexID<k>>;
         /**
          * @brief      Create an iterator to traverse the SimplexIDs of a
          *             dimension.
@@ -1424,6 +1426,8 @@ class simplicial_complex
             return util::make_range(data_begin, data_end);
         }
 
+
+        template <std::size_t k> using DataIterator = detail::node_data_iterator<typename std::map<size_t, NodePtr<k>>::iterator, NodeData<k>>;
         /**
          * @brief      Create an iterator to traverse the simplex data of a
          *             dimension.
