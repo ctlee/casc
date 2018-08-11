@@ -54,7 +54,7 @@ protected:
     ~CASCTest() {}
     virtual void SetUp() {
     	mesh.insert<1>({1}, 1);
-		mesh.insert<1>({2}, 2);
+			mesh.insert<1>({2}, 2);
     	mesh.insert<1>({3}, 3);
     	mesh.insert<1>({4}, 4);
 
@@ -69,16 +69,16 @@ protected:
 };
 
 TEST(CASCTest, DefaultConstructor){
- 	SurfaceMeshType mesh = SurfaceMeshType(); 
-  	EXPECT_EQ(1, mesh.size<0>());
+ 	SurfaceMeshType mesh = SurfaceMeshType();
+  EXPECT_EQ(1, mesh.size<0>());
 	EXPECT_EQ(0, mesh.size<1>());
 	EXPECT_EQ(0, mesh.size<2>());
 	EXPECT_EQ(0, mesh.size<3>());
 }
 
 TEST(CASCTest, DefaultConstructorTet){
- 	TetMeshType mesh = TetMeshType(); 
-  	EXPECT_EQ(1, mesh.size<0>());
+ 	TetMeshType mesh = TetMeshType();
+  EXPECT_EQ(1, mesh.size<0>());
 	EXPECT_EQ(0, mesh.size<1>());
 	EXPECT_EQ(0, mesh.size<2>());
 	EXPECT_EQ(0, mesh.size<3>());
@@ -91,16 +91,16 @@ TEST(CASCTest, Insert){
 
 	mesh.insert<1>({1}, 1);
 	mesh.insert<1>({2}, 2);
-    mesh.insert<1>({3}, 3);
-    mesh.insert<1>({4}, 4);
+  mesh.insert<1>({3}, 3);
+  mesh.insert<1>({4}, 4);
 	EXPECT_EQ(1, mesh.size<0>());
 	EXPECT_EQ(4, mesh.size<1>());
 	EXPECT_EQ(0, mesh.size<2>());
 	EXPECT_EQ(0, mesh.size<3>());
 
 	mesh.insert<3>({1,2,3}, 5);
-    mesh.insert<3>({2,3,4}, 6);
-    mesh.insert<3>({1,3,4}, 7);
+  mesh.insert<3>({2,3,4}, 6);
+  mesh.insert<3>({1,3,4}, 7);
 	EXPECT_EQ(1, mesh.size<0>());
 	EXPECT_EQ(4, mesh.size<1>());
 	EXPECT_EQ(6, mesh.size<2>());
@@ -120,7 +120,7 @@ TEST(CASCTest, Insert){
 	data = *mesh.get_simplex_up({2,3,4});
 	EXPECT_EQ(data, 6);
 	data = *mesh.get_simplex_up({1,3,4});
-	EXPECT_EQ(data, 7);	
+	EXPECT_EQ(data, 7);
 }
 
 // Check the SimplexID boolean operators.
@@ -214,7 +214,7 @@ TEST(CASCTest, InsertRandomVals){
 
 		pairs.emplace(key, randomInt);
 	}
-	EXPECT_EQ(mesh.size<1>(), trials) 
+	EXPECT_EQ(mesh.size<1>(), trials)
 		<< "Number of vertices does not match number inserted.";
 
 	for(auto simplex : mesh.get_level_id<1>()){

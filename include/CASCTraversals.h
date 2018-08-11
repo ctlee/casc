@@ -617,8 +617,76 @@ void kneighbors_up(Complex &F, SimplexID nid, int ring, std::set<SimplexID> &nbo
         nid
     };
     kneighbors_up<Complex, SimplexID::level>(F, ring, nbors, next.begin(), next.end());
-    nbors.erase(nid); 
+    nbors.erase(nid);
 }
+
+
+/**
+ * @brief      Code for returning a set of k-ring neighbors.
+ *
+ * @param[in]  F         The simplicial_complex to traverse.
+ * @param[in]  ring      The number of rings of neighbors to collect.
+ * @param[out] nbors     Set of previously seen simplices.
+ * @param[in]  begin     The begin
+ * @param[in]  end       The end
+ *
+ * @tparam     Complex   Typename of the simplicial_complex.
+ * @tparam     level     Simplex dimension of the simplex and neighbors.
+ * @tparam     Iterator  { description }
+ */
+template <class Complex, std::size_t level, typename Iterator>
+void kneighbors(Complex                                                &F,
+                   int                                                     ring,
+                   std::set<typename Complex::template SimplexID<level> > &nbors,
+                   Iterator                                                begin,
+                   Iterator                                                end)
+{
+    if (ring == 0)
+    {
+        return;
+    }
+    std::set<typename Complex::template SimplexID<level> > next;
+    for (auto nid = begin; nid != end; ++nid)
+    {
+        for (auto a : F.get_name(*nid))
+        {
+            auto id = F.get_simplex_down(*nid, a);
+            for (auto b : F.get_cover(id))
+            {
+                auto nbor = F.get_simplex_up(id, b);
+                if (nbors.insert(nbor).second)
+                {
+                    next.insert(nbor);
+                }
+            }
+        }
+    }
+    return kneighbors_up<Complex, level>(F, ring-1, nbors, next.begin(), next.end());
+}
+
+/**
+ * @brief      Helper function to help kneighbors to deduce the integral
+ *             level of SimplexID.
+ *
+ * @param[in]  F           The simplicial complex
+ * @param[in]  nid         Simplex of interest to get the nieghbors of.
+ * @param[in]  ring        The number of rings to include as a neighbor.
+ * @param[out] nbors       Set of neighbors to populate.
+ *
+ * @tparam     Complex     Typename of the complex.
+ * @tparam     SimplexID   Typename of the SimplexID.
+ */
+template <class Complex, class SimplexID>
+void kneighbors(Complex &F, SimplexID nid, int ring, std::set<SimplexID> &nbors)
+{
+    nbors.insert(nid);
+    std::set<SimplexID> next {
+        nid
+    };
+    kneighbors<Complex, SimplexID::level>(F, ring, nbors, next.begin(), next.end());
+    nbors.erase(nid);
+}
+
 } // End namespace casc
 
 
