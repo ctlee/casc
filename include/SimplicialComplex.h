@@ -349,6 +349,8 @@ struct node_id_iterator : public std::iterator<std::bidirectional_iterator_tag, 
         bool operator!=(node_id_iterator j) const { return !(*this == j); }
         /// Dereferencing the iterator produces a SimplexID.
         Data operator*() { return Data(i->second); }
+        /// Const version
+        const Data operator*() const {return Data(i->second); }
         /// Dereferencing the iterator produces a SimplexID.
         typename super::pointer operator->() { return Data(i->second); }
     protected:
@@ -483,7 +485,7 @@ class simplicial_complex
         using NodeDataTypes = typename traits::NodeTypes;
         /// Typenames of the data stored on edges.
         using EdgeDataTypes = typename traits::EdgeTypes;
-        /// Type of this 
+        /// Type of this
         using type_this = simplicial_complex<traits>;
         /// Total number of levels in the complex.
         static constexpr auto numLevels = NodeDataTypes::size;
@@ -565,7 +567,7 @@ class simplicial_complex
             auto const &&operator*() const { return std::move(ptr->_data); }
             /// Dereferencing a SimplexID returns the data stored.
             auto &&operator*() { return ptr->_data; }
- 
+
             /// Get a handle to the stored data.
             auto const &&data() const { return std::move(ptr->_data); }
             /// Get a handle to the stored data.
@@ -639,7 +641,7 @@ class simplicial_complex
                 {
                     /**
                      * @brief      Print out the name of the simplex.
-                     * 
+                     *
                      * @param      out   Stream to pipe to.
                      * @param[in]  nid   The simplex to print.
                      *
@@ -745,7 +747,7 @@ class simplicial_complex
             friend bool operator>(EdgeID lhs, EdgeID rhs)  { return rhs < lhs; }
 
             // explicit operator std::size_t () const { return
-            // static_cast<std::size_t>(ptr); 
+            // static_cast<std::size_t>(ptr);
 
             /// Dereferencing an EdgeID gets the data on the edge.
             auto const &operator*() const { return data(); }
@@ -912,7 +914,7 @@ class simplicial_complex
 
         /**
          * @brief      Add a new vertex to the complex with data.
-         * 
+         *
          * @return     The key of the new vertex.
          */
         KeyType add_vertex(const NodeData<1> &data)
@@ -976,7 +978,7 @@ class simplicial_complex
          */
         std::array<KeyType, 0> get_name(SimplexID<0> id) const
         {
-            std::array<KeyType, 0> name;
+            std::array<KeyType, 0> name{};
             return name;
         }
 
@@ -1659,7 +1661,7 @@ class simplicial_complex
          *                   class scope
          */
         template <size_t foo>
-        struct remove_recurse<numLevels-1, foo>
+        struct remove_recurse<topLevel, foo>
         {
             /**
              * @brief      Remove the facets of the complex.
@@ -1822,7 +1824,7 @@ class simplicial_complex
         struct insert_full
         {
             /**
-             * @brief      Kick off a for loop to insert all cofaces. 
+             * @brief      Kick off a for loop to insert all cofaces.
              *
              * @param      that   The simplicial complex
              * @param      root   The current simplex to insert at.
@@ -1862,7 +1864,7 @@ class simplicial_complex
         };
 
         /**
-         * @brief      Iterate over antistep 
+         * @brief      Iterate over antistep
          *
          * @tparam     level     Dimension of the current root simplex
          * @tparam     antistep  Antistep to track which indices to append to root.
@@ -1993,7 +1995,7 @@ class simplicial_complex
         /**
          * @brief      Creates a new node of some dimension.
          *
-         * @param[in]  x      Argument to help deduce the new node dimension 
+         * @param[in]  x      Argument to help deduce the new node dimension
          *
          * @tparam     level  Simplex dimension
          *
@@ -2023,7 +2025,7 @@ class simplicial_complex
         /**
          * @brief      Removes a node.
          *
-         * @param      p      Simplex to remove 
+         * @param      p      Simplex to remove
          *
          * @tparam     level  Dimension of the simplex
          */
@@ -2046,7 +2048,7 @@ class simplicial_complex
         /**
          * @brief      Removes a node.
          *
-         * @param      p     Simplex to remove 
+         * @param      p     Simplex to remove
          */
         void remove_node(Node<1>* p)
         {
@@ -2068,7 +2070,7 @@ class simplicial_complex
         /**
          * @brief      Removes a node.
          *
-         * @param      p     Simplex to remove 
+         * @param      p     Simplex to remove
          */
         void remove_node(Node<0>* p)
         {
@@ -2084,7 +2086,7 @@ class simplicial_complex
         /**
          * @brief      Removes a node.
          *
-         * @param      p     Simplex to remove 
+         * @param      p     Simplex to remove
          */
         void remove_node(Node<topLevel>* p)
         {
@@ -2135,11 +2137,11 @@ using AbstractSimplicialComplex = simplicial_complex<
 namespace simplex_set_detail{
 /**
  * @brief      Template to compute a hash for a SimplexID.
- * 
+ *
  * Since SimplexID is actually a wrapper around a Node* we have to hash it
- * accordingly. The static_cast calls the defined explicit operator which 
+ * accordingly. The static_cast calls the defined explicit operator which
  * reinterprets the stored Node* pointer as a uintptr_t which we can hash
- * directly.    
+ * directly.
  *
  * @tparam     SimplexID  Typename of the SimplexID.
  */
@@ -2147,11 +2149,11 @@ template <typename SimplexID>
 struct hashSimplexID{
     /**
      * @brief   Compute the hash.
-     * 
+     *
      * ~~~~~~~~~~~~~~~~~(.cpp)
      * std::cout << hashSimplexID<decltype(nid)>{}(nid) << std::endl;
      * ~~~~~~~~~~~~~~~~~
-     * 
+     *
      * @param[in]  nid   The simplex of interest.
      * @return     Resultant hash.
      */
@@ -2164,6 +2166,6 @@ struct hashSimplexID{
 /// @endcond
 
 /// Helpful alias defining a unordered_set of simplices. See also hashSimplexID.
-template <typename T> using NodeSet = 
+template <typename T> using NodeSet =
         std::unordered_set<T, simplex_set_detail::hashSimplexID<T> >;
 } // end namespace casc
