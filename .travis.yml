@@ -38,7 +38,7 @@ after_success:
       brew install doxygen;
       brew install graphviz;
       cmake ..;
-      make casc_doc;
+      make docs;
     fi;
 deploy:
   edge:

@@ -1,7 +1,7 @@
 # ***************************************************************************
 # This file is part of the Colored Abstract Simplicial Complex library.
 # Copyright (C) 2016-2017
-# by Christopher Lee, John Moody, Rommie Amaro, J. Andrew McCammon, 
+# by Christopher Lee, John Moody, Rommie Amaro, J. Andrew McCammon,
 #    and Michael Holst
 #
 # This library is free software; you can redistribute it and/or
@@ -17,23 +17,28 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-# 
+#
 # ***************************************************************************
 
 cmake_minimum_required(VERSION 3.0)
+# Disable in source builds
+set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
+#####################################################################
+# Project GAMer
+#####################################################################
 project(CASC VERSION 1.0.0)
 
+# Require c++14 and standard libraries
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+#####################################################################
+# Options
+#####################################################################
 option(BUILD_CASCTESTS "Build the test scripts" OFF)
 option(BUILD_CASCEXAMPLES "Build the CASC surface mesh example" OFF)
-
-if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-  message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may wish to remove CMakeCache.txt and CMakeFiles/. ")
-endif()
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
@@ -46,7 +51,6 @@ endif(BUILD_CASCTESTS)
 # Define where to put the libraries and binaries
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-# set(TEST_DATA_PATH ${PROJECT_SOURCE_DIR}/data)
 
 include_directories(include)
 
@@ -67,18 +71,16 @@ if(BUILD_CASCEXAMPLES)
     add_subdirectory(examples)
 endif(BUILD_CASCEXAMPLES)
 
-# add a target to generate API documentation with Doxygen
+#####################################################################
+# Target to generate Doxygen documentation
+#####################################################################
 find_package(Doxygen)
-
-
 if(DOXYGEN_FOUND)
     message(STATUS "Doxygen Executable: ${DOXYGEN_EXECUTABLE}")
-    message(STATUS "Build the documentation using `make casc_doc`")
+    message(STATUS "Build the documentation using `make docs`")
     # Parse Doxyfile.in and replace CMake @macros@.
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-
-
-    add_custom_target(casc_doc
+    add_custom_target(docs
         ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating API documentation with Doxygen" VERBATIM
