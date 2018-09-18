@@ -43,6 +43,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <utility>
+#include <stdexcept>
 #include <assert.h>
 #include "index_tracker.h"
 #include "util.h"
@@ -56,6 +57,111 @@ namespace detail
 {
 /// Data structure to store simplices by level.
 template <class T> using map = std::map<size_t, T>;
+
+
+template <typename T1, typename T2>
+struct asc_pair {
+    asc_pair() {}
+    asc_pair(T1& first, T2& second) : _pair(first, second) {}
+    template<class U1, class U2>
+    asc_pair(U1&& first, U2&& second) : _pair(std::forward<T1>(first), std::forward<T2>(second)) {}
+    asc_pair(asc_pair& other) : _pair(other._pair) {}
+
+    template<class U1, class U2>
+    asc_pair(asc_pair<U1,U2>&& other) : _pair(std::forward<std::pair<T1,T2>>(other._pair)) {}
+
+    asc_pair& operator=(const asc_pair& other){
+        _pair = other._pair;
+        return *this;
+    }
+
+    asc_pair& operator=(const asc_pair&& other){
+        _pair = std::move(other._pair);
+        return *this;
+    }
+
+    bool operator==(T1 val){return _pair.first == val;}
+    friend bool operator==(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first == rhs.first;}
+    friend bool operator!=(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first != rhs.first;}
+    friend bool operator<=(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first <= rhs.first;}
+    friend bool operator>=(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first >= rhs.first;}
+    friend bool operator<(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first < rhs.first;}
+    friend bool operator>(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first > rhs.first;}
+
+    std::pair<T1,T2> _pair;
+    T1& first = _pair.first;
+    T2& second = _pair.second;
+};
+
+template <typename KEY_T, typename VAL_T, size_t k>
+struct asc_arraymap {
+    using pair_t = asc_pair<KEY_T, VAL_T>;
+    using array_t = std::array<pair_t, k>;
+    using iterator = typename array_t::iterator;
+    using const_iterator = typename array_t::const_iterator;
+
+    asc_arraymap(){
+        _begin = _array.begin();
+        _end = _array.begin();
+    }
+
+    void insert(pair_t& p){
+        if (_end == _array.end())
+            throw std::out_of_range("insert&: Adding element beyond the end of array.");
+        *_end = p;
+        ++_end;
+        std::sort(_array.begin(), _end);
+    }
+
+    void insert(pair_t&& p){
+        if (_end == _array.end())
+            throw std::out_of_range("insert&&: Adding element beyond the end of array.");
+        *_end = std::move(p);
+        ++_end;
+        std::sort(_array.begin(), _end);
+    }
+
+    iterator find(const KEY_T& key){
+        return std::find(_array.begin(), _end, key);
+    }
+
+    void erase(const KEY_T& key){
+        auto it = std::find(_array.begin(), _end, key);
+        if(it != _end){
+            std::copy(it+1, _end, it);
+            --_end;
+        }
+    }
+
+    size_t size() const{
+        return _end-_array.cbegin();
+    }
+
+    VAL_T& operator[](const KEY_T& key){
+        auto it = std::find(_array.begin(), _end, key);
+        if(it != _end){
+            return it->second;
+        }
+        else{
+            if (_end == _array.end())
+                throw std::out_of_range("operator[]: Adding element beyond the end of array.");
+            iterator tmp = _end;
+            ++_end;
+            tmp->first = key;
+            return tmp->second;
+        }
+    }
+
+    iterator begin(){ return _begin; }
+    iterator end(){ return _end; }
+    const_iterator cbegin() const {return _begin;}
+    const_iterator cend() const {return _end;}
+
+    array_t _array;
+    iterator _begin;
+    iterator _end;
+};
+
 
 /**
  * @brief Template prototype for Nodes in CASC.
@@ -136,8 +242,10 @@ struct asc_NodeDown :
                         typename util::type_get<k-1, EdgeDataTypes>::type> {
     /** Alias the typename of the parent Node */
     using DownNodeT = asc_Node<KeyType, k-1, N, NodeDataTypes, EdgeDataTypes>;
+
     /** Map of indices to parent Node pointers*/
-    std::map<KeyType, DownNodeT*> _down;
+    asc_arraymap<KeyType, DownNodeT*, k> _down;
+    // std::map<KeyType, DownNodeT*> _down;
 };
 
 /**
@@ -522,7 +630,7 @@ class simplicial_complex
             using complex = simplicial_complex<traits>;
             /// SimplexID is a friend of the complex
             friend simplicial_complex<traits>;
-            /// The dimension fo the simplex.
+            /// The dimension of the simplex.
             static constexpr size_t level = k;
 
             /**
@@ -651,11 +759,11 @@ class simplicial_complex
                                                const SimplexID<l> &nid)
                     {
                         auto down = (*nid.ptr)._down;
-                        for (auto it = down.cbegin(); it != --down.cend(); ++it)
+                        for (auto it = down.cbegin(); it != down.cend()-1; ++it)
                         {
                             out << it->first << ",";
                         }
-                        out << (--down.cend())->first;
+                        out << (down.cend()-1)->first;
                         return out;
                     }
                 };
@@ -956,7 +1064,6 @@ class simplicial_complex
         std::array<KeyType, n> get_name(SimplexID<n> id) const
         {
             std::array<KeyType, n> s;
-
             int                    i = 0;
             for (auto curr : id.ptr->_down)
             {
@@ -1776,7 +1883,7 @@ class simplicial_complex
                     auto p = root->_down.find(*s);
                     if (p != root->_down.end())
                     {
-                        return get_recurse<level-1, n-1>::apply(that, s+1, root->_down[*s]);
+                        return get_down_recurse<level-1, n-1>::apply(that, s+1, root->_down[*s]);
                     }
                     else
                     {
@@ -2076,6 +2183,7 @@ class simplicial_complex
         {
             for (auto curr = p->_up.begin(); curr != p->_up.end(); ++curr)
             {
+
                 curr->second->_down.erase(curr->first);
             }
             --(level_count[0]);
