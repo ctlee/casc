@@ -70,6 +70,10 @@ struct asc_pair {
     template<class U1, class U2>
     asc_pair(asc_pair<U1,U2>&& other) : _pair(std::forward<std::pair<T1,T2>>(other._pair)) {}
 
+    operator T1() const {
+        return _pair.first;
+    }
+
     asc_pair& operator=(const asc_pair& other){
         _pair = other._pair;
         return *this;
@@ -80,7 +84,6 @@ struct asc_pair {
         return *this;
     }
 
-    bool operator==(T1 val){return _pair.first == val;}
     friend bool operator==(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first == rhs.first;}
     friend bool operator!=(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first != rhs.first;}
     friend bool operator<=(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first <= rhs.first;}
@@ -88,9 +91,10 @@ struct asc_pair {
     friend bool operator<(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first < rhs.first;}
     friend bool operator>(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first > rhs.first;}
 
-    std::pair<T1,T2> _pair;
     T1& first = _pair.first;
     T2& second = _pair.second;
+private:
+    std::pair<T1,T2> _pair;
 };
 
 template <typename KEY_T, typename VAL_T, size_t k>
@@ -110,23 +114,23 @@ struct asc_arraymap {
             throw std::out_of_range("insert&: Adding element beyond the end of array.");
         *_end = p;
         ++_end;
-        std::sort(_array.begin(), _end);
+        std::sort(_begin, _end);
     }
 
     void insert(pair_t&& p){
         if (_end == _array.end())
             throw std::out_of_range("insert&&: Adding element beyond the end of array.");
-        *_end = std::move(p);
+        *_end = std::forward<pair_t>(p);
         ++_end;
-        std::sort(_array.begin(), _end);
+        std::sort(_begin(), _end);
     }
 
     iterator find(const KEY_T& key){
-        return std::find(_array.begin(), _end, key);
+        return std::find(_begin, _end, key);
     }
 
     void erase(const KEY_T& key){
-        auto it = std::find(_array.begin(), _end, key);
+        auto it = std::find(_begin, _end, key);
         if(it != _end){
             std::copy(it+1, _end, it);
             --_end;
@@ -134,11 +138,11 @@ struct asc_arraymap {
     }
 
     size_t size() const{
-        return _end-_array.cbegin();
+        return std::distance(_end, _begin());
     }
 
     VAL_T& operator[](const KEY_T& key){
-        auto it = std::find(_array.begin(), _end, key);
+        auto it = std::find(_begin, _end, key);
         if(it != _end){
             return it->second;
         }
@@ -157,9 +161,86 @@ struct asc_arraymap {
     const_iterator cbegin() const {return _begin;}
     const_iterator cend() const {return _end;}
 
+private:
     array_t _array;
     iterator _begin;
     iterator _end;
+};
+
+
+template <typename KEY_T, typename VAL_T>
+struct asc_vectormap {
+    using pair_t = asc_pair<KEY_T, VAL_T>;
+    using vector_t = std::vector<pair_t>;
+    using iterator = typename vector_t::iterator;
+    using const_iterator = typename vector_t::const_iterator;
+
+    asc_vectormap(){}
+
+    void insert(pair_t& p){
+        iterator first = std::lower_bound(_vector.begin(), _vector.end(), p);
+        if ((first == _vector.end()) || (*first != p)){
+            _vector.insert(first, p);
+        }
+        else{
+            std::cout << "Item already exists...";
+        }
+    }
+
+    void insert(pair_t&& p){
+        iterator first = std::lower_bound(_vector.begin(), _vector.end(), p);
+        if ((first == _vector.end()) || (*first != p)){
+            _vector.insert(first, std::forward<pair_t>(p));
+        }
+        else{
+            std::cout << "Item already exists...";
+        }
+    }
+
+    iterator find(const KEY_T& key){
+        iterator first = std::lower_bound(_vector.begin(), _vector.end(), key);
+        if (first != _vector.end()){
+            if (*first != key){
+                return _vector.end();
+            }
+            else{
+                return first;
+            }
+        }
+        else{
+            return first;
+        }
+    }
+
+    void erase(const KEY_T& key){
+        iterator it = this->find(key);
+        if (it != _vector.end()){
+            _vector.erase(it);
+        }
+    }
+
+    size_t size() const{
+        return _vector.size();
+    }
+
+    VAL_T& operator[](const KEY_T& key){
+        iterator first = std::lower_bound(_vector.begin(), _vector.end(), key);
+        if ((first == _vector.end()) || (first->first != key)){
+            first = _vector.emplace(first, pair_t());
+            first->first = key;
+            return first->second;
+        }
+        else {
+            return first->second;
+        }
+    }
+
+    iterator begin(){ return _vector.begin(); }
+    iterator end(){ return _vector.end(); }
+    const_iterator cbegin() const {return _vector.cbegin();}
+    const_iterator cend() const {return _vector.cend();}
+private:
+    vector_t _vector;
 };
 
 
@@ -265,8 +346,8 @@ template <  class KeyType,
 struct asc_NodeUp {
     /// Typename of the nodes up.
     using UpNodeT = asc_Node<KeyType, k+1, N, NodeDataTypes, EdgeDataTypes>;
-    std::unordered_map<KeyType, UpNodeT*> _up;      /**< @brief Map of pointers
-                                                       to children */
+    asc_vectormap<KeyType, UpNodeT*> _up;
+    // std::unordered_map<KeyType, UpNodeT*> _up;      /**< @brief Map of pointers to children */
 };
 
 /**
