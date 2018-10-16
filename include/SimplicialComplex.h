@@ -122,7 +122,7 @@ struct asc_arraymap {
             throw std::out_of_range("insert&&: Adding element beyond the end of array.");
         *_end = std::forward<pair_t>(p);
         ++_end;
-        std::sort(_begin(), _end);
+        std::sort(_begin, _end);
     }
 
     iterator find(const KEY_T& key){
@@ -138,7 +138,7 @@ struct asc_arraymap {
     }
 
     size_t size() const{
-        return std::distance(_end, _begin());
+        return std::distance(_end, _begin);
     }
 
     VAL_T& operator[](const KEY_T& key){
@@ -149,10 +149,10 @@ struct asc_arraymap {
         else{
             if (_end == _array.end())
                 throw std::out_of_range("operator[]: Adding element beyond the end of array.");
-            iterator tmp = _end;
+            _end->first = key;
             ++_end;
-            tmp->first = key;
-            return tmp->second;
+            std::sort(_begin, _end);
+            return std::find(_begin,_end, key)->second;
         }
     }
 
