@@ -223,6 +223,16 @@ struct asc_vectormap {
         return _vector.size();
     }
 
+    VAL_T& at(const KEY_T& key){
+        iterator first = std::lower_bound(_vector.begin(), _vector.end(), key);
+        if ((first == _vector.end()) || (first->first != key)){
+            throw std::out_of_range("Could not find element in asc_vectormap.");
+        }
+        else {
+            return first->second;
+        }
+    }
+
     VAL_T& operator[](const KEY_T& key){
         iterator first = std::lower_bound(_vector.begin(), _vector.end(), key);
         if ((first == _vector.end()) || (first->first != key)){
@@ -1498,7 +1508,7 @@ class simplicial_complex
         template <size_t k>
         auto get_edge_up(SimplexID<k> nid, KeyType a)
         {
-            return EdgeID<k+1>(nid.ptr->_up[a], a);
+            return EdgeID<k+1>(nid.ptr->_up.at(a), a);
         }
 
         /**
@@ -1530,7 +1540,7 @@ class simplicial_complex
         template <size_t k>
         auto get_edge_up(SimplexID<k> nid, KeyType a) const
         {
-            return EdgeID<k+1>(nid.ptr->_up[a], a);
+            return EdgeID<k+1>(nid.ptr->_up.at(a), a);
         }
 
         /**
@@ -1903,7 +1913,7 @@ class simplicial_complex
                     auto p = root->_up.find(*s);
                     if (p != root->_up.end())
                     {
-                        return get_recurse<level+1, n-1>::apply(that, s+1, root->_up[*s]);
+                        return get_recurse<level+1, n-1>::apply(that, s+1, root->_up.at(*s));
                     }
                     else
                     {
