@@ -9,7 +9,7 @@ sudo: false
 branches:
   only:
     - master
-
+    - development
 matrix:
   include:
     - os: osx
@@ -41,8 +41,6 @@ after_success:
       make docs;
     fi;
 deploy:
-  edge:
-    branch: v1.8.47
   provider: pages
   local-dir: build/html
   skip-cleanup: true
