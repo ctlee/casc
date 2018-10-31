@@ -13,9 +13,7 @@ branches:
 matrix:
   include:
     - os: osx
-      osx_image: xcode9.3beta
-      env:
-        - MATRIX_EVAL="CC=clang && CXX=clang++ && BUILD_DOCS=1"
+      osx_image: xcode
     - os: linux
       addons:
         apt:
@@ -34,7 +32,7 @@ install:
 script:
   - ./bin/casctests;
 after_success:
-  - if [[ "$BUILD_DOCS" == "1" ]; then
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       brew install doxygen;
       brew install graphviz;
       cmake ..;
@@ -48,4 +46,4 @@ deploy:
   keep-history: false
   on:
     branch: master
-    condition: "$BUILD_DOCS" == "1"
+    condition: $TRAVIS_OS_NAME == osx
