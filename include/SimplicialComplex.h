@@ -59,6 +59,12 @@ namespace detail
 template <class T> using map = std::map<size_t, T>;
 
 
+/**
+ * @brief      A generic pair type representing Key to Value associations.
+ *
+ * @tparam     T1    Typename of the Key
+ * @tparam     T2    Typename of the Value
+ */
 template <typename T1, typename T2>
 struct asc_pair {
     asc_pair() {}
@@ -97,6 +103,13 @@ private:
     std::pair<T1,T2> _pair;
 };
 
+/**
+ * @brief      Array of asc_pairs sorted by Key for boundary adjacency storage.
+ *
+ * @tparam     KEY_T  Typename of Key
+ * @tparam     VAL_T  Typename of Value
+ * @tparam     k      Size of the array
+ */
 template <typename KEY_T, typename VAL_T, size_t k>
 struct asc_arraymap {
     using pair_t = asc_pair<KEY_T, VAL_T>;
@@ -168,6 +181,12 @@ private:
 };
 
 
+/**
+ * @brief      Sorted vector of asc_pairs for coboundary relation storage.
+ *
+ * @tparam     KEY_T  Typename of Key
+ * @tparam     VAL_T  Typename of Values
+ */
 template <typename KEY_T, typename VAL_T>
 struct asc_vectormap {
     using pair_t = asc_pair<KEY_T, VAL_T>;
