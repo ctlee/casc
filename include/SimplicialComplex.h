@@ -67,35 +67,33 @@ template <class T> using map = std::map<size_t, T>;
  */
 template <typename T1, typename T2>
 struct asc_pair {
+    using this_t = asc_pair<T1, T2>;
     asc_pair() {}
-    asc_pair(T1& first, T2& second) : _pair(first, second) {}
-    template<class U1, class U2>
-    asc_pair(U1&& first, U2&& second) : _pair(std::forward<T1>(first), std::forward<T2>(second)) {}
-    asc_pair(asc_pair& other) : _pair(other._pair) {}
-
-    template<class U1, class U2>
-    asc_pair(asc_pair<U1,U2>&& other) : _pair(std::forward<std::pair<T1,T2>>(other._pair)) {}
+    asc_pair(const T1& first, const T2& second) : _pair(first, second) {}
+    asc_pair(T1&& first, T2&& second) : _pair(std::forward<T1>(first), std::forward<T2>(second)) {}
+    asc_pair(const this_t& other) : _pair(other._pair) {}
+    asc_pair(this_t&& other) : _pair(std::forward<std::pair<T1,T2>>(other._pair)) {}
 
     operator T1() const {
         return _pair.first;
     }
 
-    asc_pair& operator=(const asc_pair& other){
+    this_t& operator=(const this_t& other){
         _pair = other._pair;
         return *this;
     }
 
-    asc_pair& operator=(const asc_pair&& other){
+    this_t& operator=(this_t&& other){
         _pair = std::move(other._pair);
         return *this;
     }
 
-    friend bool operator==(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first == rhs.first;}
-    friend bool operator!=(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first != rhs.first;}
-    friend bool operator<=(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first <= rhs.first;}
-    friend bool operator>=(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first >= rhs.first;}
-    friend bool operator<(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first < rhs.first;}
-    friend bool operator>(const asc_pair& lhs, const asc_pair& rhs) {return lhs.first > rhs.first;}
+    friend bool operator==(const this_t& lhs, const this_t& rhs) {return lhs.first == rhs.first;}
+    friend bool operator!=(const this_t& lhs, const this_t& rhs) {return lhs.first != rhs.first;}
+    friend bool operator<=(const this_t& lhs, const this_t& rhs) {return lhs.first <= rhs.first;}
+    friend bool operator>=(const this_t& lhs, const this_t& rhs) {return lhs.first >= rhs.first;}
+    friend bool operator<(const this_t& lhs, const this_t& rhs) {return lhs.first < rhs.first;}
+    friend bool operator>(const this_t& lhs, const this_t& rhs) {return lhs.first > rhs.first;}
 
     T1& first = _pair.first;
     T2& second = _pair.second;
