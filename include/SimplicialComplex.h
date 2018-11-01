@@ -43,6 +43,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <utility>
+#include <stdexcept>
 #include <assert.h>
 #include "index_tracker.h"
 #include "util.h"
@@ -56,6 +57,219 @@ namespace detail
 {
 /// Data structure to store simplices by level.
 template <class T> using map = std::map<size_t, T>;
+
+
+/**
+ * @brief      A generic pair type representing Key to Value associations.
+ *
+ * @tparam     T1    Typename of the Key
+ * @tparam     T2    Typename of the Value
+ */
+template <typename T1, typename T2>
+struct asc_pair {
+    using this_t = asc_pair<T1, T2>;
+    asc_pair() {}
+    asc_pair(const T1& first, const T2& second) : _pair(first, second) {}
+    asc_pair(T1&& first, T2&& second) : _pair(std::forward<T1>(first), std::forward<T2>(second)) {}
+    asc_pair(const this_t& other) : _pair(other._pair) {}
+    asc_pair(this_t&& other) : _pair(std::forward<std::pair<T1,T2>>(other._pair)) {}
+
+    operator T1() const {
+        return _pair.first;
+    }
+
+    this_t& operator=(const this_t& other){
+        _pair = other._pair;
+        return *this;
+    }
+
+    this_t& operator=(this_t&& other){
+        _pair = std::move(other._pair);
+        return *this;
+    }
+
+    friend bool operator==(const this_t& lhs, const this_t& rhs) {return lhs.first == rhs.first;}
+    friend bool operator!=(const this_t& lhs, const this_t& rhs) {return lhs.first != rhs.first;}
+    friend bool operator<=(const this_t& lhs, const this_t& rhs) {return lhs.first <= rhs.first;}
+    friend bool operator>=(const this_t& lhs, const this_t& rhs) {return lhs.first >= rhs.first;}
+    friend bool operator<(const this_t& lhs, const this_t& rhs) {return lhs.first < rhs.first;}
+    friend bool operator>(const this_t& lhs, const this_t& rhs) {return lhs.first > rhs.first;}
+
+    T1& first = _pair.first;
+    T2& second = _pair.second;
+private:
+    std::pair<T1,T2> _pair;
+};
+
+/**
+ * @brief      Array of asc_pairs sorted by Key for boundary adjacency storage.
+ *
+ * @tparam     KEY_T  Typename of Key
+ * @tparam     VAL_T  Typename of Value
+ * @tparam     k      Size of the array
+ */
+template <typename KEY_T, typename VAL_T, size_t k>
+struct asc_arraymap {
+    using pair_t = asc_pair<KEY_T, VAL_T>;
+    using array_t = std::array<pair_t, k>;
+    using iterator = typename array_t::iterator;
+    using const_iterator = typename array_t::const_iterator;
+
+    asc_arraymap(){
+        _begin = _array.begin();
+        _end = _array.begin();
+    }
+
+    void insert(pair_t& p){
+        if (_end == _array.end())
+            throw std::out_of_range("insert&: Adding element beyond the end of array.");
+        *_end = p;
+        ++_end;
+        std::sort(_begin, _end);
+    }
+
+    void insert(pair_t&& p){
+        if (_end == _array.end())
+            throw std::out_of_range("insert&&: Adding element beyond the end of array.");
+        *_end = std::forward<pair_t>(p);
+        ++_end;
+        std::sort(_begin, _end);
+    }
+
+    iterator find(const KEY_T& key){
+        return std::find(_begin, _end, key);
+    }
+
+    void erase(const KEY_T& key){
+        auto it = std::find(_begin, _end, key);
+        if(it != _end){
+            std::copy(it+1, _end, it);
+            --_end;
+        }
+    }
+
+    size_t size() const{
+        return std::distance(_end, _begin);
+    }
+
+    VAL_T& operator[](const KEY_T& key){
+        auto it = std::find(_begin, _end, key);
+        if(it != _end){
+            return it->second;
+        }
+        else{
+            if (_end == _array.end())
+                throw std::out_of_range("operator[]: Adding element beyond the end of array.");
+            _end->first = key;
+            ++_end;
+            std::sort(_begin, _end);
+            return std::find(_begin,_end, key)->second;
+        }
+    }
+
+    iterator begin(){ return _begin; }
+    iterator end(){ return _end; }
+    const_iterator cbegin() const {return _begin;}
+    const_iterator cend() const {return _end;}
+
+private:
+    array_t _array;
+    iterator _begin;
+    iterator _end;
+};
+
+
+/**
+ * @brief      Sorted vector of asc_pairs for coboundary relation storage.
+ *
+ * @tparam     KEY_T  Typename of Key
+ * @tparam     VAL_T  Typename of Values
+ */
+template <typename KEY_T, typename VAL_T>
+struct asc_vectormap {
+    using pair_t = asc_pair<KEY_T, VAL_T>;
+    using vector_t = std::vector<pair_t>;
+    using iterator = typename vector_t::iterator;
+    using const_iterator = typename vector_t::const_iterator;
+
+    asc_vectormap(){}
+
+    void insert(pair_t& p){
+        iterator first = std::lower_bound(_vector.begin(), _vector.end(), p);
+        if ((first == _vector.end()) || (*first != p)){
+            _vector.insert(first, p);
+        }
+        else{
+            std::cout << "Item already exists...";
+        }
+    }
+
+    void insert(pair_t&& p){
+        iterator first = std::lower_bound(_vector.begin(), _vector.end(), p);
+        if ((first == _vector.end()) || (*first != p)){
+            _vector.insert(first, std::forward<pair_t>(p));
+        }
+        else{
+            std::cout << "Item already exists...";
+        }
+    }
+
+    iterator find(const KEY_T& key){
+        iterator first = std::lower_bound(_vector.begin(), _vector.end(), key);
+        if (first != _vector.end()){
+            if (*first != key){
+                return _vector.end();
+            }
+            else{
+                return first;
+            }
+        }
+        else{
+            return first;
+        }
+    }
+
+    void erase(const KEY_T& key){
+        iterator it = this->find(key);
+        if (it != _vector.end()){
+            _vector.erase(it);
+        }
+    }
+
+    size_t size() const{
+        return _vector.size();
+    }
+
+    VAL_T& at(const KEY_T& key){
+        iterator first = std::lower_bound(_vector.begin(), _vector.end(), key);
+        if ((first == _vector.end()) || (first->first != key)){
+            throw std::out_of_range("Could not find element in asc_vectormap.");
+        }
+        else {
+            return first->second;
+        }
+    }
+
+    VAL_T& operator[](const KEY_T& key){
+        iterator first = std::lower_bound(_vector.begin(), _vector.end(), key);
+        if ((first == _vector.end()) || (first->first != key)){
+            first = _vector.emplace(first, pair_t());
+            first->first = key;
+            return first->second;
+        }
+        else {
+            return first->second;
+        }
+    }
+
+    iterator begin(){ return _vector.begin(); }
+    iterator end(){ return _vector.end(); }
+    const_iterator cbegin() const {return _vector.cbegin();}
+    const_iterator cend() const {return _vector.cend();}
+private:
+    vector_t _vector;
+};
+
 
 /**
  * @brief Template prototype for Nodes in CASC.
@@ -136,8 +350,10 @@ struct asc_NodeDown :
                         typename util::type_get<k-1, EdgeDataTypes>::type> {
     /** Alias the typename of the parent Node */
     using DownNodeT = asc_Node<KeyType, k-1, N, NodeDataTypes, EdgeDataTypes>;
+
     /** Map of indices to parent Node pointers*/
-    std::map<KeyType, DownNodeT*> _down;
+    asc_arraymap<KeyType, DownNodeT*, k> _down;
+    // std::map<KeyType, DownNodeT*> _down;
 };
 
 /**
@@ -157,8 +373,8 @@ template <  class KeyType,
 struct asc_NodeUp {
     /// Typename of the nodes up.
     using UpNodeT = asc_Node<KeyType, k+1, N, NodeDataTypes, EdgeDataTypes>;
-    std::unordered_map<KeyType, UpNodeT*> _up;      /**< @brief Map of pointers
-                                                       to children */
+    asc_vectormap<KeyType, UpNodeT*> _up;
+    // std::unordered_map<KeyType, UpNodeT*> _up;      /**< @brief Map of pointers to children */
 };
 
 /**
@@ -522,7 +738,7 @@ class simplicial_complex
             using complex = simplicial_complex<traits>;
             /// SimplexID is a friend of the complex
             friend simplicial_complex<traits>;
-            /// The dimension fo the simplex.
+            /// The dimension of the simplex.
             static constexpr size_t level = k;
 
             /**
@@ -651,11 +867,11 @@ class simplicial_complex
                                                const SimplexID<l> &nid)
                     {
                         auto down = (*nid.ptr)._down;
-                        for (auto it = down.cbegin(); it != --down.cend(); ++it)
+                        for (auto it = down.cbegin(); it != down.cend()-1; ++it)
                         {
                             out << it->first << ",";
                         }
-                        out << (--down.cend())->first;
+                        out << (down.cend()-1)->first;
                         return out;
                     }
                 };
@@ -956,7 +1172,6 @@ class simplicial_complex
         std::array<KeyType, n> get_name(SimplexID<n> id) const
         {
             std::array<KeyType, n> s;
-
             int                    i = 0;
             for (auto curr : id.ptr->_down)
             {
@@ -1310,7 +1525,7 @@ class simplicial_complex
         template <size_t k>
         auto get_edge_up(SimplexID<k> nid, KeyType a)
         {
-            return EdgeID<k+1>(nid.ptr->_up[a], a);
+            return EdgeID<k+1>(nid.ptr->_up.at(a), a);
         }
 
         /**
@@ -1342,7 +1557,7 @@ class simplicial_complex
         template <size_t k>
         auto get_edge_up(SimplexID<k> nid, KeyType a) const
         {
-            return EdgeID<k+1>(nid.ptr->_up[a], a);
+            return EdgeID<k+1>(nid.ptr->_up.at(a), a);
         }
 
         /**
@@ -1715,7 +1930,7 @@ class simplicial_complex
                     auto p = root->_up.find(*s);
                     if (p != root->_up.end())
                     {
-                        return get_recurse<level+1, n-1>::apply(that, s+1, root->_up[*s]);
+                        return get_recurse<level+1, n-1>::apply(that, s+1, root->_up.at(*s));
                     }
                     else
                     {
@@ -1776,7 +1991,7 @@ class simplicial_complex
                     auto p = root->_down.find(*s);
                     if (p != root->_down.end())
                     {
-                        return get_recurse<level-1, n-1>::apply(that, s+1, root->_down[*s]);
+                        return get_down_recurse<level-1, n-1>::apply(that, s+1, root->_down[*s]);
                     }
                     else
                     {
@@ -2076,6 +2291,7 @@ class simplicial_complex
         {
             for (auto curr = p->_up.begin(); curr != p->_up.end(); ++curr)
             {
+
                 curr->second->_down.erase(curr->first);
             }
             --(level_count[0]);
