@@ -1,5 +1,9 @@
 # Colored Abstract Simplicial Complex (CASC) Library
-[![Build Status](https://travis-ci.org/ctlee/casc.svg?branch=master)](https://travis-ci.org/ctlee/casc)  
+[![DOI](https://zenodo.org/badge/121550288.svg)](https://zenodo.org/badge/latestdoi/121550288)
+
+Master CI: [![Build Status](https://travis-ci.org/ctlee/casc.svg?branch=master)](https://travis-ci.org/ctlee/casc) 
+Development CI: [![Build Status](https://travis-ci.org/ctlee/casc.svg?branch=development)](https://travis-ci.org/ctlee/casc)
+
 CASC is a modern and header-only C++ library which provides a data structure 
 to represent arbitrary dimension abstract simplicial complexes with user-defined classes stored directly on the simplices at each dimension.
 This is achieved by taking advantage of the combinatorial nature of simplicial complexes and new C++ code features such as: variadic templates and automatic function return type deduction.
@@ -23,7 +27,7 @@ To use CASC in your software all you will need is a working C++ compiler with fu
 This includes:
 - GCC Versions 5+
 - Clang Versions 3, 5+<sup>†</sup>
-- XCode 8<sup>†</sup>
+- XCode 8+<sup>†</sup>
 
 <sup>†</sup> Note that there is a known issue with Clang 4.x.x versioned compilers (including XCode version 9.[0-2]), where the most specialized unique specialization is not selected leading to a compiler error. 
 The current workaround to this problem is to either use GCC or to obtain Clang version 5+ (XCode version 9.3beta+).
@@ -60,8 +64,9 @@ If Doxygen is found then the documentation can be built using `make casc_doc`.
 Otherwise CMake will report that it could not find Doxygen.
 
 ## Versioning & Contributing
-We use [Github](https://github.com/ctlee/CASC) for versioning. For the 
-versions available, please see the [releases](https://github.com/ctlee/CASC/releases/). If you find a bug or with to request additional functionality please file an issue in the [CASC Github project](https://github.com/ctlee/CASC/issues).
+We use [Github](https://github.com/ctlee/CASC) for versioning. 
+For the versions available, please see the [releases](https://github.com/ctlee/CASC/releases/). 
+If you find a bug or with to request additional functionality please file an issue in the [CASC Github project](https://github.com/ctlee/CASC/issues).
 
 ## Authors
 **John Moody**  
