@@ -30,6 +30,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <map>
 #include <set>
@@ -57,7 +58,6 @@ namespace detail
 {
 /// Data structure to store simplices by level.
 template <class T> using map = std::map<size_t, T>;
-
 
 /**
  * @brief      A generic pair type representing Key to Value associations.
