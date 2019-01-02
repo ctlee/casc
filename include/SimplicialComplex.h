@@ -31,6 +31,7 @@
 #pragma once
 
 #include <algorithm>
+#include <assert.h>
 #include <cstdint>
 #include <map>
 #include <set>
@@ -40,12 +41,13 @@
 #include <iostream>
 #include <fstream>
 #include <functional>
+#include <type_traits>
 #include <ostream>
 #include <unordered_set>
 #include <unordered_map>
 #include <utility>
 #include <stdexcept>
-#include <assert.h>
+
 #include "index_tracker.h"
 #include "util.h"
 
@@ -1446,20 +1448,53 @@ class simplicial_complex
             return rval;
         }
 
+        template <size_t k, class InsertIter>
+        void up(const std::set<SimplexID<k>>&& simplices, InsertIter iter) const
+        {
+            for (auto simplex : simplices)
+            {
+                for (auto p : simplex.ptr->_up)
+                {
+                    *iter++ = SimplexID<k+1>(p.second);
+                }
+            }
+        }
+
+        template <size_t k, class InsertIter>
+        void up(const std::set<SimplexID<k>>& simplices, InsertIter iter) const
+        {
+            for (auto simplex : simplices)
+            {
+                for (auto p : simplex.ptr->_up)
+                {
+                    *iter++ = SimplexID<k+1>(p.second);
+                }
+            }
+        }
+
+        template <size_t k, class InsertIter>
+        void up(const SimplexID<k> simplex, InsertIter iter) const
+        {
+            for (auto p : simplex.ptr->_up)
+            {
+                *iter++ = SimplexID<k+1>(p.second);
+            }
+        }
+
         /**
          * @brief      Get the boundary of a set of simplices.
          *
-         * @param      nodes  The set of simplicies.
+         * @param      simplices  The set of simplicies.
          *
          * @tparam     k      The dimension of the simplices.
          *
          * @return     The set of boundary simplices.
          */
         template <size_t k>
-        std::set<SimplexID<k-1> > down(const std::set<SimplexID<k> > &&nodes) const
+        std::set<SimplexID<k-1> > down(const std::set<SimplexID<k> > &&simplices) const
         {
             std::set<SimplexID<k-1> > rval;
-            for (auto nid : nodes)
+            for (auto nid : simplices)
             {
                 for (auto p : nid.ptr->_down)
                 {
@@ -1472,19 +1507,19 @@ class simplicial_complex
         /**
          * @brief      Get the boundary of a set of simplices.
          *
-         * @param      nodes  The set of simplicies.
+         * @param      simplices  The set of simplicies.
          *
          * @tparam     k      The dimension of the simplices.
          *
          * @return     The set of boundary simplices.
          */
         template <size_t k>
-        std::set<SimplexID<k-1> > down(const std::set<SimplexID<k> > &nodes) const
+        std::set<SimplexID<k-1> > down(const std::set<SimplexID<k> > &simplices) const
         {
             std::set<SimplexID<k-1> > rval;
-            for (auto nid : nodes)
+            for (auto simplex : simplices)
             {
-                for (auto p : nid.ptr->_down)
+                for (auto p : simplex.ptr->_down)
                 {
                     rval.insert(SimplexID<k-1>(p.second));
                 }
@@ -1495,27 +1530,57 @@ class simplicial_complex
         /**
          * @brief      Get the boundary of a simplex.
          *
-         * @param      nid   The simplex of interest.
+         * @param      simplex   The simplex of interest.
          *
          * @tparam     k     The dimension of the simplex.
          *
-         * @return     Set of (k-1)-simplices of which 'nid' is a coface of.
+         * @return     Set of (k-1)-simplices of which 'simplex' is a coface of.
          */
         template <size_t k>
-        std::set<SimplexID<k-1> > down(const SimplexID<k> nid) const
+        std::set<SimplexID<k-1> > down(const SimplexID<k> simplex) const
         {
             std::set<SimplexID<k-1> > rval;
-            for (auto p : nid.ptr->_down)
+            for (auto p : simplex.ptr->_down)
             {
                 rval.insert(SimplexID<k-1>(p.second));
             }
             return rval;
         }
 
+        template <size_t k, class InsertIter>
+        void down(const std::set<SimplexID<k>>&& simplices, InsertIter iter) const{
+            for (auto simplex : simplices)
+            {
+                for (auto p : simplex.ptr->_down)
+                {
+                    *iter++ = SimplexID<k-1>(p.second);
+                }
+            }
+        }
+
+        template <size_t k, class InsertIter>
+        void down(const std::set<SimplexID<k>>& simplices, InsertIter iter) const{
+            for (auto simplex : simplices)
+            {
+                for (auto p : simplex.ptr->_down)
+                {
+                    *iter++ = SimplexID<k-1>(p.second);
+                }
+            }
+        }
+
+        template <size_t k, class InsertIter>
+        void down(const SimplexID<k> simplex, InsertIter iter) const{
+            for (auto p : simplex.ptr->_down)
+            {
+                *iter++ = SimplexID<k-1>(p.second);
+            }
+        }
+
         /**
          * @brief      Gets the edge up from a simplex.
          *
-         * @param[in]  nid   The simplex of interest.
+         * @param[in]  simplex   The simplex of interest.
          * @param[in]  a     Key of the edge to get.
          *
          * @tparam     k     The level of the simplex of interest
@@ -1523,15 +1588,15 @@ class simplicial_complex
          * @return     The edge up.
          */
         template <size_t k>
-        auto get_edge_up(SimplexID<k> nid, KeyType a)
+        auto get_edge_up(SimplexID<k> simplex, KeyType a)
         {
-            return EdgeID<k+1>(nid.ptr->_up.at(a), a);
+            return EdgeID<k+1>(simplex.ptr->_up.at(a), a);
         }
 
         /**
          * @brief      Gets the edge down from a simplex.
          *
-         * @param[in]  nid   The simplex of interest.
+         * @param[in]  simplex   The simplex of interest.
          * @param[in]  a     Key of the edge to get.
          *
          * @tparam     k     The level of the simplex of interest
@@ -1539,15 +1604,15 @@ class simplicial_complex
          * @return     The edge down.
          */
         template <size_t k>
-        auto get_edge_down(SimplexID<k> nid, KeyType a)
+        auto get_edge_down(SimplexID<k> simplex, KeyType a)
         {
-            return EdgeID<k>(nid.ptr, a);
+            return EdgeID<k>(simplex.ptr, a);
         }
 
         /**
          * @brief      Gets the edge up from a simplex.
          *
-         * @param[in]  nid    The simplex of interest.
+         * @param[in]  simplex    The simplex of interest.
          * @param[in]  a      Key of the edge to get.
          *
          * @tparam     k      The level of the simplex of interest
@@ -1555,15 +1620,15 @@ class simplicial_complex
          * @return     The edge up.
          */
         template <size_t k>
-        auto get_edge_up(SimplexID<k> nid, KeyType a) const
+        auto get_edge_up(SimplexID<k> simplex, KeyType a) const
         {
-            return EdgeID<k+1>(nid.ptr->_up.at(a), a);
+            return EdgeID<k+1>(simplex.ptr->_up.at(a), a);
         }
 
         /**
          * @brief      Gets the edge down from a simplex.
          *
-         * @param[in]  nid   The simplex of interest.
+         * @param[in]  simplex   The simplex of interest.
          * @param[in]  a     Key of the edge to get.
          *
          * @tparam     k     The level of the simplex of interest
@@ -1571,9 +1636,9 @@ class simplicial_complex
          * @return     The edge down.
          */
         template <size_t k>
-        auto get_edge_down(SimplexID<k> nid, KeyType a) const
+        auto get_edge_down(SimplexID<k> simplex, KeyType a) const
         {
-            return EdgeID<k>(nid.ptr, a);
+            return EdgeID<k>(simplex.ptr, a);
         }
 
         /**
