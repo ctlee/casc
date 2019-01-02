@@ -1448,10 +1448,9 @@ class simplicial_complex
             return rval;
         }
 
-        template <size_t k, template <typename> class InsertIter, class Container>
-        void up(const std::set<SimplexID<k>>&& simplices, InsertIter<Container> iter) const
+        template <size_t k, class InsertIter>
+        void up(const std::set<SimplexID<k>>&& simplices, InsertIter iter) const
         {
-            static_assert(std::is_base_of<std::insert_iterator<Container>, InsertIter<Container>>::value, "Parameter iter in call to void up(const std::set<SimplexID<k>>&& simplices, InsertIter iter) must derive from std::insert_iterator");
             for (auto simplex : simplices)
             {
                 for (auto p : simplex.ptr->_up)
@@ -1461,10 +1460,9 @@ class simplicial_complex
             }
         }
 
-        template <size_t k, template <typename> class InsertIter, class Container>
-        void up(const std::set<SimplexID<k>>& simplices, InsertIter<Container> iter) const
+        template <size_t k, class InsertIter>
+        void up(const std::set<SimplexID<k>>& simplices, InsertIter iter) const
         {
-            static_assert(std::is_base_of<std::insert_iterator<Container>, InsertIter<Container>>::value, "Parameter iter in call to void up(const std::set<SimplexID<k>>& simplices, InsertIter iter) must derive from std::insert_iterator");
             for (auto simplex : simplices)
             {
                 for (auto p : simplex.ptr->_up)
@@ -1474,10 +1472,9 @@ class simplicial_complex
             }
         }
 
-        template <size_t k, template <typename> class InsertIter, class Container>
-        void up(const SimplexID<k> simplex, InsertIter<Container> iter) const
+        template <size_t k, class InsertIter>
+        void up(const SimplexID<k> simplex, InsertIter iter) const
         {
-            static_assert(std::is_base_of<std::insert_iterator<Container>, InsertIter<Container>>::value, "Parameter iter in call to void up(const SimplexID<k> simplex, InsertIter iter) must derive from std::insert_iterator");
             for (auto p : simplex.ptr->_up)
             {
                 *iter++ = SimplexID<k+1>(p.second);
@@ -1550,9 +1547,8 @@ class simplicial_complex
             return rval;
         }
 
-        template <size_t k, template <typename> class InsertIter, class Container>
-        void down(const std::set<SimplexID<k>>&& simplices, InsertIter<Container> iter) const{
-            static_assert(std::is_base_of<std::insert_iterator<Container>, InsertIter<Container>>::value, "Parameter iter in call to void down(const std::set<SimplexID<k>>&& simplices, InsertIter iter) must derive from std::insert_iterator");
+        template <size_t k, class InsertIter>
+        void down(const std::set<SimplexID<k>>&& simplices, InsertIter iter) const{
             for (auto simplex : simplices)
             {
                 for (auto p : simplex.ptr->_down)
@@ -1562,9 +1558,8 @@ class simplicial_complex
             }
         }
 
-        template <size_t k, template <typename> class InsertIter, class Container>
-        void down(const std::set<SimplexID<k>>& simplices, InsertIter<Container> iter) const{
-            static_assert(std::is_base_of<std::insert_iterator<Container>, InsertIter<Container>>::value, "Parameter iter in call to void down(const std::set<SimplexID<k>>& simplices, InsertIter iter) must derive from std::insert_iterator");
+        template <size_t k, class InsertIter>
+        void down(const std::set<SimplexID<k>>& simplices, InsertIter iter) const{
             for (auto simplex : simplices)
             {
                 for (auto p : simplex.ptr->_down)
@@ -1574,9 +1569,8 @@ class simplicial_complex
             }
         }
 
-        template <size_t k, template <typename> class InsertIter, class Container>
-        void down(const SimplexID<k> simplex, InsertIter<Container> iter) const{
-            static_assert(std::is_base_of<std::insert_iterator<Container>, InsertIter<Container>>::value, "Parameter iter in call to void down(const SimplexID<k> simplex, InsertIter iter) must derive from std::insert_iterator");
+        template <size_t k, class InsertIter>
+        void down(const SimplexID<k> simplex, InsertIter iter) const{
             for (auto p : simplex.ptr->_down)
             {
                 *iter++ = SimplexID<k-1>(p.second);
