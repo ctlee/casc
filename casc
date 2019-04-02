@@ -40,3 +40,5 @@
 #include "include/Orientable.h"
 #include "include/stringutil.h"
 
+// Decimation
+#include "include/decimate.h"

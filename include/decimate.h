@@ -425,7 +425,7 @@ void perform_insertion(Complex                                                  
  * @brief      Run the user specified callback function
  *
  * @param[in]  F          The simplicial_complex
- * @param[in]  S          SimplexMap of 
+ * @param[in]  S          SimplexMap of
  * @param[in]  clbk       User specified callback functor
  * @param[out] rv         Multi-vector to place results.
  *
@@ -489,4 +489,61 @@ void decimate(Complex &F, Simplex s, Callback<Complex> &&clbk)
     perform_removal(F, doomed); // Remove simplices in the neighborhood
     perform_insertion(F, rv);   // Insert new simplices
 }
+
+/**
+ * @brief      Decimate a simplex of any dimension while considering any
+ *             meta-data stores on decimated simplices.
+ *
+ * @param[in]  F         simplicial_complex to operate on.
+ * @param[in]  s         Simplex to decimate.
+ * @param[in]  clbk      Callback function to map meta-data
+ *
+ * @tparam     Complex   Typename of the simplicial_complex
+ * @tparam     Simplex   Typename of the simplex
+ * @tparam     Callback  Typename of the template template callback functor
+ */
+template <typename Complex, typename Simplex>
+void decimateFirstHalf(Complex &F, Simplex s, SimplexMap<Complex> &simplexMap)
+{
+    /// Alias for SimplexSet
+    using SimplexSet = typename casc::SimplexSet<Complex>;
+
+    // Create the vertex to replace `s`
+    int        np = F.add_vertex();
+    SimplexSet nbhd;
+
+    // Get the complete neighborhood
+    visit_BFS_down(
+        decimation_detail::GetCompleteNeighborhood<Complex>(&nbhd),
+        F, s);
+
+    // Call MainVisitor -> InnerVisitor -> GrabVisitor sequence
+    visit_BFS_down(
+        decimation_detail::MainVisitor<Complex>(
+            &nbhd, np, &simplexMap),
+        F, s);
+}
+
+template <typename Complex>
+struct DoomedHelper
+{
+    template <std::size_t k>
+    static void apply(SimplexSet<Complex> &doomed, SimplexMap<Complex> &simplexMap){
+        auto s = casc::get<k>(simplexMap);
+        for (auto map : s){
+            doomed.insert(map.second);
+        }
+    }
+};
+
+template <typename Complex>
+void decimateBackHalf(Complex &F, SimplexMap<Complex> &simplexMap, typename decimation_detail::SimplexDataSet<Complex>::type &rv){
+
+    SimplexSet<Complex> doomed;
+    util::int_for_each<std::size_t, typename SimplexMap<Complex>::cLevelIndex>(DoomedHelper<Complex>(), doomed, simplexMap);
+
+    perform_removal(F, doomed); // Remove simplices in the neighborhood
+    perform_insertion(F, rv);   // Insert new simplices
+}
+
 } // end namespace casc

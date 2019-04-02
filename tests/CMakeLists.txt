@@ -1,7 +1,7 @@
 # ***************************************************************************
 # This file is part of the Colored Abstract Simplicial Complex library.
 # Copyright (C) 2016-2017
-# by Christopher Lee, John Moody, Rommie Amaro, J. Andrew McCammon, 
+# by Christopher Lee, John Moody, Rommie Amaro, J. Andrew McCammon,
 #    and Michael Holst
 #
 # This library is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-# 
+#
 # ***************************************************************************
 
 find_package(Threads REQUIRED)
@@ -62,10 +62,10 @@ if(NOT TARGET gtest)
     include_directories("${source_dir}/googletest/include"
                         "${source_dir}/googlemock/include")
 
-    add_executable(casctests 
-                        main.cpp 
-                        CASCTests.cpp 
-                        SimplexSetTests.cpp 
+    add_executable(casctests
+                        main.cpp
+                        CASCTests.cpp
+                        SimplexSetTests.cpp
                         FunctionsTests.cpp
                         DecimationTests.cpp
                         TraversalTests.cpp)
@@ -74,4 +74,4 @@ if(NOT TARGET gtest)
     add_test(casctests ${EXECUTABLE_OUTPUT_PATH}/casctests)
 endif()
 
-    # add_executable(cascscratch cascscratch.cpp)
+    add_executable(cascscratch cascscratch.cpp)

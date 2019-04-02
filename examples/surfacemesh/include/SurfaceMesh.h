@@ -47,7 +47,7 @@ struct FaceProperties
 /**
  * @brief      Face object
  */
-struct Face : Orientable, FaceProperties
+struct Face : casc::Orientable, FaceProperties
 {
     Face() {}
     Face(Orientable orient, FaceProperties prop)
@@ -78,10 +78,10 @@ struct complex_traits
 {
     using KeyType = int;                                                    /**< @brief the index type */
     using NodeTypes = util::type_holder<Global,Vertex,void,Face>;           /**< @brief the types of each Node */
-    using EdgeTypes = util::type_holder<Orientable,Orientable,Orientable>;  /**< @brief the types of each Edge */
+    using EdgeTypes = util::type_holder<casc::Orientable,casc::Orientable,casc::Orientable>;  /**< @brief the types of each Edge */
 };
 
-using SurfaceMesh = simplicial_complex<complex_traits>;
+using SurfaceMesh = casc::simplicial_complex<complex_traits>;
 
 
 /**
