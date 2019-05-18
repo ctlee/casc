@@ -782,14 +782,14 @@ class simplicial_complex
             explicit operator std::uintptr_t () const { return reinterpret_cast<std::uintptr_t>(ptr); }
 
             /// Dereferencing a SimplexID returns the data stored.
-            auto const &&operator*() const { return std::move(ptr->_data); }
+            complex::NodeData<k> const &operator*() const { return ptr->_data; }
             /// Dereferencing a SimplexID returns the data stored.
-            auto &&operator*() { return ptr->_data; }
+            complex::NodeData<k> &operator*() { return ptr->_data; }
 
             /// Get a handle to the stored data.
-            auto const &&data() const { return std::move(ptr->_data); }
+            complex::NodeData<k> const &data() const { return ptr->_data; }
             /// Get a handle to the stored data.
-            auto        &&data() { return ptr->_data; }
+            complex::NodeData<k>        &data() { return ptr->_data; }
 
             /**
              * @brief      Print the simplex as its name.
