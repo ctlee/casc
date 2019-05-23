@@ -29,8 +29,8 @@
 #include <map>
 #include <set>
 #include "gtest/gtest.h"
-#include "SimplicialComplex.h"
-#include "SimplexSet.h"
+#include <casc/casc>
+
 
 using TetMeshType = casc::AbstractSimplicialComplex<
         int, // KEYTYPE

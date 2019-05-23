@@ -32,8 +32,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "../casc"
-#include "typetraits.h"
+#include <casc/casc>
+#include "casc/typetraits.h"
 
 template <typename Complex>
 struct Callback

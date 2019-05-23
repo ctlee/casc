@@ -28,8 +28,9 @@
 #include <ctime>
 #include <map>
 #include <set>
+#include <casc/casc>
+
 #include "gtest/gtest.h"
-#include "SimplicialComplex.h"
 
 using SurfaceMeshType = casc::AbstractSimplicialComplex<
         int, // KEYTYPE

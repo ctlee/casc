@@ -25,20 +25,20 @@
 #pragma once
 
 // Metatemplate utilities
-#include "include/util.h"
+#include "util.h"
 
 // Core casc functionality
-#include "include/SimplicialComplex.h"
-#include "include/CASCFunctions.h"
-#include "include/CASCTraversals.h"
+#include "SimplicialComplex.h"
+#include "CASCFunctions.h"
+#include "CASCTraversals.h"
 
 // Simplex container data structures
-#include "include/SimplexMap.h"
-#include "include/SimplexSet.h"
+#include "SimplexMap.h"
+#include "SimplexSet.h"
 
 // Additional convenience functionality
-#include "include/Orientable.h"
-#include "include/stringutil.h"
+#include "Orientable.h"
+#include "stringutil.h"
 
 // Decimation
-#include "include/decimate.h"
+#include "decimate.h"

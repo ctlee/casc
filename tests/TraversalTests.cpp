@@ -30,9 +30,8 @@
 #include <set>
 #include <queue>
 #include "gtest/gtest.h"
-#include "SimplicialComplex.h"
-#include "SimplexSet.h"
-#include "CASCFunctions.h"
+#include <casc/casc>
+
 
 using SurfaceMeshType = casc::AbstractSimplicialComplex<
         int, // KEYTYPE
@@ -76,7 +75,7 @@ protected:
 
         std::array<int,3> name;
         std::deque<int> deq {1,2,3,4,5,6};
-        std::queue<int> p(deq); 
+        std::queue<int> p(deq);
         std::queue<int> n;
 
         for(int ring = 0; ring < 5; ++ring){
@@ -87,7 +86,7 @@ protected:
                 }
 
                 // std::cout << "----------" << std::endl;
-               
+
                 ++idx;
                 n.push(idx);
                 // std::cout << idx << std::endl;
@@ -95,7 +94,7 @@ protected:
                 name = {prev, tmp, idx};
                 // std::cout << name << std::endl;
                 mesh.insert(name);
-                
+
                 ++idx;
                 n.push(idx);
                 // std::cout << idx << std::endl;
@@ -127,7 +126,7 @@ protected:
                             name = {prev, tmp, tmp+1};
                             // std::cout << name << std::endl;
                             mesh.insert(name);
-                        
+
                             tmp = p.front();
                             p.pop();
                             name = {idx, prev, tmp};

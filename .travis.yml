@@ -14,6 +14,8 @@ matrix:
   include:
     - os: osx
       osx_image: xcode
+      before_install:
+        - brew install doxygen --with-graphviz --withllvm
     - os: linux
       addons:
         apt:
@@ -27,16 +29,13 @@ before_install:
   - eval "${MATRIX_EVAL}"
 install:
   - mkdir build; cd build;
-  - cmake .. -DBUILD_CASCTESTS=on;
+  - cmake ..;
   - make -j4;
 script:
-  - ./bin/casctests;
+  - ctest -V
 after_success:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew install doxygen;
-      brew install graphviz;
-      cmake ..;
-      make docs;
+      make docs
     fi;
 deploy:
   provider: pages

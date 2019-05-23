@@ -29,9 +29,8 @@
 #include <map>
 #include <set>
 #include "gtest/gtest.h"
-#include "SimplicialComplex.h"
-#include "SimplexSet.h"
-#include "decimate.h"
+#include <casc/casc>
+
 
 using SurfaceMeshType = casc::AbstractSimplicialComplex<
         int, // KEYTYPE
