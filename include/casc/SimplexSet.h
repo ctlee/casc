@@ -224,7 +224,7 @@ struct SimplexSet
      *             of the set for the specified simplex dimension.
      */
     template <std::size_t k>
-    inline const auto cend() const
+    inline auto cend() const
     {
         return std::get<k>(tupleSet).cend();
     }

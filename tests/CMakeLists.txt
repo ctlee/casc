@@ -59,6 +59,9 @@ add_executable(casctests
                     TraversalTests.cpp
                     )
 target_link_libraries(casctests gtest_main casc)
+# target_compile_options(casctests PRIVATE -Werror)
+# target_compile_options(casctests PRIVATE -Wall -Wextra -pedantic-errors -Wconversion -Wsign-conversion) # -ferror-limit=3)
+# target_compile_options(casctests PRIVATE -Wno-unused-variable -Wno-unused-parameter)
 
 add_test(NAME CascTests COMMAND casctests)
 

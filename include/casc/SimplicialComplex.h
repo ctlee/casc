@@ -289,7 +289,7 @@ struct asc_NodeBase {
      *
      * @param[in]  id    An internal integer identifier of the Node.
      */
-    asc_NodeBase(int id) : _node(id) {}
+    asc_NodeBase(std::size_t id) : _node(id) {}
     virtual ~asc_NodeBase() {}; /**< Destructor */
     std::size_t _node;               /**< Internal Node ID*/
 };
@@ -402,7 +402,7 @@ struct asc_Node : public asc_NodeBase,
      *
      * @param[in]  id    The internal integer identifier.
      */
-    asc_Node(int id) : asc_NodeBase(id) {}
+    asc_Node(std::size_t id) : asc_NodeBase(id) {}
 
     /**
      * @brief      Print the Node out for debugging only
@@ -460,7 +460,7 @@ struct asc_Node<KeyType, 0, N, NodeDataTypes, EdgeDataTypes> :
      *
      * @param[in]  id    The internal integer identifier.
      */
-    asc_Node(int id) : asc_NodeBase(id) {}
+    asc_Node(std::size_t id) : asc_NodeBase(id) {}
 
     /**
      * @brief      Print the Node out for debugging only
@@ -510,7 +510,7 @@ struct asc_Node<KeyType, N, N, NodeDataTypes, EdgeDataTypes> :
      *
      * @param[in]  id    The internal integer identifier.
      */
-    asc_Node(int id) : asc_NodeBase(id) {}
+    asc_Node(std::size_t id) : asc_NodeBase(id) {}
 
     /**
      * @brief      Print the Node out for debugging only
@@ -899,7 +899,7 @@ class simplicial_complex
                     static std::ostream &apply(std::ostream    &out,
                                                const SimplexID &nid)
                     {
-                        out << "root";
+                        out << "root " << nid;
                         return out;
                     }
                 };
@@ -1174,7 +1174,7 @@ class simplicial_complex
         std::array<KeyType, n> get_name(SimplexID<n> id) const
         {
             std::array<KeyType, n> s;
-            int                    i = 0;
+            std::size_t            i = 0;
             for (auto curr : id.ptr->_down)
             {
                 s[i++] = curr.first;

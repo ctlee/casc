@@ -148,7 +148,7 @@ TEST(CASCTest, SimplexBooleanOps){
 TEST(CASCTest, Remove){
 	TetMeshType mesh = TetMeshType();
 	mesh.insert<4>({1,2,3,4});
-	int removed = mesh.remove({3,4});
+	std::size_t removed = mesh.remove({3,4});
 	EXPECT_EQ(4, removed);
 	EXPECT_EQ(1, mesh.size<0>());
 	EXPECT_EQ(4, mesh.size<1>());
@@ -201,7 +201,7 @@ TEST(CASCTest, Remove){
 TEST(CASCTest, InsertRandomVals){
 	int trials = 100;
 
-	std::srand(std::time(0));
+	std::srand(static_cast<unsigned int>(std::time(0)));
 	int randomInt, key, name;
 	SurfaceMeshType mesh = SurfaceMeshType();
 	std::map<int, int> pairs; // Map to cache the data

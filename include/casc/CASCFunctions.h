@@ -420,8 +420,6 @@ void getLink(Complex &F, casc::SimplexSet<Complex> &S,
              casc::SimplexSet<Complex> &dest)
 {
     using SimplexSet = typename casc::SimplexSet<Complex>;
-    using LevelIndex = typename SimplexSet::cLevelIndex;
-    using RevIndex   = typename SimplexSet::cRevIndex;
 
     SimplexSet star;
     SimplexSet closure;
