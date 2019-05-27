@@ -38,8 +38,8 @@ namespace casc
 
 /**
  * @brief      A multiset to store simplices in a simplicial_complex.
- * 
- * This is really a tuple of sets where each set corresponds to a simplex 
+ *
+ * This is really a tuple of sets where each set corresponds to a simplex
  * dimension. Many convenience functions are wrapped so this behaves much like
  * a std::set.
  *
@@ -56,13 +56,13 @@ struct SimplexSet
     /// Index sequence starting at 1
     using cLevelIndex = typename util::remove_first_val<std::size_t,
                                                         LevelIndex>::type;
-    /// Reversed index sequence                                                         
+    /// Reversed index sequence
     using RevIndex = typename util::reverse_sequence<std::size_t,
                                                      LevelIndex>::type;
-    /// Reversed index sequence stops at 1                                                     
+    /// Reversed index sequence stops at 1
     using cRevIndex = typename util::reverse_sequence<std::size_t,
                                                       cLevelIndex>::type;
-    /// Typename of this                                                      
+    /// Typename of this
     using type_this = SimplexSet<Complex>;
 
     /// Tuple of SimplexIDs wrt an integral level.
@@ -93,9 +93,9 @@ struct SimplexSet
      *
      * @return     True if the container is empty, false otherwise.
      */
-    template <size_t k>
+    template <std::size_t k>
     inline auto empty() const noexcept{
-        return std::get<k>(tupleSet).empty(); 
+        return std::get<k>(tupleSet).empty();
     }
 
     /**
@@ -103,12 +103,12 @@ struct SimplexSet
      *
      * @tparam     k     Simplex dimension to query
      *
-     * @return     Returns the number of simplices of dimension `k` are in the 
+     * @return     Returns the number of simplices of dimension `k` are in the
      *             set.
      */
-    template <size_t k>
+    template <std::size_t k>
     inline auto size() const noexcept{
-        return std::get<k>(tupleSet).size(); 
+        return std::get<k>(tupleSet).size();
     }
 
     /**
@@ -120,13 +120,13 @@ struct SimplexSet
     }
 
     /**
-     * @brief      Insert a simplex into the set. 
+     * @brief      Insert a simplex into the set.
      *
      * @param[in]  s     Simplex to insert.
      *
      * @tparam     k     Simplex dimension of 's'.
      */
-    template <size_t k>
+    template <std::size_t k>
     inline void insert(SimplexID<k> s)
     {
         std::get<k>(tupleSet).insert(s);
@@ -150,7 +150,7 @@ struct SimplexSet
      *
      * @tparam     k     Simplex dimension of 's'.
      */
-    template <size_t k>
+    template <std::size_t k>
     inline void erase(SimplexID<k> s)
     {
         std::get<k>(tupleSet).erase(s);
@@ -174,11 +174,11 @@ struct SimplexSet
      *
      * @tparam     k     Simplex dimension of 's'.
      *
-     * @return     Iterator to an element with key equivalent to s. If no such 
-     *             element is found, past-the-end iterator (see end()) is 
+     * @return     Iterator to an element with key equivalent to s. If no such
+     *             element is found, past-the-end iterator (see end()) is
      *             returned.
      */
-    template <size_t k>
+    template <std::size_t k>
     inline auto find(const SimplexID<k> s)
     {
         return std::get<k>(tupleSet).find(s);
@@ -191,39 +191,39 @@ struct SimplexSet
      *
      * @tparam     k     Simplex dimension of 's'.
      *
-     * @return     Iterator to an element with key equivalent to s. If no such 
-     *             element is found, past-the-end iterator (see end()) is 
+     * @return     Iterator to an element with key equivalent to s. If no such
+     *             element is found, past-the-end iterator (see end()) is
      *             returned.
      */
-    template <size_t k>
+    template <std::size_t k>
     inline auto find(const SimplexID<k> s) const
     {
         return std::get<k>(tupleSet).find(s);
     }
 
     /**
-     * @brief      Get the past-the-end iterator. 
+     * @brief      Get the past-the-end iterator.
      *
      * @tparam     k     The simplex dimension to get iterator of.
      *
      * @return     Returns an iterator to the element following the last element
      *             of the set for the specified simplex dimension.
      */
-    template <size_t k>
+    template <std::size_t k>
     inline auto end()
     {
         return std::get<k>(tupleSet).end();
     }
 
     /**
-     * @brief      Get the past-the-end iterator. 
+     * @brief      Get the past-the-end iterator.
      *
      * @tparam     k     The simplex dimension to get iterator of.
      *
      * @return     Returns an iterator to the element following the last element
      *             of the set for the specified simplex dimension.
      */
-    template <size_t k>
+    template <std::size_t k>
     inline const auto cend() const
     {
         return std::get<k>(tupleSet).cend();
@@ -236,7 +236,7 @@ struct SimplexSet
      *
      * @return     Returns an iterator to the first element.
      */
-    template <size_t k>
+    template <std::size_t k>
     inline auto begin()
     {
         return std::get<k>(tupleSet).begin();
@@ -249,7 +249,7 @@ struct SimplexSet
      *
      * @return     Returns an iterator to the first element.
      */
-    template <size_t k>
+    template <std::size_t k>
     inline auto cbegin() const
     {
         return std::get<k>(tupleSet).cbegin();
@@ -262,7 +262,7 @@ struct SimplexSet
     //  *
     //  * @return     Returns the NodeSet corresponding to the requested dimension.
     //  */
-    template <size_t k>
+    template <std::size_t k>
     inline auto &get()
     {
         return std::get<k>(tupleSet);
@@ -275,7 +275,7 @@ struct SimplexSet
     //  *
     //  * @return     Returns the NodeSet corresponding to the requested dimension.
     //  */
-    template <size_t k>
+    template <std::size_t k>
     inline auto &get() const
     {
         return std::get<k>(tupleSet);
@@ -283,7 +283,7 @@ struct SimplexSet
 
     /**
      * @brief      Print the SimplexSet.
-     * 
+     *
      * See also casc::simplicial_complex::SimplexID::operator<<.
      *
      * @param      output  Handle to the stream to print to.
@@ -420,7 +420,7 @@ struct SimplexSet
  * @tparam     k        Simplex dimension desired.
  * @tparam     Complex  Typename of the simplicial_complex.
  *
- * @return     A NodeSet which holds simplices of dimension 'k' and a member of 
+ * @return     A NodeSet which holds simplices of dimension 'k' and a member of
  *             SimplexSet 'S'.
  */
 template <std::size_t k, typename Complex>
@@ -455,7 +455,7 @@ struct UnionH
      * @brief      Compute the union of two SimplexSets.
      *
      * \f$A\cup B\f$
-     * 
+     *
      * @param[in]  A     A SimplexSet
      * @param[in]  B     Another SimplexSet
      * @param[out] dest  The destination SimplexSet
@@ -485,7 +485,7 @@ struct IntersectH
 {
     /**
      * @brief      Compute the intersection of two SimplexSets.
-     * 
+     *
      * \f$A\cap B\f$
      *
      * @param[in]  A     A SimplexSet
@@ -532,9 +532,9 @@ struct DifferenceH
 {
     /**
      * @brief      Compute the set difference for a simplex dimension.
-     * 
+     *
      * \f$ dest = A \setminus B \f$
-     * 
+     *
      * @param[in]  A     A SimplexSet.
      * @param[in]  B     Remove this SimplexSet from A.
      * @param      dest  The destination SimplexSet.
@@ -581,7 +581,7 @@ struct OperatorEQH
      * @tparam     k     Level to compare.
      */
     template <std::size_t k>
-    void apply(const SimplexSet<Complex> &lhs, 
+    void apply(const SimplexSet<Complex> &lhs,
                       const SimplexSet<Complex> &rhs){
         auto a = casc::get<k>(lhs);
         auto b = casc::get<k>(rhs);

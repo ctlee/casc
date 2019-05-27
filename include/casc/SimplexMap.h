@@ -64,7 +64,7 @@ struct SimplexMap
     using type_this = SimplexMap<Complex>;
 
     /**
-     * @brief      Default constructor. 
+     * @brief      Default constructor.
      */
     SimplexMap() {};
 
@@ -76,7 +76,7 @@ struct SimplexMap
      *
      * @return     A map of SimplexID<k> to SimplexSet.
      */
-    template <size_t k>
+    template <std::size_t k>
     inline auto &get()
     {
         return std::get<k>(tupleMap);
@@ -85,7 +85,7 @@ struct SimplexMap
     /**
      * @overload
      */
-    template <size_t k>
+    template <std::size_t k>
     inline auto &get() const
     {
         return std::get<k>(tupleMap);
