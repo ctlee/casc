@@ -117,7 +117,7 @@ struct GetCompleteNeighborhood
      * @return     True, continue the BFS
      */
     template <std::size_t level>
-    bool visit(Complex &F, typename Complex::template SimplexID<level> s)
+    bool visit(Complex &, typename Complex::template SimplexID<level>)
     {
         return true;
     }
@@ -162,7 +162,7 @@ struct GrabVisitor
     GrabVisitor(SimplexSet* p, SimplexSet* grab) : pLevels(p), pGrab(grab) {}
 
     template <std::size_t level>
-    bool visit(Complex &F, typename Complex::template SimplexID<level> s)
+    bool visit(Complex &, typename Complex::template SimplexID<level> s)
     {
         if (pLevels->find(s) != pLevels->template end<level>())
         {
@@ -250,7 +250,7 @@ struct InnerVisitor
             }
             else
             {
-                auto ret = levelMap.insert(
+                [[maybe_unused]] auto ret = levelMap.insert(
                         std::pair<NewArrayType, SimplexSet>(new_name, grab));
                 assert(ret.second);
             }

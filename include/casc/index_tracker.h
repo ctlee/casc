@@ -37,13 +37,18 @@
 #include <limits>
 
 
-// TODO: (0) Actually document the index_tracker
-/// @cond index_tracker
 /// Index tracker namespace
 namespace index_tracker
 {
 /// B-tree internal data structures
 namespace index_tracker_detail {
+
+
+	/**
+	 * @brief      Interval object represents a range.
+	 *
+	 * @tparam     T     Typename of the interval data
+	 */
 	template <typename T>
 	struct Interval
 	{
@@ -52,6 +57,13 @@ namespace index_tracker_detail {
 		Interval(T a, T b) : _a(a), _b(b) { assert(a <= b); }
 		Interval(const Interval<T>& rhs) : _a(rhs._a), _b(rhs._b) {}
 
+		/**
+		 * @brief      Assigment operator overload.
+		 *
+		 * @param[in]  rhs   The right hand side
+		 *
+		 * @return     Reference to this
+		 */
 		Interval& operator=(const Interval& rhs)
 		{
 			_a = rhs._a;
@@ -70,8 +82,8 @@ namespace index_tracker_detail {
 		std::size_t size() { return _b - _a; }
 
 	private:
-		T _a;
-		T _b;
+		T _a;	/// Inclusive lower bound
+		T _b;	/// Exclusive upper bound
 	};
 
 	template <typename T>
@@ -126,32 +138,42 @@ namespace index_tracker_detail {
 	template <typename T>
 	int merge(Interval<T>& A, T x)
 	{
+		// If x isn't the next lower value return 0
 		if(x + 1 < A.lower())
 			return 0;
 		else if(x + 1 == A.lower())
 		{
+			// if x is the next lowest value assign to lower
 			A.lower() = x;
 			return 1;
 		}
-		else if(A.lower() <= x && x < A.upper())
+		else if(A.lower() <= x && x < A.upper()) // x is in range already
 			return 2;
 		else if(A.upper() == x)
 		{
+			// x is the next higher assign upper
 			A.upper() = x + 1;
 			return 3;
 		}
 		else if(A.upper() < x)
+			// x isn't next after this range return 4
 			return 4;
 		else
-			return 5;
+			return 5; // Something undefined happened.
 	}
 
 
-	template <typename _T, int _d>
+	/**
+	 * @brief      An array based BTree
+	 *
+	 * @tparam     _T    { description }
+	 * @tparam     _d    { description }
+	 */
+	template <typename _T, std::size_t _d>
 	struct BTreeNode
 	{
-		static constexpr int d = _d;
-		static constexpr int N = 2*d+1;
+		static constexpr std::size_t d = _d;
+		static constexpr std::size_t N = 2*d+1;
 		using Scalar = _T;
 		using Data = Interval<Scalar>;
 		using Pointer = BTreeNode*;
@@ -175,7 +197,7 @@ namespace index_tracker_detail {
 			next[k] = nullptr;
 		}
 
-		int                     k;
+		std::size_t             k;
 		std::array<Data,N>      data;
 		std::array<Pointer,N+1> next;
 	};
@@ -187,13 +209,13 @@ namespace index_tracker_detail {
 
 
 	template <typename Node>
-	void rebalance(Pointer<Node> head, int i)
+	void rebalance(Pointer<Node> head, std::size_t i)
 	{
 		Pointer<Node> curr = head->next[i];
 
 		if(curr->k == Node::N)
 		{
-			Pointer<Node> left = curr;
+			// Pointer<Node> left = curr; // UNUSED
 			Pointer<Node> right = new Node(curr->data.begin() + Node::d + 1, curr->data.end());
 			curr->k = Node::d;
 
@@ -203,7 +225,7 @@ namespace index_tracker_detail {
 			}
 			else
 			{
-				for(int i = 0; i <= Node::d; ++i)
+				for(std::size_t i = 0; i <= Node::d; ++i)
 				{
 					right->next[i] = curr->next[Node::d + i + 1];
 				}
@@ -211,10 +233,10 @@ namespace index_tracker_detail {
 
 			Data<Node> up = curr->data[Node::d];
 
-			for(int j = head->k - 1; j >= i; --j)
+			for(std::size_t j = head->k; j > i; --j)
 			{
-				head->data[j+1] = head->data[j];
-				head->next[j+2] = head->next[j+1];
+				head->data[j] = head->data[j-1];
+				head->next[j+1] = head->next[j];
 			}
 			head->data[i] = up;
 			head->next[i+1] = right;
@@ -229,7 +251,7 @@ namespace index_tracker_detail {
 
 				if(right->next[0] != nullptr)
 					right->next[right->k + 1] = right->next[right->k];
-				for(int j = right->k; j > 0; --j)
+				for(std::size_t j = right->k; j > 0; --j)
 				{
 					right->data[j] = right->data[j-1];
 					if(left->next[0] != nullptr)
@@ -257,7 +279,7 @@ namespace index_tracker_detail {
 					left->next[left->k] = right->next[0];
 
 				head->data[i] = right->data[0];
-				for(int j = 0; j < right->k - 1; ++j)
+				for(std::size_t j = 0; j < right->k - 1; ++j)
 				{
 					right->data[j] = right->data[j+1];
 					if(right->next[0] != nullptr)
@@ -277,7 +299,7 @@ namespace index_tracker_detail {
 					Pointer<Node> right = head->next[i+1];
 
 					left->data[(left->k)++] = head->data[i];
-					for(int j = 0; j < right->k; ++j)
+					for(std::size_t j = 0; j < right->k; ++j)
 					{
 						left->data[left->k] = right->data[j];
 						if(left->next[0] != nullptr)
@@ -290,7 +312,7 @@ namespace index_tracker_detail {
 					delete right;
 
 					--(head->k);
-					for(int j = i; j < head->k; ++j)
+					for(std::size_t j = i; j < head->k; ++j)
 					{
 						head->data[j] = head->data[j+1];
 						head->next[j+1] = head->next[j+2];
@@ -303,7 +325,7 @@ namespace index_tracker_detail {
 
 					left->data[left->k] = head->data[i-1];
 					++(left->k);
-					for(int j = 0; j < right->k; ++j)
+					for(std::size_t j = 0; j < right->k; ++j)
 					{
 						left->data[left->k] = right->data[j];
 						if(left->next[0] != nullptr)
@@ -327,14 +349,14 @@ namespace index_tracker_detail {
 		{
 			const auto k = head->k;
 
-			int i = 0;
+			std::size_t i = 0;
 			while(i < k && head->data[i] < data)
 			{
 				++i;
 			}
-			for(int j = k-1; j >= i; --j)
+			for(std::size_t j = k; j > i; --j)
 			{
-				head->data[j+1] = head->data[j];
+				head->data[j] = head->data[j-1];
 			}
 			head->data[i] = data;
 			head->k = k+1;
@@ -343,7 +365,7 @@ namespace index_tracker_detail {
 		{
 			const auto k = head->k;
 
-			int i = 0;
+			std::size_t i = 0;
 			while(i < k && head->data[i] < data)
 				++i;
 
@@ -382,7 +404,7 @@ namespace index_tracker_detail {
 	{
 		if(head->next[0] == nullptr)
 		{
-			for(int i = 0; i < head->k; ++i)
+			for(std::size_t i = 0; i < head->k; ++i)
 			{
 				if(data == head->data[i])
 				{
@@ -393,7 +415,7 @@ namespace index_tracker_detail {
 		}
 		else
 		{
-			for(int i = 0; i < head->k; ++i)
+			for(std::size_t i = 0; i < head->k; ++i)
 			{
 				if(data < head->data[i])
 				{
@@ -430,11 +452,11 @@ namespace index_tracker_detail {
 	{
 		if(head->next[0] == nullptr)
 		{
-			for(int i = 0; i < head->k; ++i)
+			for(std::size_t i = 0; i < head->k; ++i)
 			{
 				if(data == head->data[i])
 				{
-					for(int j = i+1; j < head->k; ++j)
+					for(std::size_t j = i+1; j < head->k; ++j)
 					{
 						head->data[j-1] = head->data[j];
 					}
@@ -445,7 +467,7 @@ namespace index_tracker_detail {
 		}
 		else
 		{
-			for(int i = 0; i < head->k; ++i)
+			for(std::size_t i = 0; i < head->k; ++i)
 			{
 				if(data < head->data[i])
 				{
@@ -513,7 +535,7 @@ namespace index_tracker_detail {
 			{
 				x.upper() = right.upper();
 				--(head->k);
-				for(int i = 0; i < head->k; ++i)
+				for(std::size_t i = 0; i < head->k; ++i)
 				{
 					head->data[i] = head->data[i+1];
 				}
@@ -530,11 +552,12 @@ namespace index_tracker_detail {
 	template <typename Node>
 	void insert_scalar_H(Pointer<Node> head, Scalar<Node> data)
 	{
+		// If the
 		if(head->next[0] == nullptr)
 		{
 			const auto k = head->k;
 
-			int i;
+			std::size_t i;
 			for(i = 0; i < k; ++i)
 			{
 				Data<Node>& A = head->data[i];
@@ -542,9 +565,9 @@ namespace index_tracker_detail {
 
 				if(x + 1 < A.lower())
 				{
-					for(int j = k-1; j >= i; --j)
+					for(std::size_t j = k; j > i; --j)
 					{
-						head->data[j+1] = head->data[j];
+						head->data[j] = head->data[j-1];
 					}
 					head->data[i] = data;
 					++(head->k);
@@ -567,7 +590,7 @@ namespace index_tracker_detail {
 						if(x + 1 == B.lower())
 						{
 							A.upper() = B.upper();
-							for(int j = i+1; j < k-1; ++j)
+							for(std::size_t j = i+1; j < k-1; ++j)
 							{
 								head->data[j] = head->data[j+1];
 							}
@@ -592,7 +615,7 @@ namespace index_tracker_detail {
 		{
 			const auto k = head->k;
 
-			int i;
+			std::size_t i;
 			for(i = 0; i < k; ++i)
 			{
 				Data<Node>& A = head->data[i];
@@ -682,7 +705,7 @@ namespace index_tracker_detail {
 		{
 			const auto k = head->k;
 
-			int i;
+			std::size_t i;
 			for(i = 0; i < k; ++i)
 			{
 				Data<Node>& A = head->data[i];
@@ -699,7 +722,7 @@ namespace index_tracker_detail {
 					{
 	//					std::cout << "if(x + 1 == A.upper())" << std::endl;
 						--(head->k);
-						for(int j = i; j < head->k; ++j)
+						for(std::size_t j = i; j < head->k; ++j)
 						{
 							head->data[j] = head->data[j+1];
 						}
@@ -711,7 +734,7 @@ namespace index_tracker_detail {
 				else if(/*A.lower() < x &&*/ x + 1 < A.upper())
 				{
 	//				std::cout << "x + 1 < A.upper()" << std::endl;
-					for(int j = head->k; j > i; --j)
+					for(std::size_t j = head->k; j > i; --j)
 					{
 						head->data[j] = head->data[j-1];
 					}
@@ -733,7 +756,7 @@ namespace index_tracker_detail {
 		{
 			const auto k = head->k;
 
-			int i;
+			std::size_t i;
 			for(i = 0; i < k; ++i)
 			{
 				Data<Node>& A = head->data[i];
@@ -826,7 +849,7 @@ namespace index_tracker_detail {
 		{
 			if(head->next[0] != nullptr)
 			{
-				for(int i = 0; i < head->k; ++i)
+				for(std::size_t i = 0; i < head->k; ++i)
 				{
 					destruct<Node>(head->next[i]);
 				}
@@ -843,7 +866,7 @@ namespace index_tracker_detail {
 		{
 			if(head->next[0] == nullptr)
 			{
-				for(int i = 0; i < head->k; ++i)
+				for(std::size_t i = 0; i < head->k; ++i)
 				{
 					if(curr > head->data[i])
 					{
@@ -855,7 +878,7 @@ namespace index_tracker_detail {
 			}
 			else
 			{
-				for(int i = 0; i < head->k; ++i)
+				for(std::size_t i = 0; i < head->k; ++i)
 				{
 					curr = check_order<Node>(head->next[i], curr);
 					if(curr > head->data[i])
@@ -872,7 +895,7 @@ namespace index_tracker_detail {
 	}
 } // End namespace index_tracker_detail
 
-template <typename T, int d>
+template <typename T, std::size_t d>
 std::ostream& operator<<(std::ostream& out, const index_tracker_detail::BTreeNode<T,d>* head)
 {
 	if(head == nullptr)
@@ -882,7 +905,7 @@ std::ostream& operator<<(std::ostream& out, const index_tracker_detail::BTreeNod
 	else
 	{
 		out << "[ ";
-		for(int i = 0; i < head->k; ++i)
+		for(std::size_t i = 0; i < head->k; ++i)
 		{
 			if(head->next[0] != nullptr)
 				out << head->next[i] << " ";
@@ -895,14 +918,24 @@ std::ostream& operator<<(std::ostream& out, const index_tracker_detail::BTreeNod
 	return out;
 }
 
-template <typename _T, int _d = 16>
+/**
+ * @brief      Tracker of available indices implemented as a B-tree of intervals.
+ *
+ * @tparam     _T    Typename of the indices
+ * @tparam     _d    Max number of interval bins = 2*value+1
+ */
+template <typename _T, std::size_t _d = 16>
 class index_tracker
 {
 public:
+	/// Typedef of BTree Node
 	using Node = index_tracker_detail::BTreeNode<_T, _d>;
-	using T = _T;
-	constexpr static int d = _d;
+	using T = _T; /// Typename of the type to store
+	constexpr static std::size_t d = _d; /// Number of bins
 
+	/**
+	 * @brief    	Initialize with interval [0~max)
+	 */
 	index_tracker()
 		: head(new Node(index_tracker_detail::Interval<T>(0,std::numeric_limits<T>::max())))
 	{}
@@ -932,8 +965,6 @@ public:
 		return head == nullptr;
 	}
 
-
-
 	friend std::ostream& operator<<(std::ostream& out, const index_tracker& x)
 	{
 		out << x.head;
@@ -944,4 +975,3 @@ private:
 	index_tracker_detail::Pointer<Node> head;
 };
 } // end namespace index_tracker
-/// @endcond

@@ -35,6 +35,13 @@
 #include <casc/casc>
 #include "casc/typetraits.h"
 
+#include <stdio.h>
+#include <execinfo.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+
 template <typename Complex>
 struct Callback
 {
@@ -61,32 +68,54 @@ struct complex_traits
     using EdgeTypes = util::type_holder<casc::Orientable,casc::Orientable,casc::Orientable>;  /**< @brief the types of each Edge */
 };
 
+void handler(int sig) {
+  void *array[10];
+  size_t size;
+
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
+
 using SurfaceMesh = casc::simplicial_complex<complex_traits>;
 
 
 int  main(int argc, char *argv[])
 {
-    SurfaceMesh mesh;
+    signal(SIGSEGV, handler);   // install our handler
+    index_tracker::index_tracker<int,4> idx;
 
-    std::cout << type_name<decltype(mesh)>() << std::endl;
+    for(int i = 0; i < 1000; ++i){
+        idx.remove(i);
+    }
 
-    mesh.insert({0,1,3});
-    mesh.insert({0,3,5});
-    mesh.insert({1,3,4});
-    mesh.insert({3,4,5});
-    mesh.insert({1,2,4});
-    mesh.insert({2,4,5});
+    std::cout << idx << std::endl;
 
-    auto s = mesh.get_simplex_up({3,4});
-    // casc::decimate(mesh, s, Callback<SurfaceMesh>());
-    casc::SimplexMap<SurfaceMesh> sM;
-    casc::decimateFirstHalf(mesh, s, sM);
+    for(int i=0; i < 100; ++i){
+        std::cout << "insertion: " << i << std::endl;
+        idx.insert(2*i);
+        std::cout << idx << std::endl;
+    }
 
-    std::cout << sM << std::endl;
-    typename casc::decimation_detail::SimplexDataSet<SurfaceMesh>::type rv;
-    casc::run_user_callback(mesh, sM, Callback<SurfaceMesh>(), rv);
 
-    casc::decimateBackHalf(mesh, sM, rv);
+    // std::cout << type_name<decltype(mesh)>() << std::endl;
+
+    // mesh.insert({0,1,3});
+    // mesh.insert({0,3,5});
+    // mesh.insert({1,3,4});
+    // mesh.insert({3,4,5});
+    // mesh.insert({1,2,4});
+    // mesh.insert({2,4,5});
+
+    // std::cout << mesh.unused_vertices << std::endl;
+
+    // mesh.remove({3});
+
+    // std::cout << mesh.unused_vertices << std::endl;
 
     std::cout << "EOF" << std::endl;
 }

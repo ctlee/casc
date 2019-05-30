@@ -1193,7 +1193,7 @@ class simplicial_complex
          *
          * @return     Array containing the name of 'id'.
          */
-        std::array<KeyType, 0> get_name(SimplexID<0> id) const
+        std::array<KeyType, 0> get_name(SimplexID<0>) const
         {
             std::array<KeyType, 0> name{};
             return name;
@@ -1842,7 +1842,7 @@ class simplicial_complex
          *             partial specialization.
          */
         template <std::size_t L, std::size_t R>
-        bool eq(SimplexID<L> lhs, SimplexID<R> rhs) const
+        bool eq(SimplexID<L>, SimplexID<R>) const
         {
             return false;
         }
@@ -2025,7 +2025,7 @@ class simplicial_complex
              *
              * @return     Returns a pointer to the node.
              */
-            static Node<level>* apply(const type_this* that, const KeyType* s, Node<level>* root)
+            static Node<level>* apply(const type_this*, const KeyType*, Node<level>* root)
             {
                 return root;
             }
@@ -2081,13 +2081,13 @@ class simplicial_complex
             /**
              * @brief      Get the simplex of interest.
              *
-             * @param[in]  that  The simplicial complex to search.
+             * @param[in]  this  The simplicial complex to search.
              * @param[in]  s     Pointer to an array of Keys.
              * @param      root  The current simplex
              *
              * @return     Returns a pointer to the node.
              */
-            static Node<level>* apply(const type_this* that, const KeyType* s, Node<level>* root)
+            static Node<level>* apply(const type_this*, const KeyType*, Node<level>* root)
             {
                 return root;
             }
@@ -2137,7 +2137,7 @@ class simplicial_complex
              *
              * @return     Returns the node to insert.
              */
-            static Node<level>* apply(type_this* that, Node<level>* root, const KeyType* begin)
+            static Node<level>* apply(type_this*, Node<level>* root, const KeyType*)
             {
                 return root;
             }
@@ -2267,7 +2267,7 @@ class simplicial_complex
          * @param      value  is the exposed id of nn
          * @return     void
          */
-        void backfill(Node<0>* root, Node<1>* nn, int value)
+        void backfill(Node<0>*, Node<1>*, int)
         {
             return;
         }
@@ -2282,14 +2282,14 @@ class simplicial_complex
          * @return     A pointer to the new node.
          */
         template <std::size_t level>
-        Node<level>* create_node(std::integral_constant<std::size_t, level> x)
+        Node<level>* create_node(std::integral_constant<std::size_t, level>)
         {
             // Create the new node
             auto p = new Node<level>(node_count++);
             ++(level_count[level]); // Increment the count in the level
 
             // node_count-1 to match the internal IDs correctly.
-            bool ret = std::get<level>(levels).insert(
+            [[maybe_unused]] bool ret = std::get<level>(levels).insert(
                     std::pair<std::size_t, NodePtr<level> >(node_count-1, p)).second;
             assert(ret);
             /*
@@ -2335,6 +2335,7 @@ class simplicial_complex
             // This for loop should only have a single iteration.
             for (auto curr = p->_down.begin(); curr != p->_down.end(); ++curr)
             {
+                std::cout << "BEFORE INSERT:" << std::endl;
                 unused_vertices.insert(curr->first);
                 curr->second->_up.erase(curr->first);
             }

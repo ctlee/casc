@@ -74,7 +74,7 @@ struct SimplexAggregator
      * @return     True if the traversal should continue.
      */
     template <std::size_t k>
-    bool visit(Complex &F, typename Complex::template SimplexID<k> s)
+    bool visit(Complex &, typename Complex::template SimplexID<k> s)
     {
         // If the simplex isn't there, insert it.
         if (pLevels->find(s) == pLevels->template end<k>())
@@ -252,7 +252,7 @@ struct GraphVisitor
      * @param[in]  F          Complex of interest.
      * @param[in]  s          Simplex to visit.
      */
-    void visit(const Complex &F, typename Complex::template SimplexID<Complex::topLevel> s){}
+    void visit(const Complex &, typename Complex::template SimplexID<Complex::topLevel>){}
 };
 
 /**
