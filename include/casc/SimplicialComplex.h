@@ -2341,7 +2341,6 @@ class simplicial_complex
             // This for loop should only have a single iteration.
             for (auto curr = p->_down.begin(); curr != p->_down.end(); ++curr)
             {
-                std::cout << "BEFORE INSERT:" << std::endl;
                 unused_vertices.insert(curr->first);
                 curr->second->_up.erase(curr->first);
             }
