@@ -36,6 +36,12 @@
 #include "CASCTraversals.h"
 #include "CASCFunctions.h"
 
+#if __has_cpp_attribute(maybe_unused)
+#define MAYBE_UNUSED [[maybe_unused]]
+#else
+#define MAYBE_UNUSED
+#endif
+
 namespace casc
 {
 /// @cond detail
@@ -250,7 +256,7 @@ struct InnerVisitor
             }
             else
             {
-                [[maybe_unused]] auto ret = levelMap.insert(
+                MAYBE_UNUSED auto ret = levelMap.insert(
                         std::pair<NewArrayType, SimplexSet>(new_name, grab));
                 assert(ret.second);
             }

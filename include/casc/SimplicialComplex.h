@@ -51,6 +51,12 @@
 #include "index_tracker.h"
 #include "util.h"
 
+#if __has_cpp_attribute(maybe_unused)
+#define MAYBE_UNUSED [[maybe_unused]]
+#else
+#define MAYBE_UNUSED
+#endif
+
 /// Namespace for everything CASC
 namespace casc
 {
