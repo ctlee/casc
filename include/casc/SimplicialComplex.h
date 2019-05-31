@@ -2295,7 +2295,7 @@ class simplicial_complex
             ++(level_count[level]); // Increment the count in the level
 
             // node_count-1 to match the internal IDs correctly.
-            [[maybe_unused]] bool ret = std::get<level>(levels).insert(
+            MAYBE_UNUSED bool ret = std::get<level>(levels).insert(
                     std::pair<std::size_t, NodePtr<level> >(node_count-1, p)).second;
             assert(ret);
             /*
