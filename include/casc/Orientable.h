@@ -81,10 +81,15 @@ struct init_orientation_helper<Complex, std::integral_constant<std::size_t, k>>
 	}
 };
 
+/**
+ * @brief      Terminating case for initializing orientation
+ *
+ * @tparam     Complex  Typename of the simplicial complex
+ */
 template <typename Complex>
 struct init_orientation_helper<Complex, std::integral_constant<std::size_t, Complex::topLevel>>
 {
-	static void f(Complex& F) {}
+	static void f(Complex&) {}
 };
 } // end namespace orientation_detail
 /// @endcond

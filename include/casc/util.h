@@ -38,9 +38,9 @@ namespace util
 /**
  * @brief      A range object to support range based for loops.
  *
- * This is a basic data structure which implements a `begin()` and `end()` 
+ * This is a basic data structure which implements a `begin()` and `end()`
  * functions for range based for lopping added in C++11.
- * See also 
+ * See also
  * <a href="http://en.cppreference.com/w/cpp/language/range-for">range-for</a>.
  *
  * @tparam     T     Typename of the iterator
@@ -128,7 +128,7 @@ template <typename ... Ts>
 struct type_holder
 {
     /// Length of the list of types
-    static const size_t size = sizeof ... (Ts);
+    static const std::size_t size = sizeof ... (Ts);
 };
 
 /**
@@ -145,7 +145,7 @@ struct type_holder<T, Ts...>
     /// The following types
     using tail = type_holder<Ts...>;
     /// Length of the list of types
-    static const size_t size = 1 + type_holder<Ts...>::size;
+    static const std::size_t size = 1 + type_holder<Ts...>::size;
 };
 
 /**
@@ -156,12 +156,12 @@ struct type_holder<T, Ts...>
  * @tparam     k     Integer index of the type to retrieve
  * @tparam     T     A type_holder queue of typenames
  */
-template <size_t k, typename T>
+template <std::size_t k, typename T>
 struct type_get {};
 
 /**
  * @brief      Specialization for terminal case.
- * 
+ *
  * @tparam     Ts    Following typenames
  */
 template <typename ... Ts>
@@ -177,7 +177,7 @@ struct type_get<0, type_holder<Ts...> >
  * @tparam     k     Integral constant of the type to get
  * @tparam     Ts    List of typenames
  */
-template <size_t k, typename ... Ts>
+template <std::size_t k, typename ... Ts>
 struct type_get<k, type_holder<Ts...> >
 {
     /// Recurse after popping the first type off
@@ -212,7 +212,7 @@ struct type_map_helper<G<>, V, Rs...>
 };
 
 /**
- * @brief      Map types into 
+ * @brief      Map types into
  *
  * @tparam     G     Tuple of types
  * @tparam     T     Current type
@@ -231,10 +231,10 @@ struct type_map_helper<G<T, Ts...>, V, Rs...>
 /**
  * @brief      Map the types in C into `V<T>`.
  *
- * Given a container of types `C<T1,T2,T3,...>` and template template type 
+ * Given a container of types `C<T1,T2,T3,...>` and template template type
  * `V<T>`, this function will apply the types in C to `V<T>`. This produces
- * `C<V<T1>, V<T2>, V<T3>, ...>`. 
- * 
+ * `C<V<T1>, V<T2>, V<T3>, ...>`.
+ *
  * @tparam     C     Container of compile time types.
  * @tparam     V     Template template class `V<T>` to map into.
  */
@@ -290,12 +290,12 @@ struct int_type_map_helper<Integer, OutHolder, InHolder<Integer, I, Is...>, F, A
 
 /**
  * @brief      Maps an integer sequence and typename, F, into outholder.
- * 
+ *
  * Given an Integer Sequence `I<0,1,2,3,...>` and template template type `F<I>`,
- * this function produces `Out<F<0>, F<1>, F<2>, ...>`. 
+ * this function produces `Out<F<0>, F<1>, F<2>, ...>`.
  *
  * @tparam     IntegerType      Typename of an integer type
- * @tparam     OutHolder        Typename of a holder for types 
+ * @tparam     OutHolder        Typename of a holder for types
  * @tparam     IntegerSequence  Integral sequence of types
  * @tparam     F                Typename of class to be broadcast with integer
  */
@@ -320,7 +320,7 @@ struct type_swap
  * @brief      Move a list of types from one container to another.
  *
  * @tparam     TUPLE   Empty container
- * @tparam     HOLDER  Full container 
+ * @tparam     HOLDER  Full container
  * @tparam     Ts      Typenames in full container
  */
 template <template <class ...> class TUPLE, template <class ...> class HOLDER, typename ... Ts>
@@ -406,7 +406,7 @@ template <class Integer, class IntegerSequence>
 struct remove_first_val {};
 
 /**
- * @brief      Specialization for removing first integer from a sequence of 
+ * @brief      Specialization for removing first integer from a sequence of
  *             compile time integers.
  *
  * @tparam     Integer   Typename of integer type.
@@ -428,7 +428,7 @@ namespace detail
 {
 /**
  * @brief      Template type for future specialization
- 
+
  */
 template <typename Integer, typename IntegerSequence, typename Fn, typename ... Args>
 struct int_for_each_helper {};

@@ -12,8 +12,7 @@
 #include <tuple>
 #include <future>
 #include <experimental/optional>
-#include "SurfaceMesh.h"
-#include "SimplicialComplex.h"
+#include <casc/casc>
 #include <cstring>
 
 

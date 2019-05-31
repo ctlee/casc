@@ -29,9 +29,8 @@
 #include <map>
 #include <set>
 #include "gtest/gtest.h"
-#include "SimplicialComplex.h"
-#include "SimplexSet.h"
-#include "decimate.h"
+#include <casc/casc>
+
 
 using SurfaceMeshType = casc::AbstractSimplicialComplex<
         int, // KEYTYPE
@@ -94,9 +93,9 @@ struct Callback
     using KeyType = typename Complex::KeyType;
 
     template <std::size_t k>
-    int operator()(Complex& F,
-            const std::array<KeyType, k>& new_name,
-            const SimplexSet& merged){
+    int operator()(Complex&,
+            const std::array<KeyType, k>&,
+            const SimplexSet&){
         // std::cout << merged << " -> " << new_name << std::endl;
         return 0;
     }

@@ -1,7 +1,7 @@
 # ***************************************************************************
 # This file is part of the Colored Abstract Simplicial Complex library.
 # Copyright (C) 2016-2017
-# by Christopher Lee, John Moody, Rommie Amaro, J. Andrew McCammon, 
+# by Christopher Lee, John Moody, Rommie Amaro, J. Andrew McCammon,
 #    and Michael Holst
 #
 # This library is free software; you can redistribute it and/or
@@ -17,61 +17,56 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-# 
+#
 # ***************************************************************************
 
-find_package(Threads REQUIRED)
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    # URL https://github.com/google/googletest/archive/master.zip
+    URL https://github.com/google/googletest/archive/release-1.8.1.tar.gz
+    SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/googletest-src"
+    BINARY_DIR        "${CMAKE_CURRENT_BINARY_DIR}/googletest-build"
+)
 
-if(NOT TARGET gtest)
-    include(ExternalProject)
-    ExternalProject_Add(
-        gtest
-        # URL https://github.com/google/googletest/archive/master.zip
-        URL https://github.com/google/googletest/archive/release-1.8.0.zip
-        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
-        INSTALL_COMMAND ""
-    )
+# Prevent overriding the parent project's compiler/linker
+# settings on Windows
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-    # Get GTest source and binary directories from CMake project
-    ExternalProject_Get_Property(gtest source_dir binary_dir)
-
-    message(STATUS "GTest source_dir: ${source_dir}")
-    message(STATUS "GTest binary_dir: ${binary_dir}")
-
-    # Create a libgtest target to be used as a dependency by test programs
-    add_library(libgtest IMPORTED STATIC GLOBAL)
-    add_dependencies(libgtest gtest)
-
-    # Set libgtest properties
-    set_target_properties(libgtest PROPERTIES
-        "IMPORTED_LOCATION" "${binary_dir}/googlemock/gtest/libgtest.a"
-        "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
-    )
-
-    # Create a libgmock target to be used as a dependency by test programs
-    add_library(libgmock IMPORTED STATIC GLOBAL)
-    add_dependencies(libgmock gtest)
-
-    # Set libgmock properties
-    set_target_properties(libgmock PROPERTIES
-        "IMPORTED_LOCATION" "${binary_dir}/googlemock/libgmock.a"
-        "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
-    )
-
-    # I couldn't make it work with INTERFACE_INCLUDE_DIRECTORIES
-    include_directories("${source_dir}/googletest/include"
-                        "${source_dir}/googlemock/include")
-
-    add_executable(casctests 
-                        main.cpp 
-                        CASCTests.cpp 
-                        SimplexSetTests.cpp 
-                        FunctionsTests.cpp
-                        DecimationTests.cpp
-                        TraversalTests.cpp)
-    target_link_libraries(casctests libgtest)
-
-    add_test(casctests ${EXECUTABLE_OUTPUT_PATH}/casctests)
+FetchContent_GetProperties(googletest)
+if(NOT googletest_POPULATED)
+    FetchContent_Populate(googletest)
+    # Add googletest directly to our build. This defines
+    # the gtest and gtest_main targets.
+    add_subdirectory(${googletest_SOURCE_DIR}
+                     ${googletest_BINARY_DIR}
+                     EXCLUDE_FROM_ALL)
 endif()
 
-    # add_executable(cascscratch cascscratch.cpp)
+# The gtest/gtest_main targets carry header search path
+# dependencies automatically when using CMake 2.8.11 or
+# later. Otherwise we have to add them here ourselves.
+if (CMAKE_VERSION VERSION_LESS 2.8.11)
+  include_directories("${googletest_SOURCE_DIR}/include")
+endif()
+
+add_executable(casctests
+                    main.cpp
+                    CASCTests.cpp
+                    SimplexSetTests.cpp
+                    FunctionsTests.cpp
+                    DecimationTests.cpp
+                    TraversalTests.cpp
+                    IndexTrackerTests.cpp
+                    )
+target_link_libraries(casctests gtest_main casc)
+# target_compile_options(casctests PRIVATE -Werror)
+# target_compile_options(casctests PRIVATE -Wall -Wextra -pedantic-errors -Wconversion -Wsign-conversion -ferror-limit=3)
+# target_compile_options(casctests PRIVATE -Wno-c++17-extensions)
+# target_compile_options(casctests PRIVATE -Wno-unused-variable -Wno-unused-parameter)
+
+add_test(NAME CascTests COMMAND casctests)
+
+add_executable(cascscratch cascscratch.cpp)
+target_link_libraries(cascscratch casc)
+

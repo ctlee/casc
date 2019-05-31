@@ -36,7 +36,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
-#include "SimplicialComplex.h"
+#include <casc/casc>
 
 namespace casc
 {

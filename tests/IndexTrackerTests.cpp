@@ -22,21 +22,17 @@
  * ***************************************************************************
  */
 
-#pragma once
 
-// Metatemplate utilities
-#include "include/util.h"
+#include "gtest/gtest.h"
+#include <casc/casc>
 
-// Core casc functionality
-#include "include/SimplicialComplex.h"
-#include "include/CASCFunctions.h"
-#include "include/CASCTraversals.h"
-
-// Simplex container data structures
-#include "include/SimplexMap.h"
-#include "include/SimplexSet.h"
-
-// Additional convenience functionality
-#include "include/Orientable.h"
-#include "include/stringutil.h"
-
+// Tests factorial of positive numbers.
+TEST(IntervalTest, GeneralOperation) {
+    index_tracker::index_tracker<int> idx;
+    for(int i = 0; i < 1000; ++i){
+        idx.remove(i);
+    }
+    for(int i=0; i < 500; ++i){
+        idx.insert(2*i);
+    }
+}
