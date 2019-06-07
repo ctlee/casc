@@ -1014,7 +1014,7 @@ class simplicial_complex
             : node_count(0)
         {
             // Create a root node
-            _root = create_node(std::integral_constant<std::size_t, 0>());
+            _root = create_node<0>();
             for (auto &x : level_count) // Initialize level_count to 0 for all
                                         // levels
             {
@@ -1806,6 +1806,44 @@ class simplicial_complex
             return remove_recurse<k, 0>::apply(this, &s.ptr, &s.ptr + 1, count);
         }
 
+        template <std::size_t k>
+        bool onBoundary(const SimplexID<k> s) const
+        {
+            for(auto p : s.ptr->_up)
+            {
+                if(onBoundary(SimplexID<k+1>(p.second)))
+                    return true;
+            }
+            return false;
+        }
+
+        template<>
+        bool onBoundary(const SimplexID<topLevel> s) const
+        {
+            auto name = this->get_name(s);
+            KeyType down[2];
+
+            for(std::size_t i = 0; i < topLevel; ++i){
+                std::size_t k = 0;
+                for(std::size_t j = 0; j < topLevel; ++j){
+                    if (i != j){
+                        down[k++] = name[j];
+                    }
+                }
+                if(onBoundary<1>(
+                    get_down_recurse<topLevel, topLevel-1>::apply(this, down, s.ptr)
+                ))
+                    return true;
+            }
+            return false;
+        }
+
+        template<>
+        bool onBoundary(const SimplexID<topLevel-1> s) const
+        {
+            return s.ptr->_up.size() < 2;
+        }
+
         /**
          * @brief      Less than or equal to comparison operator of two
          *             SimplexIDs.
@@ -2226,7 +2264,7 @@ class simplicial_complex
                 auto           iter = root->_up.find(v);
                 if (iter == root->_up.end())
                 {
-                    nn = that->create_node(std::integral_constant<std::size_t, level+1>());
+                    nn = that->create_node<level+1>();
 
                     nn->_down[v] = root;
                     root->_up[v] = nn;
@@ -2288,7 +2326,7 @@ class simplicial_complex
          * @return     A pointer to the new node.
          */
         template <std::size_t level>
-        Node<level>* create_node(std::integral_constant<std::size_t, level>)
+        Node<level>* create_node()
         {
             // Create the new node
             auto p = new Node<level>(node_count++);
