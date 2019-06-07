@@ -388,6 +388,19 @@ struct PerformInsertion {
         }
     }
 };
+
+template <typename Complex>
+struct DoomedHelper
+{
+    template <std::size_t k>
+    static void apply(SimplexSet<Complex> &doomed, SimplexMap<Complex> &simplexMap){
+        auto s = casc::get<k>(simplexMap);
+        for (auto map : s){
+            doomed.insert(map.second);
+        }
+    }
+};
+
 }   // end namespace decimation_detail
 /// @endcond
 
@@ -497,16 +510,14 @@ void decimate(Complex &F, Simplex s, Callback<Complex> &&clbk)
 }
 
 /**
- * @brief      Decimate a simplex of any dimension while considering any
- *             meta-data stores on decimated simplices.
+ * @brief      Given a simplex to decimate generate a pre-post mapping
  *
- * @param[in]  F         simplicial_complex to operate on.
- * @param[in]  s         Simplex to decimate.
- * @param[in]  clbk      Callback function to map meta-data
+ * @param[in]  F           simplicial_complex to operate on.
+ * @param[in]  s           Simplex to decimate.
+ * @param      simplexMap  The simplex map to populate
  *
- * @tparam     Complex   Typename of the simplicial_complex
- * @tparam     Simplex   Typename of the simplex
- * @tparam     Callback  Typename of the template template callback functor
+ * @tparam     Complex     Typename of the simplicial_complex
+ * @tparam     Simplex     Typename of the simplex
  */
 template <typename Complex, typename Simplex>
 void decimateFirstHalf(Complex &F, Simplex s, SimplexMap<Complex> &simplexMap)
@@ -530,23 +541,21 @@ void decimateFirstHalf(Complex &F, Simplex s, SimplexMap<Complex> &simplexMap)
         F, s);
 }
 
-template <typename Complex>
-struct DoomedHelper
-{
-    template <std::size_t k>
-    static void apply(SimplexSet<Complex> &doomed, SimplexMap<Complex> &simplexMap){
-        auto s = casc::get<k>(simplexMap);
-        for (auto map : s){
-            doomed.insert(map.second);
-        }
-    }
-};
-
+/**
+ * @brief      Given a simplexMap and mapped resulting data execute the
+ *             decimation.
+ *
+ * @param      F           Simplicial complex to operate on
+ * @param      simplexMap  SimplexMap mapping simplices before and after decimation
+ * @param      rv          Resulting data for each simplex
+ *
+ * @tparam     Complex     Typename of the complex of interest
+ */
 template <typename Complex>
 void decimateBackHalf(Complex &F, SimplexMap<Complex> &simplexMap, typename decimation_detail::SimplexDataSet<Complex>::type &rv){
 
     SimplexSet<Complex> doomed;
-    util::int_for_each<std::size_t, typename SimplexMap<Complex>::cLevelIndex>(DoomedHelper<Complex>(), doomed, simplexMap);
+    util::int_for_each<std::size_t, typename SimplexMap<Complex>::cLevelIndex>(decimation_detail::DoomedHelper<Complex>(), doomed, simplexMap);
 
     perform_removal(F, doomed); // Remove simplices in the neighborhood
     perform_insertion(F, rv);   // Insert new simplices

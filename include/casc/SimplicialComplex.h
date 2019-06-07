@@ -1806,6 +1806,16 @@ class simplicial_complex
             return remove_recurse<k, 0>::apply(this, &s.ptr, &s.ptr + 1, count);
         }
 
+        /**
+         * @brief      Checks whether a simplex is on a boundary.
+         *
+         * @param[in]  s     SimplexID of interest
+         *
+         * @tparam     k     Dimension of the simplex
+         *
+         * @return     True if the simplex interacts with a
+         *             topLevel-1 simplex which is on a boundary.
+         */
         template <std::size_t k>
         bool onBoundary(const SimplexID<k> s) const
         {
@@ -1817,32 +1827,87 @@ class simplicial_complex
             return false;
         }
 
+        /**
+         * @brief      Specialization of the facets
+         *
+         * @param[in]  s     SimplexID of interest
+         *
+         * @tparam     k     Dimension of the simplex
+         *
+         * @return     True if s is on a boundary
+         */
         template<>
         bool onBoundary(const SimplexID<topLevel> s) const
         {
-            auto name = this->get_name(s);
-            KeyType down[2];
+            for(auto p : s.ptr->_down){
+                if(onBoundary(SimplexID<topLevel-1>(p.second)))
+                    return true;
+            }
+            return false;
+        }
 
-            for(std::size_t i = 0; i < topLevel; ++i){
+        /**
+         * @brief      Specialization of the topLevel-1 simplices
+         *
+         * @param[in]  s     SimplexID of interest
+         *
+         * @tparam     k     Dimension of the simplex
+         *
+         * @return     True if s is on a boundary
+         */
+        template<>
+        bool onBoundary(const SimplexID<topLevel-1> s) const
+        {
+            return s.ptr->_up.size() != 2;
+        }
+
+
+        /**
+         * @brief      Checks where any subsimplex of s is on a boundary
+         *
+         * @param[in]  s      SimplexID of interest
+         *
+         * @tparam     level  Dimension of the simplex
+         *
+         * @return     True if s is on a boundary or contains a subsimplex
+         *             on a boundary.
+         */
+        template<std::size_t level>
+        bool nearBoundary(const SimplexID<level> s) const
+        {
+            auto name = this->get_name(s);
+            KeyType down[level-1];
+
+            for(std::size_t i = 0; i < level; ++i){
                 std::size_t k = 0;
-                for(std::size_t j = 0; j < topLevel; ++j){
+                for(std::size_t j = 0; j < level; ++j){
                     if (i != j){
                         down[k++] = name[j];
                     }
                 }
                 if(onBoundary<1>(
-                    get_down_recurse<topLevel, topLevel-1>::apply(this, down, s.ptr)
+                    get_down_recurse<level, level-1>::apply(this, down, s.ptr)
                 ))
                     return true;
             }
             return false;
         }
 
+        /**
+         * @brief      Specialization of the topLevel-1
+         *
+         * @param[in]  s     SimplexID of interest
+         *
+         * @tparam     k     Dimension of the simplex
+         *
+         * @return     True if s is on a boundary
+         */
         template<>
-        bool onBoundary(const SimplexID<topLevel-1> s) const
+        bool nearBoundary(const SimplexID<topLevel-1> s) const
         {
-            return s.ptr->_up.size() < 2;
+            return s.ptr->_up.size() != 2;
         }
+
 
         /**
          * @brief      Less than or equal to comparison operator of two

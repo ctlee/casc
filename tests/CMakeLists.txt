@@ -69,4 +69,3 @@ add_test(NAME CascTests COMMAND casctests)
 
 add_executable(cascscratch cascscratch.cpp)
 target_link_libraries(cascscratch casc)
-
