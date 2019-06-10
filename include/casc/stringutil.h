@@ -2,7 +2,7 @@
  * ***************************************************************************
  * This file is part of the Colored Abstract Simplicial Complex library.
  * Copyright (C) 2016-2017
- * by Christopher Lee, John Moody, Rommie Amaro, J. Andrew McCammon, 
+ * by Christopher Lee, John Moody, Rommie Amaro, J. Andrew McCammon,
  *    and Michael Holst
  *
  * This library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- * 
+ *
  * ****************************************************************************
  */
 
@@ -34,7 +34,7 @@
 namespace casc
 {
 /**
- * @brief      Returns a string representation of the vertex subsimplicies 
+ * @brief      Returns a string representation of the vertex subsimplicies
  *             of a given simplex
  *
  * @param[in]  A     Array containing name of a simplex.
