@@ -175,6 +175,5 @@ int  main(int argc, char *argv[])
                 << std::boolalpha<< mesh.nearBoundary(fid) << ");"
                 << std::endl;
     }
-
     std::cout << "EOF" << std::endl;
 }

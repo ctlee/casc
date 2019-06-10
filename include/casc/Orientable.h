@@ -106,7 +106,7 @@ void init_orientation(Complex& F)
 {
 	orientation_detail::init_orientation_helper<Complex,std::integral_constant<std::size_t,0>>::f(F);
 }
-
+  
 /**
  * @brief      Clear the orientation of the facets
  *
@@ -125,8 +125,6 @@ void clear_orientation(Complex& F)
 }
 
 // TODO: Implement this as a disjoint set operation during insertion (2)
-
-
 /**
  * @brief      Initializes and calculates the orientation of a
  *             simplicial_complex.

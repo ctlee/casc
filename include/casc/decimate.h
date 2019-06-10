@@ -400,7 +400,6 @@ struct DoomedHelper
         }
     }
 };
-
 }   // end namespace decimation_detail
 /// @endcond
 
