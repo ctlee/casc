@@ -798,6 +798,53 @@ class simplicial_complex
             complex::NodeData<k>        &data() { return ptr->_data; }
 
             /**
+             * @brief      Gets the name of a simplex as an std::Array.
+             *
+             * @param[in]  id    SimplexID of the simplex of interest.
+             *
+             * @return     Array containing the name of 'id'.
+             */
+            std::array<KeyType, k> indices() const
+            {
+                std::array<KeyType, k> s;
+                std::size_t            i = 0;
+                for (auto curr : ptr->_down)
+                {
+                    s[i++] = curr.first;
+                }
+
+                return std::move(s);
+            }
+
+            /**
+             * @brief      Insert the coboundary keys of a simple into an inserter.
+             *
+             * @param[in]  pos       Iterator inserter
+             *
+             * @tparam     Inserter  Typename of the inserter.
+             */
+            template <class Inserter>
+            void cover_insert(Inserter pos) const
+            {
+                for (auto curr : ptr->_up)
+                {
+                    *pos++ = curr.first;
+                }
+            }
+
+            /**
+             * @brief      Get the coboundary keys of a simplex.
+             *
+             * @return     A vector of coboundary indices.
+             */
+            auto cover() const
+            {
+                std::vector<KeyType> rval;
+                cover_insert(std::back_inserter(rval));
+                return std::move(rval);
+            }
+
+            /**
              * @brief      Print the simplex as its name.
              *
              * @param      out   Handle to the stream

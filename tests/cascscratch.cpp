@@ -112,6 +112,12 @@ int  main(int argc, char *argv[])
     }
 
     for(auto eid : mesh.get_level_id<2>()){
+        std::cout << casc::to_string(eid.indices()) << std::endl;
+        auto cover = eid.get_cover();
+        for(int i =0; i < cover.size(); ++i){
+            std::cout << cover[i] << " ";
+        }
+        std::cout << std::endl;
         std::cout << "EXPECT_EQ(mesh.onBoundary(mesh.get_simplex_up("
                 << casc::to_string(mesh.get_name(eid)) << ")), "
                 << std::boolalpha<< mesh.onBoundary(eid) << ");"
@@ -123,6 +129,7 @@ int  main(int argc, char *argv[])
     }
 
     for(auto fid : mesh.get_level_id<3>()){
+
         std::cout << "EXPECT_EQ(mesh.onBoundary(mesh.get_simplex_up("
                 << casc::to_string(mesh.get_name(fid)) << ")), "
                 << std::boolalpha<< mesh.onBoundary(fid) << ");"

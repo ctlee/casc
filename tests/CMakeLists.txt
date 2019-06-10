@@ -67,5 +67,5 @@ target_link_libraries(casctests gtest_main casc)
 
 add_test(NAME CascTests COMMAND casctests)
 
-add_executable(cascscratch cascscratch.cpp)
-target_link_libraries(cascscratch casc)
+# add_executable(cascscratch cascscratch.cpp)
+# target_link_libraries(cascscratch casc)
