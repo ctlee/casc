@@ -87,35 +87,94 @@ using SurfaceMesh = casc::simplicial_complex<complex_traits>;
 int  main(int argc, char *argv[])
 {
     signal(SIGSEGV, handler);   // install our handler
-    index_tracker::index_tracker<int,4> idx;
-
-    for(int i = 0; i < 1000; ++i){
-        idx.remove(i);
-    }
-
-    std::cout << idx << std::endl;
-
-    for(int i=0; i < 100; ++i){
-        std::cout << "insertion: " << i << std::endl;
-        idx.insert(2*i);
-        std::cout << idx << std::endl;
-    }
-
 
     // std::cout << type_name<decltype(mesh)>() << std::endl;
+    auto mesh = SurfaceMesh();
 
-    // mesh.insert({0,1,3});
-    // mesh.insert({0,3,5});
-    // mesh.insert({1,3,4});
-    // mesh.insert({3,4,5});
-    // mesh.insert({1,2,4});
-    // mesh.insert({2,4,5});
+    mesh.insert({0,1,3});
+    mesh.insert({0,3,5});
+    mesh.insert({1,3,4});
+    mesh.insert({3,4,5});
+    mesh.insert({1,2,4});
+    mesh.insert({2,4,5});
+    mesh.insert({1,2,6});
+    mesh.insert({0,1,6});
 
-    // std::cout << mesh.unused_vertices << std::endl;
+    for(auto vid : mesh.get_level_id<1>()){
+        std::cout << "EXPECT_EQ(mesh.onBoundary(mesh.get_simplex_up("
+                << casc::to_string(mesh.get_name(vid)) << ")), "
+                << std::boolalpha<< mesh.onBoundary(vid) << ");"
+                << std::endl;
+        std::cout << "EXPECT_EQ(mesh.nearBoundary(mesh.get_simplex_up("
+                << casc::to_string(mesh.get_name(vid)) << ")), "
+                << std::boolalpha<< mesh.nearBoundary(vid) << ");"
+                << std::endl;
+    }
 
-    // mesh.remove({3});
+    for(auto eid : mesh.get_level_id<2>()){
+        std::cout << casc::to_string(eid.indices()) << std::endl;
+        auto cover = eid.get_cover();
+        for(int i =0; i < cover.size(); ++i){
+            std::cout << cover[i] << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "EXPECT_EQ(mesh.onBoundary(mesh.get_simplex_up("
+                << casc::to_string(mesh.get_name(eid)) << ")), "
+                << std::boolalpha<< mesh.onBoundary(eid) << ");"
+                << std::endl;
+        std::cout << "EXPECT_EQ(mesh.nearBoundary(mesh.get_simplex_up("
+                << casc::to_string(mesh.get_name(eid)) << ")), "
+                << std::boolalpha<< mesh.nearBoundary(eid) << ");"
+                << std::endl;
+    }
 
-    // std::cout << mesh.unused_vertices << std::endl;
+    for(auto fid : mesh.get_level_id<3>()){
+
+        std::cout << "EXPECT_EQ(mesh.onBoundary(mesh.get_simplex_up("
+                << casc::to_string(mesh.get_name(fid)) << ")), "
+                << std::boolalpha<< mesh.onBoundary(fid) << ");"
+                << std::endl;
+        std::cout << "EXPECT_EQ(mesh.nearBoundary(mesh.get_simplex_up("
+                << casc::to_string(mesh.get_name(fid)) << ")), "
+                << std::boolalpha<< mesh.nearBoundary(fid) << ");"
+                << std::endl;
+
+    }
+
+    mesh.remove({1,3,4});
+
+        for(auto vid : mesh.get_level_id<1>()){
+        std::cout << "EXPECT_EQ(mesh.onBoundary(mesh.get_simplex_up("
+                << casc::to_string(mesh.get_name(vid)) << ")), "
+                << std::boolalpha<< mesh.onBoundary(vid) << ");"
+                << std::endl;
+        std::cout << "EXPECT_EQ(mesh.nearBoundary(mesh.get_simplex_up("
+                << casc::to_string(mesh.get_name(vid)) << ")), "
+                << std::boolalpha<< mesh.nearBoundary(vid) << ");"
+                << std::endl;
+    }
+
+    for(auto eid : mesh.get_level_id<2>()){
+        std::cout << "EXPECT_EQ(mesh.onBoundary(mesh.get_simplex_up("
+                << casc::to_string(mesh.get_name(eid)) << ")), "
+                << std::boolalpha<< mesh.onBoundary(eid) << ");"
+                << std::endl;
+        std::cout << "EXPECT_EQ(mesh.nearBoundary(mesh.get_simplex_up("
+                << casc::to_string(mesh.get_name(eid)) << ")), "
+                << std::boolalpha<< mesh.nearBoundary(eid) << ");"
+                << std::endl;
+    }
+
+    for(auto fid : mesh.get_level_id<3>()){
+        std::cout << "EXPECT_EQ(mesh.onBoundary(mesh.get_simplex_up("
+                << casc::to_string(mesh.get_name(fid)) << ")), "
+                << std::boolalpha<< mesh.onBoundary(fid) << ");"
+                << std::endl;
+        std::cout << "EXPECT_EQ(mesh.nearBoundary(mesh.get_simplex_up("
+                << casc::to_string(mesh.get_name(fid)) << ")), "
+                << std::boolalpha<< mesh.nearBoundary(fid) << ");"
+                << std::endl;
+    }
 
     std::cout << "EOF" << std::endl;
 }

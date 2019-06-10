@@ -52,9 +52,13 @@ namespace index_tracker_detail {
 	template <typename T>
 	struct Interval
 	{
+		/// Default constructor
 		Interval() : _a(0), _b(0) {}
+		/// Construct an interval from a to a+1
 		Interval(T a) : _a(a), _b(a+1) {}
+		/// Construct an interval from a to b
 		Interval(T a, T b) : _a(a), _b(b) { assert(a <= b); }
+		/// Copy constructor
 		Interval(const Interval<T>& rhs) : _a(rhs._a), _b(rhs._b) {}
 
 		/**
@@ -71,14 +75,20 @@ namespace index_tracker_detail {
 			return *this;
 		}
 
+		/// Is x in the bounds of the interval
 		bool has(T x) { return _a <= x && x < _b; }
 
+		/// Get the lower inclusive bound of the interval
 		T  lower() const { return _a; }
+		/// Get the upper exclusive bound of the interval
 		T  upper() const { return _b; }
 
+		/// Get the lower inclusive bound of the interval
 		T& lower()       { return _a; }
+		/// Get the upper exclusive bound of the interval
 		T& upper()       { return _b; }
 
+		/// Get the size of the interval
 		std::size_t size() { return _b - _a; }
 
 	private:

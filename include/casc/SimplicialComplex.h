@@ -798,6 +798,53 @@ class simplicial_complex
             complex::NodeData<k>        &data() { return ptr->_data; }
 
             /**
+             * @brief      Gets the name of a simplex as an std::Array.
+             *
+             * @param[in]  id    SimplexID of the simplex of interest.
+             *
+             * @return     Array containing the name of 'id'.
+             */
+            std::array<KeyType, k> indices() const
+            {
+                std::array<KeyType, k> s;
+                std::size_t            i = 0;
+                for (auto curr : ptr->_down)
+                {
+                    s[i++] = curr.first;
+                }
+
+                return std::move(s);
+            }
+
+            /**
+             * @brief      Insert the coboundary keys of a simple into an inserter.
+             *
+             * @param[in]  pos       Iterator inserter
+             *
+             * @tparam     Inserter  Typename of the inserter.
+             */
+            template <class Inserter>
+            void cover_insert(Inserter pos) const
+            {
+                for (auto curr : ptr->_up)
+                {
+                    *pos++ = curr.first;
+                }
+            }
+
+            /**
+             * @brief      Get the coboundary keys of a simplex.
+             *
+             * @return     A vector of coboundary indices.
+             */
+            auto cover() const
+            {
+                std::vector<KeyType> rval;
+                cover_insert(std::back_inserter(rval));
+                return std::move(rval);
+            }
+
+            /**
              * @brief      Print the simplex as its name.
              *
              * @param      out   Handle to the stream
@@ -1014,7 +1061,7 @@ class simplicial_complex
             : node_count(0)
         {
             // Create a root node
-            _root = create_node(std::integral_constant<std::size_t, 0>());
+            _root = create_node<0>();
             for (auto &x : level_count) // Initialize level_count to 0 for all
                                         // levels
             {
@@ -1807,6 +1854,114 @@ class simplicial_complex
         }
 
         /**
+         * @brief      Checks whether a simplex is on a boundary.
+         *
+         * @param[in]  s     SimplexID of interest
+         *
+         * @tparam     k     Dimension of the simplex
+         *
+         * @return     True if the simplex is a member of a topLevel-1 simplex
+         *             on the boundary or if the simplex is on a boundary or if
+         *             the simplex is a coboundary of a boundary topLevel-1
+         *             simplex.
+         */
+        template <std::size_t k>
+        bool onBoundary(const SimplexID<k> s) const
+        {
+            return onBoundaryH<k, 0>::apply(s);
+        }
+
+
+        /**
+         * @brief      Checks whether a simplex is near a boundary.
+         *
+         * @param[in]  s      SimplexID of interest
+         *
+         * @tparam     level  Dimension of the simplex
+         *
+         * @return     True if the simplex or any subsimplices are onBoundary.
+         */
+        template <std::size_t level>
+        bool nearBoundary(const SimplexID<level> s) const
+        {
+            auto name = this->get_name(s);
+            KeyType down[level-1];
+
+            for(std::size_t i = 0; i < level; ++i){
+                std::size_t k = 0;
+                for(std::size_t j = 0; j < level; ++j){
+                    if (i != j){
+                        down[k++] = name[j];
+                    }
+                }
+                if(onBoundaryH<1, 0>::apply(
+                    get_down_recurse<level, level-1>::apply(this, down, s.ptr)
+                ))
+                    return true;
+            }
+            return false;
+        }
+
+        //** Reintroduce this code block when this is resolved
+        // http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_defects.html#727
+
+        // /**
+        //  * @brief      Checks whether a simplex is on a boundary.
+        //  *
+        //  * @param[in]  s     SimplexID of interest
+        //  *
+        //  * @tparam     k     Dimension of the simplex
+        //  *
+        //  * @return     True if the simplex interacts with a
+        //  *             topLevel-1 simplex which is on a boundary.
+        //  */
+        // template <std::size_t k>
+        // bool onBoundary(const SimplexID<k> s) const
+        // {
+        //     for(auto p : s.ptr->_up)
+        //     {
+        //         if(onBoundary(SimplexID<k+1>(p.second)))
+        //             return true;
+        //     }
+        //     return false;
+        // }
+
+        // /**
+        //  * @brief      Specialization of the facets
+        //  *
+        //  * @param[in]  s     SimplexID of interest
+        //  *
+        //  * @tparam     k     Dimension of the simplex
+        //  *
+        //  * @return     True if s is on a boundary
+        //  */
+        // template<>
+        // bool onBoundary(const SimplexID<topLevel> s) const
+        // {
+        //     for(auto p : s.ptr->_down){
+        //         if(onBoundary(SimplexID<topLevel-1>(p.second)))
+        //             return true;
+        //     }
+        //     return false;
+        // }
+
+        // /**
+        //  * @brief      Specialization of the topLevel-1 simplices
+        //  *
+        //  * @param[in]  s     SimplexID of interest
+        //  *
+        //  * @tparam     k     Dimension of the simplex
+        //  *
+        //  * @return     True if s is on a boundary
+        //  */
+        // template<>
+        // bool onBoundary(const SimplexID<topLevel-1> s) const
+        // {
+        //     return s.ptr->_up.size() != 2;
+        // }
+
+
+        /**
          * @brief      Less than or equal to comparison operator of two
          *             SimplexIDs.
          *
@@ -1897,6 +2052,83 @@ class simplicial_complex
         }
 
     private:
+
+        /**
+         * @brief      Base case for checking if simplex is on a boundary
+         *
+         * @tparam     level  Dimension of the simplex
+         * @tparam     foo    Dummy argument to avoid explicit specialization in
+         *                    class scope
+         */
+        template <std::size_t level, std::size_t foo>
+        struct onBoundaryH
+        {
+            /**
+             * @brief      Recurse up complex to find boundary.
+             *
+             * @param[in]  s     Simplex of interest
+             *
+             * @return     True if on boundary
+             */
+            static bool apply(const SimplexID<level> s)
+            {
+                for(auto p : s.ptr->_up)
+                {
+                    if(onBoundaryH<level+1, foo>::apply(SimplexID<level+1>(p.second)))
+                        return true;
+                }
+                return false;
+            }
+        };
+
+        /**
+         * @brief      Specialization for if facets are on boundary.
+         *
+         * @tparam     foo   Dummy argument to avoid explicit specialization in
+         *                   class scope}
+         */
+        template <std::size_t foo>
+        struct onBoundaryH<topLevel, foo>
+        {
+            /**
+             * @brief      Check if a face is on a boundary
+             *
+             * @param[in]  s     SimplexID<topLevel> of interest
+             *
+             * @return     True if a member SimplexID<topLevel-1> is a boundary.
+             */
+            static bool apply(const SimplexID<topLevel> s)
+            {
+                for(auto p : s.ptr->_down){
+                    if(onBoundaryH<topLevel-1, foo>::apply(SimplexID<topLevel-1>(p.second)))
+                        return true;
+                }
+                return false;
+            }
+        };
+
+        /**
+         * @brief      Specialization for topLevel-1 simplices
+         *
+         * @tparam     foo   Dummy argument to avoid explicit specialization in
+         *                   class scope}
+         */
+        template <std::size_t foo>
+        struct onBoundaryH<topLevel-1, foo>
+        {
+            /**
+             * @brief      Check if SimplexID<topLevel-1> is on a boundary
+             *
+             * @param[in]  s     SimplexID of interest
+             *
+             * @return     True if simplex has less than 2 coboundary faces.
+             */
+            static bool apply(const SimplexID<topLevel-1> s)
+            {
+                return s.ptr->_up.size() < 2;
+            }
+        };
+
         /**
          * @brief      Base case for recursively deleting simplices.
          *
@@ -2226,7 +2458,7 @@ class simplicial_complex
                 auto           iter = root->_up.find(v);
                 if (iter == root->_up.end())
                 {
-                    nn = that->create_node(std::integral_constant<std::size_t, level+1>());
+                    nn = that->create_node<level+1>();
 
                     nn->_down[v] = root;
                     root->_up[v] = nn;
@@ -2288,7 +2520,7 @@ class simplicial_complex
          * @return     A pointer to the new node.
          */
         template <std::size_t level>
-        Node<level>* create_node(std::integral_constant<std::size_t, level>)
+        Node<level>* create_node()
         {
             // Create the new node
             auto p = new Node<level>(node_count++);
