@@ -712,9 +712,9 @@ class simplicial_complex
         /// Type of this
         using type_this = simplicial_complex<traits>;
         /// Total number of levels in the complex.
-        static constexpr auto numLevels = NodeDataTypes::size;
+        static constexpr std::size_t numLevels = NodeDataTypes::size;
         /// Dimension of the simplicial complex.
-        static constexpr auto topLevel  = numLevels-1;
+        static constexpr std::size_t topLevel  = numLevels-1;
         /// Index of all simplex dimensions in the complex.
         using LevelIndex = typename std::make_index_sequence<numLevels>;
     private:
@@ -816,33 +816,37 @@ class simplicial_complex
                 return std::move(s);
             }
 
-            /**
-             * @brief      Insert the coboundary keys of a simple into an inserter.
-             *
-             * @param[in]  pos       Iterator inserter
-             *
-             * @tparam     Inserter  Typename of the inserter.
-             */
-            template <class Inserter>
-            void cover_insert(Inserter pos) const
-            {
-                for (auto curr : ptr->_up)
+            // Valid in C++17
+            // TODO: (0) expose this to modern compilers
+            // if constexpr (k < complex::topLevel){
+                /**
+                 * @brief      Insert the coboundary keys of a simple into an inserter.
+                 *
+                 * @param[in]  pos       Iterator inserter
+                 *
+                 * @tparam     Inserter  Typename of the inserter.
+                 */
+                template <class Inserter>
+                void cover_insert(Inserter pos) const
                 {
-                    *pos++ = curr.first;
+                    for (auto curr : ptr->_up)
+                    {
+                        *pos++ = curr.first;
+                    }
                 }
-            }
 
-            /**
-             * @brief      Get the coboundary keys of a simplex.
-             *
-             * @return     A vector of coboundary indices.
-             */
-            auto cover() const
-            {
-                std::vector<KeyType> rval;
-                cover_insert(std::back_inserter(rval));
-                return std::move(rval);
-            }
+                /**
+                 * @brief      Get the coboundary keys of a simplex.
+                 *
+                 * @return     A vector of coboundary indices.
+                 */
+                std::vector<KeyType> cover() const
+                {
+                    std::vector<KeyType> rval;
+                    cover_insert(std::back_inserter(rval));
+                    return rval;
+                }
+            // }
 
             /**
              * @brief      Print the simplex as its name.
@@ -1428,11 +1432,11 @@ class simplicial_complex
          * @return     A vector of coboundary indices.
          */
         template <std::size_t k>
-        auto get_cover(const SimplexID<k> id) const
+        std::vector<KeyType> get_cover(const SimplexID<k> id) const
         {
             std::vector<KeyType> rval;
             get_cover_insert(id, std::back_inserter(rval));
-            return std::move(rval);
+            return rval;
         }
 
         /**
@@ -1641,7 +1645,7 @@ class simplicial_complex
          * @return     The edge up.
          */
         template <std::size_t k>
-        auto get_edge_up(SimplexID<k> simplex, KeyType a)
+        EdgeID<k+1> get_edge_up(SimplexID<k> simplex, KeyType a)
         {
             return EdgeID<k+1>(simplex.ptr->_up.at(a), a);
         }
@@ -1657,7 +1661,7 @@ class simplicial_complex
          * @return     The edge down.
          */
         template <std::size_t k>
-        auto get_edge_down(SimplexID<k> simplex, KeyType a)
+        EdgeID<k> get_edge_down(SimplexID<k> simplex, KeyType a)
         {
             return EdgeID<k>(simplex.ptr, a);
         }
@@ -1673,7 +1677,7 @@ class simplicial_complex
          * @return     The edge up.
          */
         template <std::size_t k>
-        auto get_edge_up(SimplexID<k> simplex, KeyType a) const
+        EdgeID<k+1> get_edge_up(SimplexID<k> simplex, KeyType a) const
         {
             return EdgeID<k+1>(simplex.ptr->_up.at(a), a);
         }
@@ -1689,7 +1693,7 @@ class simplicial_complex
          * @return     The edge down.
          */
         template <std::size_t k>
-        auto get_edge_down(SimplexID<k> simplex, KeyType a) const
+        EdgeID<k> get_edge_down(SimplexID<k> simplex, KeyType a) const
         {
             return EdgeID<k>(simplex.ptr, a);
         }
@@ -1724,7 +1728,7 @@ class simplicial_complex
         }
 
 
-        template <std::size_t k> using SimplexIDIterator = detail::node_id_iterator<typename std::map<std::size_t, NodePtr<k>>::iterator, SimplexID<k>>;
+        template <std::size_t k> using SimplexIDIterator = detail::node_id_iterator<typename detail::map<NodePtr<k>>::iterator, SimplexID<k>>;
         /**
          * @brief      Create an iterator to traverse the SimplexIDs of a
          *             dimension.
@@ -1734,7 +1738,7 @@ class simplicial_complex
          * @return     An iterator across all k-simplices of the complex.
          */
         template <std::size_t k>
-        auto get_level_id()
+        util::range<SimplexIDIterator<k>> get_level_id()
         {
             auto begin = std::get<k>(levels).begin();
             auto end = std::get<k>(levels).end();
@@ -1752,7 +1756,7 @@ class simplicial_complex
          * @return     An iterator across all k-simplices of the complex.
          */
         template <std::size_t k>
-        auto get_level_id() const
+        util::range<const SimplexIDIterator<k>> get_level_id() const
         {
             auto begin = std::get<k>(levels).cbegin();
             auto end = std::get<k>(levels).cend();
@@ -1773,7 +1777,7 @@ class simplicial_complex
          * complex.
          */
         template <std::size_t k>
-        auto get_level()
+        util::range<DataIterator<k>> get_level()
         {
             auto begin = std::get<k>(levels).begin();
             auto end = std::get<k>(levels).end();
@@ -1792,7 +1796,7 @@ class simplicial_complex
          * complex.
          */
         template <std::size_t k>
-        auto get_level() const
+        util::range<const DataIterator<k>> get_level() const
         {
             auto begin = std::get<k>(levels).cbegin();
             auto end = std::get<k>(levels).cend();
