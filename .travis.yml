@@ -39,7 +39,7 @@ script:
   - ctest -V
 after_success:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      make docs
+      make docs;
     fi;
 deploy:
   provider: pages
