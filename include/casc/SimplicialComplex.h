@@ -1738,7 +1738,7 @@ class simplicial_complex
          * @return     An iterator across all k-simplices of the complex.
          */
         template <std::size_t k>
-        util::range<SimplexIDIterator<k>> get_level_id()
+        auto get_level_id()
         {
             auto begin = std::get<k>(levels).begin();
             auto end = std::get<k>(levels).end();
@@ -1756,7 +1756,7 @@ class simplicial_complex
          * @return     An iterator across all k-simplices of the complex.
          */
         template <std::size_t k>
-        util::range<const SimplexIDIterator<k>> get_level_id() const
+        auto get_level_id() const
         {
             auto begin = std::get<k>(levels).cbegin();
             auto end = std::get<k>(levels).cend();
@@ -1777,7 +1777,7 @@ class simplicial_complex
          * complex.
          */
         template <std::size_t k>
-        util::range<DataIterator<k>> get_level()
+        auto get_level()
         {
             auto begin = std::get<k>(levels).begin();
             auto end = std::get<k>(levels).end();
@@ -1796,7 +1796,7 @@ class simplicial_complex
          * complex.
          */
         template <std::size_t k>
-        util::range<const DataIterator<k>> get_level() const
+        auto get_level() const
         {
             auto begin = std::get<k>(levels).cbegin();
             auto end = std::get<k>(levels).cend();
