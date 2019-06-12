@@ -2120,7 +2120,7 @@ class simplicial_complex
          *                   class scope}
          */
         template <std::size_t foo>
-        struct onBoundaryH<bdrylevel, foo>
+        struct onBoundaryH<bdryLevel, foo>
         {
             /**
              * @brief      Check if SimplexID<topLevel-1> is on a boundary
@@ -2129,7 +2129,7 @@ class simplicial_complex
              *
              * @return     True if simplex has less than 2 coboundary faces.
              */
-            static bool apply(const SimplexID<bdrylevel> s)
+            static bool apply(const SimplexID<bdryLevel> s)
             {
                 return s.ptr->_up.size() < 2;
             }
