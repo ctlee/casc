@@ -715,6 +715,8 @@ class simplicial_complex
         static constexpr std::size_t numLevels = NodeDataTypes::size;
         /// Dimension of the simplicial complex.
         static constexpr std::size_t topLevel  = numLevels-1;
+        /// Dimension of boundaries.
+        static constexpr std::size_t bdryLevel  = numLevels-2;
         /// Index of all simplex dimensions in the complex.
         using LevelIndex = typename std::make_index_sequence<numLevels>;
     private:
@@ -2118,7 +2120,7 @@ class simplicial_complex
          *                   class scope}
          */
         template <std::size_t foo>
-        struct onBoundaryH<topLevel-1, foo>
+        struct onBoundaryH<bdrylevel, foo>
         {
             /**
              * @brief      Check if SimplexID<topLevel-1> is on a boundary
@@ -2127,7 +2129,7 @@ class simplicial_complex
              *
              * @return     True if simplex has less than 2 coboundary faces.
              */
-            static bool apply(const SimplexID<topLevel-1> s)
+            static bool apply(const SimplexID<bdrylevel> s)
             {
                 return s.ptr->_up.size() < 2;
             }
