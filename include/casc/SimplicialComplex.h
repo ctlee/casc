@@ -1101,13 +1101,13 @@ class simplicial_complex
          * @tparam     n     Dimension of simplex 's'.
          */
         template <std::size_t n>
-        void insert(const KeyType (&s)[n])
+        SimplexID<n> insert(const KeyType (&s)[n])
         {
             for (const KeyType* p = s; p < s + n; ++p)
             {
                 unused_vertices.remove(*p);
             }
-            insert_full<0, n>::apply(this, _root, s);
+            return insert_full<0, n>::apply(this, _root, s);
         }
 
         /**
@@ -1125,7 +1125,7 @@ class simplicial_complex
          * @tparam     n     Dimension of simplex 's'.
          */
         template <std::size_t n>
-        void insert(const KeyType (&s)[n], const NodeData<n> &data)
+        SimplexID<n> insert(const KeyType (&s)[n], const NodeData<n> &data)
         {
             for (const KeyType* p = s; p < s + n; ++p)
             {
@@ -1133,6 +1133,7 @@ class simplicial_complex
             }
             Node<n>* rval = insert_full<0, n>::apply(this, _root, s);
             rval->_data = data;
+            return rval;
         }
 
         /**
@@ -1144,13 +1145,13 @@ class simplicial_complex
          * @tparam     n     Dimension of simplex 's'.
          */
         template <std::size_t n>
-        void insert(const std::array<KeyType, n> &s)
+        SimplexID<n> insert(const std::array<KeyType, n> &s)
         {
             for (KeyType x : s)
             {
                 unused_vertices.remove(x);
             }
-            insert_full<0, n>::apply(this, _root, s.data());
+            return insert_full<0, n>::apply(this, _root, s.data());
         }
 
         /**
@@ -1163,7 +1164,7 @@ class simplicial_complex
          * @tparam     n     Dimension of simplex 's'.
          */
         template <std::size_t n>
-        void insert(const std::array<KeyType, n> &s, const NodeData<n> &data)
+        SimplexID<n> insert(const std::array<KeyType, n> &s, const NodeData<n> &data)
         {
             for (KeyType x : s)
             {
@@ -1171,6 +1172,7 @@ class simplicial_complex
             }
             Node<n>* rval = insert_full<0, n>::apply(this, _root, s.data());
             rval->_data = data;
+            return rval;
         }
 
         /**
