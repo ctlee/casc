@@ -715,6 +715,8 @@ class simplicial_complex
         static constexpr std::size_t numLevels = NodeDataTypes::size;
         /// Dimension of the simplicial complex.
         static constexpr std::size_t topLevel  = numLevels-1;
+        /// Dimension of boundaries.
+        static constexpr std::size_t bdryLevel  = numLevels-2;
         /// Index of all simplex dimensions in the complex.
         using LevelIndex = typename std::make_index_sequence<numLevels>;
     private:
@@ -731,6 +733,7 @@ class simplicial_complex
 
         friend struct SimplexID; /**< SimplexID is a friend of
                                     simplicial_complex */
+
         /**
          * @brief      A handle for a simplex object in the complex.
          *
@@ -847,6 +850,81 @@ class simplicial_complex
                     return rval;
                 }
             // }
+
+            /**
+             * @brief      Get a coboundary simplex
+             *
+             * @param[in]  s     Array of keys to follow
+             *
+             * @tparam     j     Number of keys
+             *
+             * @return     The simplex up
+             */
+            template <std::size_t j>
+            SimplexID<k+j> get_simplex_up(const KeyType (&s)[j]) const
+            {
+                static_assert(k+j <= complex::topLevel, "Cannot get simplex greater than the facets");
+                return complex::get_recurse<k, j>::apply(s, this->ptr);
+            }
+
+            /**
+             * @brief      Get a coboundary simplex
+             *
+             * @param[in]  arr   Array of keys to follow
+             *
+             * @tparam     j     Number of keys
+             *
+             * @return     The simplex up
+             */
+            template <std::size_t j>
+            SimplexID<k+j> get_simplex_up(const std::array<KeyType, j> &arr) const
+            {
+                static_assert(k+j <= complex::topLevel, "Cannot get simplex greater than the facets");
+                return get_recurse<k, j>::apply(arr.data(), this->ptr);
+            }
+
+            /**
+             * @brief      Convenience version of get_simplex_up when the name 's'
+             *             consists of a single character.
+             *
+             * @param[in]  id    The identifier of a simplex.
+             * @param[in]  s     The relative single character name of the desired
+             *                   simplex.
+             *
+             * @tparam     i     The size of simplex 'id'.
+             *
+             * @return     SimplexID of node corresponding to \f$id\cup s\f$.
+             */
+            SimplexID<k+1> get_simplex_up(const KeyType s) const
+            {
+                return get_recurse<k, 1>::apply(&s, this->ptr);
+            }
+
+            /**
+             * @brief      Gets the simplex down.
+             */
+            template <std::size_t j>
+            SimplexID<k-j> get_simplex_down(const KeyType (&s)[j]) const
+            {
+                return get_down_recurse<k, j>::apply(s, this->ptr);
+            }
+
+            /**
+             * @brief      Gets the simplex down.
+             */
+            template <std::size_t j>
+            SimplexID<k-j> get_simplex_down(const std::array<KeyType, j> &arr) const
+            {
+                return get_down_recurse<k, j>::apply(arr.data(), this->ptr);
+            }
+
+            /**
+             * @brief      Gets the simplex down.
+             */
+            SimplexID<k-1> get_simplex_down(const KeyType s) const
+            {
+                return get_down_recurse<k, 1>::apply(&s, this->ptr);
+            }
 
             /**
              * @brief      Print the simplex as its name.
@@ -1099,13 +1177,13 @@ class simplicial_complex
          * @tparam     n     Dimension of simplex 's'.
          */
         template <std::size_t n>
-        void insert(const KeyType (&s)[n])
+        SimplexID<n> insert(const KeyType (&s)[n])
         {
             for (const KeyType* p = s; p < s + n; ++p)
             {
                 unused_vertices.remove(*p);
             }
-            insert_full<0, n>::apply(this, _root, s);
+            return insert_full<0, n>::apply(this, _root, s);
         }
 
         /**
@@ -1123,7 +1201,7 @@ class simplicial_complex
          * @tparam     n     Dimension of simplex 's'.
          */
         template <std::size_t n>
-        void insert(const KeyType (&s)[n], const NodeData<n> &data)
+        SimplexID<n> insert(const KeyType (&s)[n], const NodeData<n> &data)
         {
             for (const KeyType* p = s; p < s + n; ++p)
             {
@@ -1131,6 +1209,7 @@ class simplicial_complex
             }
             Node<n>* rval = insert_full<0, n>::apply(this, _root, s);
             rval->_data = data;
+            return rval;
         }
 
         /**
@@ -1142,13 +1221,13 @@ class simplicial_complex
          * @tparam     n     Dimension of simplex 's'.
          */
         template <std::size_t n>
-        void insert(const std::array<KeyType, n> &s)
+        SimplexID<n> insert(const std::array<KeyType, n> &s)
         {
             for (KeyType x : s)
             {
                 unused_vertices.remove(x);
             }
-            insert_full<0, n>::apply(this, _root, s.data());
+            return insert_full<0, n>::apply(this, _root, s.data());
         }
 
         /**
@@ -1161,7 +1240,7 @@ class simplicial_complex
          * @tparam     n     Dimension of simplex 's'.
          */
         template <std::size_t n>
-        void insert(const std::array<KeyType, n> &s, const NodeData<n> &data)
+        SimplexID<n> insert(const std::array<KeyType, n> &s, const NodeData<n> &data)
         {
             for (KeyType x : s)
             {
@@ -1169,6 +1248,7 @@ class simplicial_complex
             }
             Node<n>* rval = insert_full<0, n>::apply(this, _root, s.data());
             rval->_data = data;
+            return rval;
         }
 
         /**
@@ -1269,14 +1349,13 @@ class simplicial_complex
         template <std::size_t n>
         SimplexID<n> get_simplex_up(const KeyType (&s)[n]) const
         {
-            return get_recurse<0, n>::apply(this, s, _root);
+            return get_recurse<0, n>::apply(s, _root);
         }
 
         template <std::size_t n>
         SimplexID<n> get_simplex_up(const std::array<KeyType, n> &arr) const
         {
-
-            return get_recurse<0, n>::apply(this, arr.data(), _root);
+            return get_recurse<0, n>::apply(arr.data(), _root);
         }
 
         /**
@@ -1294,13 +1373,13 @@ class simplicial_complex
         template <std::size_t i, std::size_t j>
         SimplexID<i+j> get_simplex_up(const SimplexID<i> id, const KeyType (&s)[j]) const
         {
-            return get_recurse<i, j>::apply(this, s, id);
+            return get_recurse<i, j>::apply(s, id);
         }
 
         template <std::size_t i, std::size_t j>
         SimplexID<i+j> get_simplex_up(const SimplexID<i> id, const std::array<KeyType, j> &arr) const
         {
-            return get_recurse<i, j>::apply(this, arr.data(), id);
+            return get_recurse<i, j>::apply(arr.data(), id);
         }
 
 
@@ -1319,7 +1398,7 @@ class simplicial_complex
         template <std::size_t i>
         SimplexID<i+1> get_simplex_up(const SimplexID<i> id, const KeyType s) const
         {
-            return get_recurse<i, 1>::apply(this, &s, id.ptr);
+            return get_recurse<i, 1>::apply(&s, id.ptr);
         }
 
         /**
@@ -1348,13 +1427,13 @@ class simplicial_complex
         template <std::size_t i, std::size_t j>
         SimplexID<i-j> get_simplex_down(const SimplexID<i> id, const KeyType (&s)[j]) const
         {
-            return get_down_recurse<i, j>::apply(this, s, id.ptr);
+            return get_down_recurse<i, j>::apply(s, id.ptr);
         }
 
         template <std::size_t i, std::size_t j>
         SimplexID<i-j> get_simplex_down(const SimplexID<i> id, const std::array<KeyType, j> &arr) const
         {
-            return get_down_recurse<i, j>::apply(this, arr.data(), id.ptr);
+            return get_down_recurse<i, j>::apply(arr.data(), id.ptr);
         }
 
         /**
@@ -1372,7 +1451,7 @@ class simplicial_complex
         template <std::size_t i>
         SimplexID<i-1> get_simplex_down(const SimplexID<i> id, const KeyType s) const
         {
-            return get_down_recurse<i, 1>::apply(this, &s, id.ptr);
+            return get_down_recurse<i, 1>::apply(&s, id.ptr);
         }
 
         /**
@@ -1711,7 +1790,7 @@ class simplicial_complex
         bool exists(const KeyType (&s)[k]) const
         {
 
-            return get_recurse<0, k>::apply(this, s, _root) != nullptr;
+            return get_recurse<0, k>::apply(s, _root) != nullptr;
         }
 
         /**
@@ -1818,7 +1897,7 @@ class simplicial_complex
         template <std::size_t k>
         std::size_t remove(const KeyType (&s)[k])
         {
-            Node<k>* root  = get_recurse<0, k>::apply(this, s, _root);
+            Node<k>* root  = get_recurse<0, k>::apply(s, _root);
             std::size_t   count = 0;
             return remove_recurse<k, 0>::apply(this, &root, &root + 1, count);
         }
@@ -1835,7 +1914,7 @@ class simplicial_complex
         template <std::size_t k>
         std::size_t remove(const std::array<KeyType, k> &s)
         {
-            Node<k>* root  = get_recurse<0, k>::apply(this, s.data(), _root);
+            Node<k>* root  = get_recurse<0, k>::apply(s.data(), _root);
             std::size_t   count = 0;
             return remove_recurse<k, 0>::apply(this, &root, &root + 1, count);
         }
@@ -1888,22 +1967,7 @@ class simplicial_complex
         template <std::size_t level>
         bool nearBoundary(const SimplexID<level> s) const
         {
-            auto name = this->get_name(s);
-            KeyType down[level-1];
-
-            for(std::size_t i = 0; i < level; ++i){
-                std::size_t k = 0;
-                for(std::size_t j = 0; j < level; ++j){
-                    if (i != j){
-                        down[k++] = name[j];
-                    }
-                }
-                if(onBoundaryH<1, 0>::apply(
-                    get_down_recurse<level, level-1>::apply(this, down, s.ptr)
-                ))
-                    return true;
-            }
-            return false;
+            return nearBoundaryH<level, 0>::apply(s);
         }
 
         //** Reintroduce this code block when this is resolved
@@ -2056,6 +2120,51 @@ class simplicial_complex
         }
 
     private:
+        /**
+         * @brief      Base case for checking if simplex is near a boundary
+         *
+         * @tparam     level  Dimension of the simplex
+         * @tparam     foo    Dummy argument to avoid explicit specialization in
+         *                    class scope
+         */
+        template <std::size_t level, std::size_t foo>
+        struct nearBoundaryH
+        {
+            static bool apply(const SimplexID<level> s){
+                auto name = s.indices();
+                KeyType down[level-1];
+
+                for(std::size_t i = 0; i < level; ++i){
+                    std::size_t k = 0;
+                    for(std::size_t j = 0; j < level; ++j){
+                        if (i != j){
+                            down[k++] = name[j];
+                        }
+                    }
+                    if(onBoundaryH<1, 0>::apply(
+                        get_down_recurse<level, level-1>::apply(down, s.ptr)
+                    ))
+                        return true;
+                }
+                return false;
+            }
+        };
+
+        /**
+         * @brief      Specialization of vertices
+         *
+         * @tparam     foo    Dummy argument to avoid explicit specialization in
+         *                    class scope
+         */
+        template <std::size_t foo>
+        struct nearBoundaryH<1, foo>
+        {
+            static bool apply(const SimplexID<1> s){
+                if(onBoundaryH<1, 0>::apply(s))
+                    return true;
+                return false;
+            }
+        };
 
         /**
          * @brief      Base case for checking if simplex is on a boundary
@@ -2118,7 +2227,7 @@ class simplicial_complex
          *                   class scope}
          */
         template <std::size_t foo>
-        struct onBoundaryH<topLevel-1, foo>
+        struct onBoundaryH<bdryLevel, foo>
         {
             /**
              * @brief      Check if SimplexID<topLevel-1> is on a boundary
@@ -2127,7 +2236,7 @@ class simplicial_complex
              *
              * @return     True if simplex has less than 2 coboundary faces.
              */
-            static bool apply(const SimplexID<topLevel-1> s)
+            static bool apply(const SimplexID<bdryLevel> s)
             {
                 return s.ptr->_up.size() < 2;
             }
@@ -2228,7 +2337,7 @@ class simplicial_complex
              *
              * @return     Returns a pointer to the node.
              */
-            static Node<level+n>* apply(const type_this* that, const KeyType* s, Node<level>* root)
+            static Node<level+n>* apply(const KeyType* s, Node<level>* root)
             {
                 // TODO: We probably don't need to check if root is a valid
                 // simplex (10)
@@ -2237,7 +2346,7 @@ class simplicial_complex
                     auto p = root->_up.find(*s);
                     if (p != root->_up.end())
                     {
-                        return get_recurse<level+1, n-1>::apply(that, s+1, root->_up.at(*s));
+                        return get_recurse<level+1, n-1>::apply(s+1, root->_up.at(*s));
                     }
                     else
                     {
@@ -2267,7 +2376,7 @@ class simplicial_complex
              *
              * @return     Returns a pointer to the node.
              */
-            static Node<level>* apply(const type_this*, const KeyType*, Node<level>* root)
+            static Node<level>* apply(const KeyType*, Node<level>* root)
             {
                 return root;
             }
@@ -2291,14 +2400,14 @@ class simplicial_complex
              *
              * @return     Returns a pointer to the node.
              */
-            static Node<level-n>* apply(const type_this* that, const KeyType* s, Node<level>* root)
+            static Node<level-n>* apply(const KeyType* s, Node<level>* root)
             {
                 if (root)
                 {
                     auto p = root->_down.find(*s);
                     if (p != root->_down.end())
                     {
-                        return get_down_recurse<level-1, n-1>::apply(that, s+1, root->_down[*s]);
+                        return get_down_recurse<level-1, n-1>::apply(s+1, root->_down[*s]);
                     }
                     else
                     {
@@ -2329,7 +2438,7 @@ class simplicial_complex
              *
              * @return     Returns a pointer to the node.
              */
-            static Node<level>* apply(const type_this*, const KeyType*, Node<level>* root)
+            static Node<level>* apply(const KeyType*, Node<level>* root)
             {
                 return root;
             }

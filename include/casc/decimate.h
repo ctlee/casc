@@ -486,7 +486,7 @@ void decimate(Complex &F, Simplex s, Callback<Complex> &&clbk)
     using SimplexMap = typename casc::SimplexMap<Complex>;
 
     // Create the vertex to replace `s`
-    int        np = F.add_vertex();
+    typename Complex::KeyType np = F.add_vertex();
     SimplexSet nbhd;
     SimplexMap simplexMap;
 
@@ -519,13 +519,13 @@ void decimate(Complex &F, Simplex s, Callback<Complex> &&clbk)
  * @tparam     Simplex     Typename of the simplex
  */
 template <typename Complex, typename Simplex>
-void decimateFirstHalf(Complex &F, Simplex s, SimplexMap<Complex> &simplexMap)
+typename Complex::KeyType decimateFirstHalf(Complex &F, Simplex s, SimplexMap<Complex> &simplexMap)
 {
     /// Alias for SimplexSet
     using SimplexSet = typename casc::SimplexSet<Complex>;
 
     // Create the vertex to replace `s`
-    int        np = F.add_vertex();
+    typename Complex::KeyType np = F.add_vertex();
     SimplexSet nbhd;
 
     // Get the complete neighborhood
@@ -538,6 +538,7 @@ void decimateFirstHalf(Complex &F, Simplex s, SimplexMap<Complex> &simplexMap)
         decimation_detail::MainVisitor<Complex>(
             &nbhd, np, &simplexMap),
         F, s);
+    return np;
 }
 
 /**
