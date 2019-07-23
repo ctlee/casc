@@ -733,6 +733,7 @@ class simplicial_complex
 
         friend struct SimplexID; /**< SimplexID is a friend of
                                     simplicial_complex */
+
         /**
          * @brief      A handle for a simplex object in the complex.
          *
@@ -849,6 +850,81 @@ class simplicial_complex
                     return rval;
                 }
             // }
+
+            /**
+             * @brief      Get a coboundary simplex
+             *
+             * @param[in]  s     Array of keys to follow
+             *
+             * @tparam     j     Number of keys
+             *
+             * @return     The simplex up
+             */
+            template <std::size_t j>
+            SimplexID<k+j> get_simplex_up(const KeyType (&s)[j]) const
+            {
+                static_assert(k+j <= complex::topLevel, "Cannot get simplex greater than the facets");
+                return complex::get_recurse<k, j>::apply(s, this->ptr);
+            }
+
+            /**
+             * @brief      Get a coboundary simplex
+             *
+             * @param[in]  arr   Array of keys to follow
+             *
+             * @tparam     j     Number of keys
+             *
+             * @return     The simplex up
+             */
+            template <std::size_t j>
+            SimplexID<k+j> get_simplex_up(const std::array<KeyType, j> &arr) const
+            {
+                static_assert(k+j <= complex::topLevel, "Cannot get simplex greater than the facets");
+                return get_recurse<k, j>::apply(arr.data(), this->ptr);
+            }
+
+            /**
+             * @brief      Convenience version of get_simplex_up when the name 's'
+             *             consists of a single character.
+             *
+             * @param[in]  id    The identifier of a simplex.
+             * @param[in]  s     The relative single character name of the desired
+             *                   simplex.
+             *
+             * @tparam     i     The size of simplex 'id'.
+             *
+             * @return     SimplexID of node corresponding to \f$id\cup s\f$.
+             */
+            SimplexID<k+1> get_simplex_up(const KeyType s) const
+            {
+                return get_recurse<k, 1>::apply(&s, this->ptr);
+            }
+
+            /**
+             * @brief      Gets the simplex down.
+             */
+            template <std::size_t j>
+            SimplexID<k-j> get_simplex_down(const KeyType (&s)[j]) const
+            {
+                return get_down_recurse<k, j>::apply(s, this->ptr);
+            }
+
+            /**
+             * @brief      Gets the simplex down.
+             */
+            template <std::size_t j>
+            SimplexID<k-j> get_simplex_down(const std::array<KeyType, j> &arr) const
+            {
+                return get_down_recurse<k, j>::apply(arr.data(), this->ptr);
+            }
+
+            /**
+             * @brief      Gets the simplex down.
+             */
+            SimplexID<k-1> get_simplex_down(const KeyType s) const
+            {
+                return get_down_recurse<k, 1>::apply(&s, this->ptr);
+            }
 
             /**
              * @brief      Print the simplex as its name.
@@ -1279,7 +1355,6 @@ class simplicial_complex
         template <std::size_t n>
         SimplexID<n> get_simplex_up(const std::array<KeyType, n> &arr) const
         {
-
             return get_recurse<0, n>::apply(arr.data(), _root);
         }
 

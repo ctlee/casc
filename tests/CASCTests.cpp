@@ -49,10 +49,10 @@ using TetMeshType = casc::AbstractSimplicialComplex<
         int
     >;
 
-class CASCTest : public testing::Test {
+class CASCTestFix : public testing::Test {
 protected:
-    CASCTest() {}
-    ~CASCTest() {}
+    CASCTestFix() {}
+    ~CASCTestFix() {}
     virtual void SetUp() {
     	mesh.insert<1>({1}, 1);
 			mesh.insert<1>({2}, 2);
@@ -68,6 +68,24 @@ protected:
 
 	SurfaceMeshType mesh;
 };
+
+TEST_F(CASCTestFix, SimplexIDTraversal){
+	auto vid = mesh.get_simplex_up({1});
+	auto eid = mesh.get_simplex_up({1,3});
+	auto eid2 = vid.get_simplex_up(3);
+
+	EXPECT_EQ(eid, eid2);
+
+	auto fid = mesh.get_simplex_up({1,2,3});
+	auto fid2 = vid.get_simplex_up({2,3});
+	EXPECT_EQ(fid, fid2);
+
+	eid2 = fid2.get_simplex_down(2);
+  EXPECT_EQ(eid, eid2);
+
+  auto vid2 = fid2.get_simplex_down({2,3});
+  EXPECT_EQ(vid, vid2);
+}
 
 TEST(CASCTest, DefaultConstructor){
  	SurfaceMeshType mesh = SurfaceMeshType();
@@ -85,7 +103,6 @@ TEST(CASCTest, DefaultConstructorTet){
 	EXPECT_EQ(0, mesh.size<3>());
 	EXPECT_EQ(0, mesh.size<4>());
 }
-
 
 TEST(CASCTest, Insert){
 	SurfaceMeshType mesh = SurfaceMeshType();
