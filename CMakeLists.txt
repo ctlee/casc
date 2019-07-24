@@ -28,7 +28,7 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 #####################################################################
 # Project GAMer
 #####################################################################
-project(CASC VERSION 1.0.4 LANGUAGES CXX)
+project(CASC VERSION 1.0.5 LANGUAGES CXX)
 
 # Require c++14 and standard libraries
 set(CMAKE_CXX_STANDARD 14)
