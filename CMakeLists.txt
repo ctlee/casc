@@ -30,7 +30,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake-modules")
 #####################################################################
 # Project GAMer
 #####################################################################
-project(CASC VERSION 1.0.3 LANGUAGES CXX)
+project(CASC VERSION 1.0.5 LANGUAGES CXX)
 
 # Require c++14 and standard libraries
 set(CMAKE_CXX_STANDARD 14)

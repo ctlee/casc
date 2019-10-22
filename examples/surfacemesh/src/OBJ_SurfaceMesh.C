@@ -49,7 +49,7 @@ std::unique_ptr<SurfaceMesh> readOBJ(const std::string& filename)
 	    	{
 		    	// List of geometric vertices, with (x,y,z[,w]) coordinates, w is optional and defaults to 1.0.
         		arr = stringutil::split(line, {' '});
-        		Vertex v = Vertex(
+        		SMVertex v = SMVertex(
     					std::stod(arr[1]),
     					std::stod(arr[2]),
     					std::stod(arr[3])
@@ -74,10 +74,10 @@ std::unique_ptr<SurfaceMesh> readOBJ(const std::string& filename)
         	}
 	    	// again we're going to ignore textures and normals
 	    	for(auto it = arr.begin(); it != arr.end(); ++it){
-	    		*it = stringutil::split(*it, {'/'})[0];	
-	    	}   	
+	    		*it = stringutil::split(*it, {'/'})[0];
+	    	}
 	    	mesh->insert<3>({
-	    		std::stoi(arr[1]), 
+	    		std::stoi(arr[1]),
 	    		std::stoi(arr[2]),
 	    		std::stoi(arr[3])});
 	    }
@@ -91,9 +91,9 @@ void writeOBJ(const std::string& filename, const SurfaceMesh& mesh){
   	std::ofstream fout(filename);
     if(!fout.is_open())
     {
-        std::cerr   << "File '" << filename 
+        std::cerr   << "File '" << filename
                     << "' could not be writen to." << std::endl;
-        exit(1); 
+        exit(1);
     }
 
     std::map<typename SurfaceMesh::KeyType,typename SurfaceMesh::KeyType> sigma;
@@ -103,13 +103,13 @@ void writeOBJ(const std::string& filename, const SurfaceMesh& mesh){
         sigma[mesh.get_name(x)[0]] = cnt++;
     }
 
-    fout.precision(10); 
-    // Get the vertex data directly 
+    fout.precision(10);
+    // Get the vertex data directly
     for(const auto& vertex : mesh.get_level<1>()){
         fout    << "v "
         		<< vertex[0] << " "
-                << vertex[1] << " " 
-                << vertex[2] << " " 
+                << vertex[1] << " "
+                << vertex[2] << " "
                 << "\n";
     }
 
