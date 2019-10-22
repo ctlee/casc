@@ -20,10 +20,12 @@
 #
 # ***************************************************************************
 
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.10)
 
 # Disable in source builds
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+# Add path to custom modules
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake-modules")
 
 #####################################################################
 # Project GAMer
