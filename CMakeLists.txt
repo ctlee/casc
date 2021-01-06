@@ -1,7 +1,7 @@
 # ***************************************************************************
 # This file is part of the Colored Abstract Simplicial Complex library.
-# Copyright (C) 2016-2017
-# by Christopher Lee, John Moody, Rommie Amaro, J. Andrew McCammon,
+# Copyright (C) 2016-2021
+# by Christopher T. Lee, John Moody, Rommie Amaro, J. Andrew McCammon,
 #    and Michael Holst
 #
 # This library is free software; you can redistribute it and/or

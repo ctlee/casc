@@ -21,7 +21,7 @@ CASC is a pure template library defined in the headers.
 
 We use the CMake build system (version 3+), but only to build the documentation and unit-tests, and to automate installation. 
 
-Doxygen and Graphviz is used to generate the documentation.
+Doxygen and Graphviz are used to generate the documentation.
 
 To use CASC in your software all you will need is a working C++ compiler with full C++14 support.
 This includes:
