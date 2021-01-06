@@ -1,3 +1,7 @@
+arch: amd64
+os: linux
+dist: focal
+
 notifications:
   email: false
   slack:
@@ -6,47 +10,92 @@ notifications:
     secure: ilztqDylzgDwnh+AAHdrmHjgD4rjutJa5rh783H8HfW7KKY+RtHaAa+Z9V6uAbU3/fPk29fkCXRxT/scAI4Fn0TQ/Hi0alCs7ytNJg+2fbVcI5xWHbmJznOb0pQl0Gn6MGwouSyP9WvRtivtT5u+wlNR6yKycTmUI9qP3Fe7nA/k/WdRt5SHGjjprtYZYbBOg+9UStzubMuQj5hTBeDs78UyUbejSsZ0Cp9+OkTcugoEegwn0o9QdkvFGHF/hQ5bVGGNVAFUVOg+B4DFiw59MbsgIDZ663CXCTxUJ1I4uS3rI7LpnY2G8c5dKp9E2KDkM8sPKWzg4qeyj1POMPNDUbNYWIHBBK4NxrQ+PqW1nquxNTVsqYi2IXVmV2BWx9+SUS06YwDsjrCcQyAtnCzxn/tL3aX/8jyeN3yPwytJgDuj9IF8nIJZuuMgDOs1ZVa9fbL8ANBMcZMKIPCSwjO8670ULl5xKAWKGTY7HwzGLU3syQBwOX+eukf9zx2Y9qrsP1kJJT8YTOD45icJRAMPQQEiN20wxKh/V7Kz0ewc6LG8Bv1FyM6f+7ehNZvkwrStzJJ85JwDkPeTKKiBa3kuBQzE0CBm3/cTYCXgQEo3jggH1xPF8OkbYhuX8TrZjp3PBVCABto6V6OGILFA7Hhv6gK9eHxCSVOICPfWCfYXakY=
 
 language: cpp
-dist: xenial
-sudo: false
 
-# Blacklist
 branches:
   only:
     - master
     - development
-matrix:
+    - /^v?((\d+)(\.\d+)*)(-?(a|b|c|rc|alpha|beta)([0-9]+)?)?$
+
+# BUILD MATRIX
+jobs:
+  fast_finish: true
   include:
-    - os: osx
-      osx_image: xcode
-      before_install:
-        - brew install doxygen
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+  - stage: test 
+    os: windows
+  
+  - stage: test 
+    os: osx
+    osx_image: xcode11.6
+    addons:
+      homebrew:
+        packages: ['cmake', 'ninja']
+
+  - os: osx
+    osx_image: xcode12
+    addons:
+      homebrew:
+        packages: ['cmake', 'ninja']
+
+  - os: osx
+    osx_image: xcode12
+    addons:
+      homebrew:
+        packages: ['cmake', 'ninja']
+
+  - stage: test 
+    os: linux
+    dist: bionic
+    compiler: gcc
+    python: 3.6
+    addons:
+      apt:
+        packages: ['ninja-build']
+
+  - stage: test
+    os: linux
+    dist: focal
+    compiler: gcc
+    python: 3.7
+    addons:
+      apt:
+        packages: ['ninja-build']
+
+  - stage: deploy
+    if: branch = master
+    os: linux
+    dist: focal
+    compiler: gcc
+    python: 3.7
+    addons:
+      apt:
+        packages: ['ninja-build', 'doxygen', 'graphviz']
+    before_install: skip
+    install: skip
+    script:
+      - mkdir -p build && cd build;
+      - cmake -DCMAKE_BUILD_TYPE=RELEASE -GNinja ..;
+      - ninja docs;
+    deploy: 
+      provider: pages
+      strategy: git
+      local_dir: build/html
+      skip_cleanup: true
+      token: $GITHUB_TOKEN
+      keep_history: false
+      on:
+        branch: master
+        repo: ctlee/casc
+
 before_install:
-  - eval "${MATRIX_EVAL}"
+  - if [[ "${MATRIX_EVAL}" != "" ]]; then eval ${MATRIX_EVAL}; fi
+  - uname -a
+  - $CXX --version
+
 install:
-  - mkdir build; cd build;
-  - cmake ..;
-  - make -j4;
+  - mkdir -p build && cd build;
+  - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_CASCTESTS=on -GNinja ..
+  - cmake --build . --config Release
+
 script:
-  - ctest -V
-after_success:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      make docs;
-    fi;
-deploy:
-  provider: pages
-  local-dir: build/html
-  skip-cleanup: true
-  github-token: $GITHUB_TOKEN
-  keep-history: false
-  on:
-    branch: master
-    condition: $TRAVIS_OS_NAME == osx
+  - ctest -C Release -V -j

@@ -8,7 +8,7 @@ If CMake is able to find your doxygen installation then the following sequence
 of commands will build the basic documentation.
 ```
 cmake ..
-make casc_doc
+make docs
 ```
 
 ### Documentation for Developers
