@@ -94,7 +94,12 @@ before_install:
 
 install:
   - mkdir -p build && cd build;
-  - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_CASCTESTS=on -GNinja ..
+  - |
+      if [ "$TRAVIS_OS_NAME" = "windows" ]; then
+        cmake -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_CASCTESTS=on -G "Visual Studio 15 2017 Win64" ..
+      else
+        cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_CASCTESTS=on -GNinja ..
+      fi
   - cmake --build . --config Release
 
 script:
