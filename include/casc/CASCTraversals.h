@@ -1,26 +1,20 @@
-/*
- * ***************************************************************************
- * This file is part of the Colored Abstract Simplicial Complex library.
- * Copyright (C) 2016-2017
- * by Christopher Lee, John Moody, Rommie Amaro, J. Andrew McCammon,
- *    and Michael Holst
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * ***************************************************************************
- */
+// This file is part of the Colored Abstract Simplicial Complex library.
+// Copyright (C) 2016-2021
+// by Christopher T. Lee, John Moody, Rommie Amaro, J. Andrew McCammon,
+//    and Michael Holst
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+// Lesser General Public License for more details.
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, see <http://www.gnu.org/licenses/>
+// or write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+// Boston, MA 02111-1307 USA
 
 /**
  * @file  CASCTraversals.h
@@ -30,20 +24,18 @@
 
 #pragma once
 
-#include <set>
-#include <vector>
+#include <casc/casc>
 #include <iostream>
+#include <set>
 #include <string>
 #include <type_traits>
 #include <utility>
-#include <casc/casc>
+#include <vector>
 
-namespace casc
-{
+namespace casc {
 /// @cond detail
 /// Visitor design pattern helper templates
-namespace visitor_detail
-{
+namespace visitor_detail {
 
 /**
  * @brief      General template for BFS up helper.
@@ -66,49 +58,49 @@ struct BFS_Up_Node {};
  * @tparam     k        Current simplex dimension to traverse.
  */
 template <typename Visitor, typename Traits, typename Complex, std::size_t k>
-struct BFS_Up_Node<Visitor, Traits, Complex, std::integral_constant<std::size_t, k> >
-{
-    /// Simplex dimension currently traversed
-    static constexpr auto level = k;
-    /// Typename of the current simplex
-    using CurrSimplexID = typename Complex::template SimplexID<level>;
-    /// Typename of coboundary simplices
-    using NextSimplexID = typename Complex::template SimplexID<level+1>;
-    /// Container to use to hold coboundary simplices for next recursion.
-    template <typename T> using Container = typename Traits::template Container<T>;
+struct BFS_Up_Node<Visitor, Traits, Complex,
+                   std::integral_constant<std::size_t, k>> {
+  /// Simplex dimension currently traversed
+  static constexpr auto level = k;
+  /// Typename of the current simplex
+  using CurrSimplexID = typename Complex::template SimplexID<level>;
+  /// Typename of coboundary simplices
+  using NextSimplexID = typename Complex::template SimplexID<level + 1>;
+  /// Container to use to hold coboundary simplices for next recursion.
+  template <typename T>
+  using Container = typename Traits::template Container<T>;
 
-    /// Alias for the recursive call
-    using BFS_Up_Node_Next = BFS_Up_Node<Visitor, Traits, Complex, std::integral_constant<std::size_t, level+1> >;
+  /// Alias for the recursive call
+  using BFS_Up_Node_Next =
+      BFS_Up_Node<Visitor, Traits, Complex,
+                  std::integral_constant<std::size_t, level + 1>>;
 
-    /**
-     * @brief      Visit simplices in the current dimension and continue.
-     *
-     * @param[in]  v          Visitor functor.
-     * @param[in]  F          The simplicial_complex to traverse.
-     * @param[in]  begin      Iterator to simplices to traverse.
-     * @param[in]  end        Iterator to end of simplices to traverse.
-     *
-     * @tparam     Iterator   Typename of the iterator.
-     */
-    template <typename Iterator>
-    static void apply(Visitor &&v, Complex &F, Iterator begin, Iterator end)
-    {
-        Container<NextSimplexID> next;
+  /**
+   * @brief      Visit simplices in the current dimension and continue.
+   *
+   * @param[in]  v          Visitor functor.
+   * @param[in]  F          The simplicial_complex to traverse.
+   * @param[in]  begin      Iterator to simplices to traverse.
+   * @param[in]  end        Iterator to end of simplices to traverse.
+   *
+   * @tparam     Iterator   Typename of the iterator.
+   */
+  template <typename Iterator>
+  static void apply(Visitor &&v, Complex &F, Iterator begin, Iterator end) {
+    Container<NextSimplexID> next;
 
-        for (auto curr = begin; curr != end; ++curr)
-        {
-            if (v.visit(F, *curr))
-            {
-                F.get_cover(*curr, [&](typename Complex::KeyType a)
-                        {
-                            auto id = F.get_simplex_up(*curr, a);
-                            next.insert(id);
-                        });
-            }
-        }
-
-        BFS_Up_Node_Next::apply(std::forward<Visitor>(v), F, next.begin(), next.end());
+    for (auto curr = begin; curr != end; ++curr) {
+      if (v.visit(F, *curr)) {
+        F.get_cover(*curr, [&](typename Complex::KeyType a) {
+          auto id = F.get_simplex_up(*curr, a);
+          next.insert(id);
+        });
+      }
     }
+
+    BFS_Up_Node_Next::apply(std::forward<Visitor>(v), F, next.begin(),
+                            next.end());
+  }
 };
 
 /**
@@ -119,33 +111,30 @@ struct BFS_Up_Node<Visitor, Traits, Complex, std::integral_constant<std::size_t,
  * @tparam     Complex  Typename of the simplicial_complex.
  */
 template <typename Visitor, typename Traits, typename Complex>
-struct BFS_Up_Node<Visitor, Traits, Complex, std::integral_constant<std::size_t, Complex::topLevel> >
-{
-    /// Simplex dimension of facets
-    static constexpr auto level = Complex::topLevel;
-    /// Typename of the current simplices
-    using CurrSimplexID = typename Complex::template SimplexID<level>;
+struct BFS_Up_Node<Visitor, Traits, Complex,
+                   std::integral_constant<std::size_t, Complex::topLevel>> {
+  /// Simplex dimension of facets
+  static constexpr auto level = Complex::topLevel;
+  /// Typename of the current simplices
+  using CurrSimplexID = typename Complex::template SimplexID<level>;
 
-    /**
-     * @brief      Visit simplices in the current dimension and continue.
-     *
-     * @param[in]  v          Visitor functor.
-     * @param[in]  F          The simplicial_complex to traverse.
-     * @param[in]  begin      Iterator to simplices to traverse.
-     * @param[in]  end        Iterator to end of simplices to traverse.
-     *
-     * @tparam     Iterator   Typename of the iterator.
-     */
-    template <typename Iterator>
-    static void apply(Visitor &&v, Complex &F, Iterator begin, Iterator end)
-    {
-        for (auto curr = begin; curr != end; ++curr)
-        {
-            v.visit(F, *curr);
-        }
+  /**
+   * @brief      Visit simplices in the current dimension and continue.
+   *
+   * @param[in]  v          Visitor functor.
+   * @param[in]  F          The simplicial_complex to traverse.
+   * @param[in]  begin      Iterator to simplices to traverse.
+   * @param[in]  end        Iterator to end of simplices to traverse.
+   *
+   * @tparam     Iterator   Typename of the iterator.
+   */
+  template <typename Iterator>
+  static void apply(Visitor &&v, Complex &F, Iterator begin, Iterator end) {
+    for (auto curr = begin; curr != end; ++curr) {
+      v.visit(F, *curr);
     }
+  }
 };
-
 
 /**
  * @brief      General template for BFS down helper.
@@ -168,49 +157,49 @@ struct BFS_Down_Node {};
  * @tparam     k        Current simplex dimension to traverse.
  */
 template <typename Visitor, typename Traits, typename Complex, std::size_t k>
-struct BFS_Down_Node<Visitor, Traits, Complex, std::integral_constant<std::size_t, k> >
-{
-    /// Simplex dimension current traversed
-    static constexpr auto level = k;
-    /// Typename of the current simplices
-    using CurrSimplexID = typename Complex::template SimplexID<level>;
-    /// Typename of boundary simplices
-    using NextSimplexID = typename Complex::template SimplexID<level-1>;
-    /// Container to use to hold boundary simplices for next recursion
-    template <typename T> using Container = typename Traits::template Container<T>;
+struct BFS_Down_Node<Visitor, Traits, Complex,
+                     std::integral_constant<std::size_t, k>> {
+  /// Simplex dimension current traversed
+  static constexpr auto level = k;
+  /// Typename of the current simplices
+  using CurrSimplexID = typename Complex::template SimplexID<level>;
+  /// Typename of boundary simplices
+  using NextSimplexID = typename Complex::template SimplexID<level - 1>;
+  /// Container to use to hold boundary simplices for next recursion
+  template <typename T>
+  using Container = typename Traits::template Container<T>;
 
-    /// Alias for the recursive call
-    using BFS_Down_Node_Next = BFS_Down_Node<Visitor, Traits, Complex, std::integral_constant<std::size_t, level-1> >;
+  /// Alias for the recursive call
+  using BFS_Down_Node_Next =
+      BFS_Down_Node<Visitor, Traits, Complex,
+                    std::integral_constant<std::size_t, level - 1>>;
 
-    /**
-     * @brief      Visit simplices in the current dimension and continue.
-     *
-     * @param[in]  v          Visitor functor.
-     * @param[in]  F          The simplicial_complex to traverse.
-     * @param[in]  begin      Iterator to simplices to traverse.
-     * @param[in]  end        Iterator to end of simplices to traverse.
-     *
-     * @tparam     Iterator   Typename of the iterator.
-     */
-    template <typename Iterator>
-    static void apply(Visitor &&v, Complex &F, Iterator begin, Iterator end)
-    {
-        Container<NextSimplexID> next;
+  /**
+   * @brief      Visit simplices in the current dimension and continue.
+   *
+   * @param[in]  v          Visitor functor.
+   * @param[in]  F          The simplicial_complex to traverse.
+   * @param[in]  begin      Iterator to simplices to traverse.
+   * @param[in]  end        Iterator to end of simplices to traverse.
+   *
+   * @tparam     Iterator   Typename of the iterator.
+   */
+  template <typename Iterator>
+  static void apply(Visitor &&v, Complex &F, Iterator begin, Iterator end) {
+    Container<NextSimplexID> next;
 
-        for (auto curr = begin; curr != end; ++curr)
-        {
-            if (v.visit(F, *curr))
-            {
-                F.get_name(*curr, [&](typename Complex::KeyType a)
-                        {
-                            auto id = F.get_simplex_down(*curr, a);
-                            next.insert(id);
-                        });
-            }
-        }
-
-        BFS_Down_Node_Next::apply(std::forward<Visitor>(v), F, next.begin(), next.end());
+    for (auto curr = begin; curr != end; ++curr) {
+      if (v.visit(F, *curr)) {
+        F.get_name(*curr, [&](typename Complex::KeyType a) {
+          auto id = F.get_simplex_down(*curr, a);
+          next.insert(id);
+        });
+      }
     }
+
+    BFS_Down_Node_Next::apply(std::forward<Visitor>(v), F, next.begin(),
+                              next.end());
+  }
 };
 
 /**
@@ -221,26 +210,24 @@ struct BFS_Down_Node<Visitor, Traits, Complex, std::integral_constant<std::size_
  * @tparam     Complex  Typename of the simplicial_complex.
  */
 template <typename Visitor, typename Traits, typename Complex>
-struct BFS_Down_Node<Visitor, Traits, Complex, std::integral_constant<std::size_t, 1> >
-{
-    /**
-     * @brief      Visit simplices in the current dimension and continue.
-     *
-     * @param[in]  v          Visitor functor.
-     * @param[in]  F          The simplicial_complex to traverse.
-     * @param[in]  begin      Iterator to simplices to traverse.
-     * @param[in]  end        Iterator to end of simplices to traverse.
-     *
-     * @tparam     Iterator   Typename of the iterator.
-     */
-    template <typename Iterator>
-    static void apply(Visitor &&v, Complex &F, Iterator begin, Iterator end)
-    {
-        for (auto curr = begin; curr != end; ++curr)
-        {
-            v.visit(F, *curr);
-        }
+struct BFS_Down_Node<Visitor, Traits, Complex,
+                     std::integral_constant<std::size_t, 1>> {
+  /**
+   * @brief      Visit simplices in the current dimension and continue.
+   *
+   * @param[in]  v          Visitor functor.
+   * @param[in]  F          The simplicial_complex to traverse.
+   * @param[in]  begin      Iterator to simplices to traverse.
+   * @param[in]  end        Iterator to end of simplices to traverse.
+   *
+   * @tparam     Iterator   Typename of the iterator.
+   */
+  template <typename Iterator>
+  static void apply(Visitor &&v, Complex &F, Iterator begin, Iterator end) {
+    for (auto curr = begin; curr != end; ++curr) {
+      v.visit(F, *curr);
     }
+  }
 };
 
 /**
@@ -260,7 +247,6 @@ struct BFS_Down_Node<Visitor, Traits, Complex, std::integral_constant<std::size_
 //     {}
 // };
 
-
 /**
  * @brief      General tempalte for BFS traversal across edges.
  *
@@ -272,7 +258,6 @@ struct BFS_Down_Node<Visitor, Traits, Complex, std::integral_constant<std::size_
 template <typename Visitor, typename Traits, typename Complex, typename K>
 struct BFS_Edge {};
 
-
 /**
  * @brief      Partial specialization for BFS Edge for non facets.
  *
@@ -282,55 +267,54 @@ struct BFS_Edge {};
  * @tparam     k        Current simplex dimension to traverse.
  */
 template <typename Visitor, typename Traits, typename Complex, std::size_t k>
-struct BFS_Edge<Visitor, Traits, Complex, std::integral_constant<std::size_t, k> >
-{
-    /// Current simplex dimension to traverse
-    static constexpr auto level = k;
-    /// Typename of the current EdgeID
-    using CurrEdgeID = typename Complex::template EdgeID<level>;
-    /// Typename of the next EdgeID
-    using NextEdgeID = typename Complex::template EdgeID<level+1>;
-    /// Typename of the current SimplexID
-    using CurrSimplexID = typename Complex::template SimplexID<level>;
-    /// Container to use to hold coboundary edges for next recursion.
-    template <typename T> using Container = typename Traits::template Container<T>;
-    /// Alias for the recursive call
-    using BFS_Edge_Next = BFS_Edge<Visitor, Traits, Complex, std::integral_constant<std::size_t, level+1> >;
+struct BFS_Edge<Visitor, Traits, Complex,
+                std::integral_constant<std::size_t, k>> {
+  /// Current simplex dimension to traverse
+  static constexpr auto level = k;
+  /// Typename of the current EdgeID
+  using CurrEdgeID = typename Complex::template EdgeID<level>;
+  /// Typename of the next EdgeID
+  using NextEdgeID = typename Complex::template EdgeID<level + 1>;
+  /// Typename of the current SimplexID
+  using CurrSimplexID = typename Complex::template SimplexID<level>;
+  /// Container to use to hold coboundary edges for next recursion.
+  template <typename T>
+  using Container = typename Traits::template Container<T>;
+  /// Alias for the recursive call
+  using BFS_Edge_Next =
+      BFS_Edge<Visitor, Traits, Complex,
+               std::integral_constant<std::size_t, level + 1>>;
 
-    /**
-     * @brief      Visit simplices in the current dimension and continue.
-     *
-     * @param[in]  v          Visitor functor.
-     * @param[in]  F          The simplicial_complex to traverse.
-     * @param[in]  begin      Iterator to edges to traverse.
-     * @param[in]  end        Iterator to end of edges to traverse.
-     *
-     * @tparam     Iterator   Typename of the iterator.
-     */
-    template <typename Iterator>
-    static void apply(Visitor &&v, Complex &F, Iterator begin, Iterator end)
-    {
-        Container<NextEdgeID>                  next;
-        std::vector<typename Complex::KeyType> cover;
+  /**
+   * @brief      Visit simplices in the current dimension and continue.
+   *
+   * @param[in]  v          Visitor functor.
+   * @param[in]  F          The simplicial_complex to traverse.
+   * @param[in]  begin      Iterator to edges to traverse.
+   * @param[in]  end        Iterator to end of edges to traverse.
+   *
+   * @tparam     Iterator   Typename of the iterator.
+   */
+  template <typename Iterator>
+  static void apply(Visitor &&v, Complex &F, Iterator begin, Iterator end) {
+    Container<NextEdgeID> next;
+    std::vector<typename Complex::KeyType> cover;
 
-        for (auto curr = begin; curr != end; ++curr)
-        {
-            v.visit(F, *curr);
+    for (auto curr = begin; curr != end; ++curr) {
+      v.visit(F, *curr);
 
-            CurrSimplexID n = curr->up();
-            F.get_cover(n, std::back_inserter(cover));
-            for (auto a : cover)
-            {
-                NextEdgeID id = F.get_edge_up(n, a);
-                next.insert(next.end(), id);
-            }
-            cover.clear();
-        }
-
-        BFS_Edge_Next::apply(std::forward<Visitor>(v), F, next.begin(), next.end());
+      CurrSimplexID n = curr->up();
+      F.get_cover(n, std::back_inserter(cover));
+      for (auto a : cover) {
+        NextEdgeID id = F.get_edge_up(n, a);
+        next.insert(next.end(), id);
+      }
+      cover.clear();
     }
-};
 
+    BFS_Edge_Next::apply(std::forward<Visitor>(v), F, next.begin(), next.end());
+  }
+};
 
 /**
  * @brief      Partial specialization for BFS Edge for facets.
@@ -340,56 +324,51 @@ struct BFS_Edge<Visitor, Traits, Complex, std::integral_constant<std::size_t, k>
  * @tparam     Complex  Typename of the simplicial_complex.
  */
 template <typename Visitor, typename Traits, typename Complex>
-struct BFS_Edge<Visitor, Traits, Complex, std::integral_constant<std::size_t, Complex::topLevel> >
-{
-    /// Simplex dimension current traversed
-    static constexpr auto level = Complex::topLevel;
-    /// Typename of the current edge
-    using CurrEdgeID = typename Complex::template EdgeID<level>;
+struct BFS_Edge<Visitor, Traits, Complex,
+                std::integral_constant<std::size_t, Complex::topLevel>> {
+  /// Simplex dimension current traversed
+  static constexpr auto level = Complex::topLevel;
+  /// Typename of the current edge
+  using CurrEdgeID = typename Complex::template EdgeID<level>;
 
-    /**
-     * @brief      Visit the edges to facets.
-     *
-     * @param[in]  v          Visitor functor.
-     * @param[in]  F          The simplicial_complex to traverse.
-     * @param[in]  begin      Iterator to edges to traverse.
-     * @param[in]  end        Iterator to end of edges to traverse.
-     *
-     * @tparam     Iterator   Typename of the iterator.
-     */
-    template <typename Iterator>
-    static void apply(Visitor &&v, Complex &F, Iterator begin, Iterator end)
-    {
-        for (auto curr = begin; curr != end; ++curr)
-        {
-            v.visit(F, *curr);
-        }
+  /**
+   * @brief      Visit the edges to facets.
+   *
+   * @param[in]  v          Visitor functor.
+   * @param[in]  F          The simplicial_complex to traverse.
+   * @param[in]  begin      Iterator to edges to traverse.
+   * @param[in]  end        Iterator to end of edges to traverse.
+   *
+   * @tparam     Iterator   Typename of the iterator.
+   */
+  template <typename Iterator>
+  static void apply(Visitor &&v, Complex &F, Iterator begin, Iterator end) {
+    for (auto curr = begin; curr != end; ++curr) {
+      v.visit(F, *curr);
     }
+  }
 };
 
 /// Allow repeat visits of simplices for BFS visits.
-struct BFS_Repeat_Node_traits
-{
-    /// Use a vector to allow duplicates
-    template <typename T> using Container = std::vector<T>;
+struct BFS_Repeat_Node_traits {
+  /// Use a vector to allow duplicates
+  template <typename T> using Container = std::vector<T>;
 };
 
 /// No repeat traits for BFS simplex visitor.
-struct BFS_NoRepeat_Node_Traits
-{
-    /// Use a NodeSet to avoid duplicates
-    template <typename T> using Container = NodeSet<T>;
+struct BFS_NoRepeat_Node_Traits {
+  /// Use a NodeSet to avoid duplicates
+  template <typename T> using Container = NodeSet<T>;
 };
 
 /// No repeat traits for BFS edge visitor.
-struct BFS_NoRepeat_Edge_Traits
-{
-    /// Use a NodeSet to avoid duplicates.
-    template <typename T> using Container = NodeSet<T>;
-    // template <typename Complex, typename SimplexID> auto node_next(Complex F,
-    // SimplexID s);
+struct BFS_NoRepeat_Edge_Traits {
+  /// Use a NodeSet to avoid duplicates.
+  template <typename T> using Container = NodeSet<T>;
+  // template <typename Complex, typename SimplexID> auto node_next(Complex F,
+  // SimplexID s);
 };
-}   // End namespace visitor_detail
+} // End namespace visitor_detail
 /// @endcond
 
 /**
@@ -404,12 +383,12 @@ struct BFS_NoRepeat_Edge_Traits
  * @tparam     SimplexID  Typename of the simplex.
  */
 template <typename Visitor, typename SimplexID>
-void visit_BFS_up(Visitor &&v, typename SimplexID::complex &F, SimplexID s)
-{
-    namespace cvd = visitor_detail;
-    cvd::BFS_Up_Node<Visitor, cvd::BFS_NoRepeat_Node_Traits, typename SimplexID::complex,
-                     std::integral_constant<std::size_t, SimplexID::level> >::apply(
-        std::forward<Visitor>(v), F, &s, &s+1);
+void visit_BFS_up(Visitor &&v, typename SimplexID::complex &F, SimplexID s) {
+  namespace cvd = visitor_detail;
+  cvd::BFS_Up_Node<Visitor, cvd::BFS_NoRepeat_Node_Traits,
+                   typename SimplexID::complex,
+                   std::integral_constant<std::size_t, SimplexID::level>>::
+      apply(std::forward<Visitor>(v), F, &s, &s + 1);
 }
 
 /**
@@ -425,12 +404,12 @@ void visit_BFS_up(Visitor &&v, typename SimplexID::complex &F, SimplexID s)
  * @tparam     SimplexID  Typename of the simplex.
  */
 template <typename Visitor, typename SimplexID>
-void visit_BFS_down(Visitor &&v, typename SimplexID::complex &F, SimplexID s)
-{
-    namespace cvd = visitor_detail;
-    cvd::BFS_Down_Node<Visitor, cvd::BFS_NoRepeat_Node_Traits, typename SimplexID::complex,
-                       std::integral_constant<std::size_t, SimplexID::level> >::apply(
-        std::forward<Visitor>(v), F, &s, &s+1);
+void visit_BFS_down(Visitor &&v, typename SimplexID::complex &F, SimplexID s) {
+  namespace cvd = visitor_detail;
+  cvd::BFS_Down_Node<Visitor, cvd::BFS_NoRepeat_Node_Traits,
+                     typename SimplexID::complex,
+                     std::integral_constant<std::size_t, SimplexID::level>>::
+      apply(std::forward<Visitor>(v), F, &s, &s + 1);
 }
 
 /**
@@ -444,14 +423,13 @@ void visit_BFS_down(Visitor &&v, typename SimplexID::complex &F, SimplexID s)
  * @tparam     EdgeID     Typename of the edge.
  */
 template <typename Visitor, typename EdgeID>
-void edge_up(Visitor &&v, typename EdgeID::complex &F, EdgeID s)
-{
-    namespace cvd = visitor_detail;
-    cvd::BFS_Edge<Visitor, cvd::BFS_NoRepeat_Edge_Traits, typename EdgeID::complex,
-                  std::integral_constant<std::size_t, EdgeID::level> >::apply(
-        std::forward<Visitor>(v), F, &s, &s+1);
+void edge_up(Visitor &&v, typename EdgeID::complex &F, EdgeID s) {
+  namespace cvd = visitor_detail;
+  cvd::BFS_Edge<Visitor, cvd::BFS_NoRepeat_Edge_Traits,
+                typename EdgeID::complex,
+                std::integral_constant<std::size_t, EdgeID::level>>::
+      apply(std::forward<Visitor>(v), F, &s, &s + 1);
 }
-
 
 /**
  * @brief      Push the immediate face neighbors into the provided iterator.
@@ -472,20 +450,17 @@ void edge_up(Visitor &&v, typename EdgeID::complex &F, EdgeID s)
  * @tparam     InsertIter  Typename of the iterator.
  */
 template <class Complex, std::size_t level, class InsertIter>
-void neighbors(Complex &F, typename Complex::template SimplexID<level> nid, InsertIter iter)
-{
-    for (auto a : F.get_name(nid))
-    {
-        auto id = F.get_simplex_down(nid, a);
-        for (auto b : F.get_cover(id))
-        {
-            auto nbor = F.get_simplex_up(id, b);
-            if (nbor != nid)
-            {
-                *iter++ = nbor;
-            }
-        }
+void neighbors(Complex &F, typename Complex::template SimplexID<level> nid,
+               InsertIter iter) {
+  for (auto a : F.get_name(nid)) {
+    auto id = F.get_simplex_down(nid, a);
+    for (auto b : F.get_cover(id)) {
+      auto nbor = F.get_simplex_up(id, b);
+      if (nbor != nid) {
+        *iter++ = nbor;
+      }
     }
+  }
 }
 
 /**
@@ -501,9 +476,8 @@ void neighbors(Complex &F, typename Complex::template SimplexID<level> nid, Inse
  * @tparam     InsertIter  Typename of the iterator.
  */
 template <class Complex, class SimplexID, class InsertIter>
-void neighbors(Complex &F, SimplexID nid, InsertIter iter)
-{
-    neighbors<Complex, SimplexID::level, InsertIter>(F, nid, iter);
+void neighbors(Complex &F, SimplexID nid, InsertIter iter) {
+  neighbors<Complex, SimplexID::level, InsertIter>(F, nid, iter);
 }
 
 /**
@@ -518,20 +492,17 @@ void neighbors(Complex &F, SimplexID nid, InsertIter iter)
  * @tparam     InsertIter  Typename of the iterator.
  */
 template <class Complex, std::size_t level, class InsertIter>
-void neighbors_up(Complex &F, typename Complex::template SimplexID<level> nid, InsertIter iter)
-{
-    for (auto a : F.get_cover(nid))
-    {
-        auto id = F.get_simplex_up(nid, a);
-        for (auto b : F.get_name(id))
-        {
-            auto nbor = F.get_simplex_down(id, b);
-            if (nbor != nid)
-            {
-                *iter++ = nbor;
-            }
-        }
+void neighbors_up(Complex &F, typename Complex::template SimplexID<level> nid,
+                  InsertIter iter) {
+  for (auto a : F.get_cover(nid)) {
+    auto id = F.get_simplex_up(nid, a);
+    for (auto b : F.get_name(id)) {
+      auto nbor = F.get_simplex_down(id, b);
+      if (nbor != nid) {
+        *iter++ = nbor;
+      }
     }
+  }
 }
 
 /**
@@ -547,12 +518,9 @@ void neighbors_up(Complex &F, typename Complex::template SimplexID<level> nid, I
  * @tparam     InsertIter  Typename of the iterator.
  */
 template <class Complex, class SimplexID, class InsertIter>
-void neighbors_up(Complex &F, SimplexID nid, InsertIter iter)
-{
-    neighbors_up<Complex, SimplexID::level, InsertIter>(F, nid, iter);
+void neighbors_up(Complex &F, SimplexID nid, InsertIter iter) {
+  neighbors_up<Complex, SimplexID::level, InsertIter>(F, nid, iter);
 }
-
-
 
 /**
  * @brief      Code for returning a set of k-ring neighbors.
@@ -568,33 +536,26 @@ void neighbors_up(Complex &F, SimplexID nid, InsertIter iter)
  * @tparam     Iterator  { description }
  */
 template <class Complex, std::size_t level, typename Iterator>
-void kneighbors_up(Complex                                                &F,
-                   int                                                     ring,
-                   std::set<typename Complex::template SimplexID<level> > &nbors,
-                   Iterator                                                begin,
-                   Iterator                                                end)
-{
-    if (ring == 0)
-    {
-        return;
-    }
-    std::set<typename Complex::template SimplexID<level> > next;
-    for (auto nid = begin; nid != end; ++nid)
-    {
-        for (auto a : F.get_cover(*nid))
-        {
-            auto id = F.get_simplex_up(*nid, a);
-            for (auto b : F.get_name(id))
-            {
-                auto nbor = F.get_simplex_down(id, b);
-                if (nbors.insert(nbor).second)
-                {
-                    next.insert(nbor);
-                }
-            }
+void kneighbors_up(Complex &F, int ring,
+                   std::set<typename Complex::template SimplexID<level>> &nbors,
+                   Iterator begin, Iterator end) {
+  if (ring == 0) {
+    return;
+  }
+  std::set<typename Complex::template SimplexID<level>> next;
+  for (auto nid = begin; nid != end; ++nid) {
+    for (auto a : F.get_cover(*nid)) {
+      auto id = F.get_simplex_up(*nid, a);
+      for (auto b : F.get_name(id)) {
+        auto nbor = F.get_simplex_down(id, b);
+        if (nbors.insert(nbor).second) {
+          next.insert(nbor);
         }
+      }
     }
-    return kneighbors_up<Complex, level>(F, ring-1, nbors, next.begin(), next.end());
+  }
+  return kneighbors_up<Complex, level>(F, ring - 1, nbors, next.begin(),
+                                       next.end());
 }
 
 /**
@@ -610,16 +571,14 @@ void kneighbors_up(Complex                                                &F,
  * @tparam     SimplexID   Typename of the SimplexID.
  */
 template <class Complex, class SimplexID>
-void kneighbors_up(Complex &F, SimplexID nid, int ring, std::set<SimplexID> &nbors)
-{
-    nbors.insert(nid);
-    std::set<SimplexID> next {
-        nid
-    };
-    kneighbors_up<Complex, SimplexID::level>(F, ring, nbors, next.begin(), next.end());
-    nbors.erase(nid);
+void kneighbors_up(Complex &F, SimplexID nid, int ring,
+                   std::set<SimplexID> &nbors) {
+  nbors.insert(nid);
+  std::set<SimplexID> next{nid};
+  kneighbors_up<Complex, SimplexID::level>(F, ring, nbors, next.begin(),
+                                           next.end());
+  nbors.erase(nid);
 }
-
 
 /**
  * @brief      Code for returning a set of k-ring neighbors.
@@ -635,33 +594,26 @@ void kneighbors_up(Complex &F, SimplexID nid, int ring, std::set<SimplexID> &nbo
  * @tparam     Iterator  { description }
  */
 template <class Complex, std::size_t level, typename Iterator>
-void kneighbors(Complex                                                &F,
-                   int                                                     ring,
-                   std::set<typename Complex::template SimplexID<level> > &nbors,
-                   Iterator                                                begin,
-                   Iterator                                                end)
-{
-    if (ring == 0)
-    {
-        return;
-    }
-    std::set<typename Complex::template SimplexID<level> > next;
-    for (auto nid = begin; nid != end; ++nid)
-    {
-        for (auto a : F.get_name(*nid))
-        {
-            auto id = F.get_simplex_down(*nid, a);
-            for (auto b : F.get_cover(id))
-            {
-                auto nbor = F.get_simplex_up(id, b);
-                if (nbors.insert(nbor).second)
-                {
-                    next.insert(nbor);
-                }
-            }
+void kneighbors(Complex &F, int ring,
+                std::set<typename Complex::template SimplexID<level>> &nbors,
+                Iterator begin, Iterator end) {
+  if (ring == 0) {
+    return;
+  }
+  std::set<typename Complex::template SimplexID<level>> next;
+  for (auto nid = begin; nid != end; ++nid) {
+    for (auto a : F.get_name(*nid)) {
+      auto id = F.get_simplex_down(*nid, a);
+      for (auto b : F.get_cover(id)) {
+        auto nbor = F.get_simplex_up(id, b);
+        if (nbors.insert(nbor).second) {
+          next.insert(nbor);
         }
+      }
     }
-    return kneighbors_up<Complex, level>(F, ring-1, nbors, next.begin(), next.end());
+  }
+  return kneighbors_up<Complex, level>(F, ring - 1, nbors, next.begin(),
+                                       next.end());
 }
 
 /**
@@ -677,18 +629,16 @@ void kneighbors(Complex                                                &F,
  * @tparam     SimplexID   Typename of the SimplexID.
  */
 template <class Complex, class SimplexID>
-void kneighbors(Complex &F, SimplexID nid, int ring, std::set<SimplexID> &nbors)
-{
-    nbors.insert(nid);
-    std::set<SimplexID> next {
-        nid
-    };
-    kneighbors<Complex, SimplexID::level>(F, ring, nbors, next.begin(), next.end());
-    nbors.erase(nid);
+void kneighbors(Complex &F, SimplexID nid, int ring,
+                std::set<SimplexID> &nbors) {
+  nbors.insert(nid);
+  std::set<SimplexID> next{nid};
+  kneighbors<Complex, SimplexID::level>(F, ring, nbors, next.begin(),
+                                        next.end());
+  nbors.erase(nid);
 }
 
 } // End namespace casc
-
 
 // namespace visitor_detail
 // {
@@ -806,7 +756,6 @@ void kneighbors(Complex &F, SimplexID nid, int ring, std::set<SimplexID> &nbors)
 //     }
 // };
 // }
-
 
 // template <std::size_t rings, typename Visitor, typename SimplexID>
 // void visit_neighbors_up(Visitor&& v, typename SimplexID::complex& F,
