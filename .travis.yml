@@ -27,39 +27,39 @@ jobs:
   - stage: test 
     os: osx
     osx_image: xcode11.6
-    addons:
-      homebrew:
-        packages: ['cmake', 'ninja']
+    # addons:
+    #   homebrew:
+    #     packages: ['cmake', 'ninja']
 
   - os: osx
     osx_image: xcode12
-    addons:
-      homebrew:
-        packages: ['cmake', 'ninja']
+    # addons:
+    #   homebrew:
+    #     packages: ['cmake', 'ninja']
 
   - os: osx
     osx_image: xcode12
-    addons:
-      homebrew:
-        packages: ['cmake', 'ninja']
+    # addons:
+    #   homebrew:
+    #     packages: ['cmake', 'ninja']
 
   - stage: test 
     os: linux
     dist: bionic
     compiler: gcc
     python: 3.6
-    addons:
-      apt:
-        packages: ['ninja-build']
+    # addons:
+    #   apt:
+    #     packages: ['ninja-build']
 
   - stage: test
     os: linux
     dist: focal
     compiler: gcc
     python: 3.7
-    addons:
-      apt:
-        packages: ['ninja-build']
+    # addons:
+    #   apt:
+    #     packages: ['ninja-build']
 
   - stage: deploy
     if: branch = master
@@ -98,7 +98,7 @@ install:
       if [ "$TRAVIS_OS_NAME" = "windows" ]; then
         cmake -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_CASCTESTS=on -G "Visual Studio 15 2017 Win64" ..
       else
-        cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_CASCTESTS=on -GNinja ..
+        cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_CASCTESTS=on ..
       fi
   - cmake --build . --config Release
 
