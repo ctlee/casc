@@ -829,7 +829,7 @@ public:
         s[i++] = curr.first;
       }
 
-      return std::move(s);
+      return s;
     }
 
     // Valid in C++17
@@ -1866,6 +1866,21 @@ public:
     return remove_recurse<k, 0>::apply(this, &s.ptr, &s.ptr + 1, count);
   }
 
+
+  /**
+   * @brief      Checks whether a simplex is near a boundary.
+   *
+   * @param[in]  s      SimplexID of interest
+   *
+   * @tparam     level  Dimension of the simplex
+   *
+   * @return     True if the simplex or any subsimplices are onBoundary.
+   */
+  template <std::size_t level>
+  bool nearBoundary(const SimplexID<level> s) const {
+    return nearBoundaryH<level, 0>::apply(s);
+  }
+
   /**
    * @brief      Checks whether a simplex is on a boundary.
    *
@@ -1880,20 +1895,6 @@ public:
    */
   template <std::size_t k> bool onBoundary(const SimplexID<k> s) const {
     return onBoundaryH<k, 0>::apply(s);
-  }
-
-  /**
-   * @brief      Checks whether a simplex is near a boundary.
-   *
-   * @param[in]  s      SimplexID of interest
-   *
-   * @tparam     level  Dimension of the simplex
-   *
-   * @return     True if the simplex or any subsimplices are onBoundary.
-   */
-  template <std::size_t level>
-  bool nearBoundary(const SimplexID<level> s) const {
-    return nearBoundaryH<level, 0>::apply(s);
   }
 
   //** Reintroduce this code block when this is resolved
