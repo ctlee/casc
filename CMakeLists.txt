@@ -49,6 +49,7 @@ endif()
 option(CASC_INSTALL "Install casc header files?" ${CASC_MASTER_PROJECT})
 option(BUILD_CASCTESTS "Build the test scripts?" ${CASC_MASTER_PROJECT})
 # option(BUILD_CASCEXAMPLES "Build the CASC surface mesh example?" ${CASC_MASTER_PROJECT})
+option(EXTERNAL_GTEST "Look for an external GoogleTest?" OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
