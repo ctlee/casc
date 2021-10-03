@@ -1317,6 +1317,10 @@ class simplicial_complex
             {
                 s[i++] = curr.first;
             }
+            while (i < n)
+            {
+                s[i++] = KeyType();
+            }
 
             return s;
         }
