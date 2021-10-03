@@ -1143,6 +1143,7 @@ class simplicial_complex
             : node_count(0)
         {
             // Create a root node
+            level_count[0] = 0;  // avoid incrementing uninitialized memory
             _root = create_node<0>();
             for (auto &x : level_count) // Initialize level_count to 0 for all
                                         // levels
