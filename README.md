@@ -1,6 +1,6 @@
 # Colored Abstract Simplicial Complex (CASC) Library
 [![DOI](https://zenodo.org/badge/121550288.svg)](https://zenodo.org/badge/latestdoi/121550288)
-[![Main Build Status](https://github.com/ctlee/casc/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/ctlee/casc/actions/workflows/ci.yaml) 
+[![Main Build Status](https://github.com/ctlee/casc/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/ctlee/casc/actions/workflows/ci.yaml) 
 
 CASC is a modern and header-only C++ library which provides a data structure 
 to represent arbitrary dimension abstract simplicial complexes with user-defined classes stored directly on the simplices at each dimension.
