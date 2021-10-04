@@ -1141,13 +1141,13 @@ public:
    * @brief      Default constructor
    */
   simplicial_complex() : node_count(0) {
-    // Create a root node
-    _root = create_node<0>();
     for (auto &x : level_count) // Initialize level_count to 0 for all
                                 // levels
     {
       x = 0;
     }
+    // Create a root node
+    _root = create_node<0>();
   }
 
   /**
@@ -1299,14 +1299,14 @@ public:
     for (auto curr : id.ptr->_down) {
       s[i++] = curr.first;
     }
-
+    assert(i == n);
     return s;
   }
 
   /**
    * @brief      Gets the name of a simplex.
    *
-   * This is the explicit specializtion which handles the empty set
+   * This is the explicit specialization which handles the empty set
    * simplex.
    *
    * @param[in]  id    SimplexID of the simplex of interest.
