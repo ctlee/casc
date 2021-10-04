@@ -1,4 +1,0 @@
-var structutil_1_1remove__first__val_3_01_integer_00_01_in_holder_3_01_integer_00_01_i_00_01_is_8_8_8_01_4_01_4 =
-[
-    [ "type", "structutil_1_1remove__first__val_3_01_integer_00_01_in_holder_3_01_integer_00_01_i_00_01_is_8_8_8_01_4_01_4.html#ab4748fe90c6b1b1c71143d1cd3b4150e", null ]
-];
