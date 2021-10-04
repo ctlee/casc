@@ -26,23 +26,25 @@ if(CASC_MASTER_PROJECT)
     #####################################################################
     find_package(Doxygen)
 
-    option(CASC_DOCS_ADVANCED "Expose private functions and details in docs?" OFF)
-    set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-    set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "README.md")
-    set(DOXYGEN_PROJECT_NUMBER ${VERSION})
-    set(DOXYGEN_CLANG_ASSISTED_PARSING "YES")
-    set(DOXYGEN_CLANG_OPTIONS "-stdlib=libc++ -std=c++14 -w")
+    if(DOXYGEN_FOUND)
+        option(CASC_DOCS_ADVANCED "Expose private functions and details in docs?" OFF)
+        set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+        set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "README.md")
+        set(DOXYGEN_PROJECT_NUMBER ${VERSION})
+        set(DOXYGEN_CLANG_ASSISTED_PARSING "YES")
+        set(DOXYGEN_CLANG_OPTIONS "-stdlib=libc++ -std=c++14 -w")
 
-    if(CASC_DOCS_ADVANCED)
-        set(DOXYGEN_EXTRACT_PRIVATE "YES")
-        set(DOXYGEN_ENABLED_SECTIONS "detail")
+        if(CASC_DOCS_ADVANCED)
+            set(DOXYGEN_EXTRACT_PRIVATE "YES")
+            set(DOXYGEN_ENABLED_SECTIONS "detail")
+        endif()
+
+
+        doxygen_add_docs(docs
+            ${CMAKE_SOURCE_DIR}/README.md
+            ${CMAKE_SOURCE_DIR}/include/casc
+        )
     endif()
-
-
-    doxygen_add_docs(docs
-        ${CMAKE_SOURCE_DIR}/README.md
-        ${CMAKE_SOURCE_DIR}/include/casc
-    )
 
 
 endif(CASC_MASTER_PROJECT)
