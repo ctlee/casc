@@ -20,39 +20,44 @@
 #
 # **************************************************************************
 
-if(${CMAKE_VERSION} VERSION_LESS 3.11)
-    include(FetchContentLocal)
+if (NOT EXTERNAL_GTEST)
+    if(${CMAKE_VERSION} VERSION_LESS 3.11)
+        include(FetchContentLocal)
+    else()
+        include(FetchContent)
+    endif()
+
+    FetchContent_Declare(
+        googletest
+        # URL https://github.com/google/googletest/archive/master.zip
+        URL https://github.com/google/googletest/archive/release-1.8.1.tar.gz
+        SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/googletest-src"
+        BINARY_DIR        "${CMAKE_CURRENT_BINARY_DIR}/googletest-build"
+    )
+
+    # Prevent overriding the parent project's compiler/linker
+    # settings on Windows
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+    FetchContent_GetProperties(googletest)
+    if(NOT googletest_POPULATED)
+        FetchContent_Populate(googletest)
+        # Add googletest directly to our build. This defines
+        # the gtest and gtest_main targets.
+        add_subdirectory(${googletest_SOURCE_DIR}
+                         ${googletest_BINARY_DIR}
+                         EXCLUDE_FROM_ALL)
+    endif()
+
+    # The gtest/gtest_main targets carry header search path
+    # dependencies automatically when using CMake 2.8.11 or
+    # later. Otherwise we have to add them here ourselves.
+    if (CMAKE_VERSION VERSION_LESS 2.8.11)
+      include_directories("${googletest_SOURCE_DIR}/include")
+    endif()
 else()
-    include(FetchContent)
-endif()
-
-FetchContent_Declare(
-    googletest
-    # URL https://github.com/google/googletest/archive/master.zip
-    URL https://github.com/google/googletest/archive/release-1.8.1.tar.gz
-    SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/googletest-src"
-    BINARY_DIR        "${CMAKE_CURRENT_BINARY_DIR}/googletest-build"
-)
-
-# Prevent overriding the parent project's compiler/linker
-# settings on Windows
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
-FetchContent_GetProperties(googletest)
-if(NOT googletest_POPULATED)
-    FetchContent_Populate(googletest)
-    # Add googletest directly to our build. This defines
-    # the gtest and gtest_main targets.
-    add_subdirectory(${googletest_SOURCE_DIR}
-                     ${googletest_BINARY_DIR}
-                     EXCLUDE_FROM_ALL)
-endif()
-
-# The gtest/gtest_main targets carry header search path
-# dependencies automatically when using CMake 2.8.11 or
-# later. Otherwise we have to add them here ourselves.
-if (CMAKE_VERSION VERSION_LESS 2.8.11)
-  include_directories("${googletest_SOURCE_DIR}/include")
+    find_package(GTest CONFIG REQUIRED)
+    add_library(gtest_main ALIAS GTest::gtest_main)
 endif()
 
 add_executable(casctests
