@@ -30,7 +30,11 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake-modules")
 #####################################################################
 # Project GAMer
 #####################################################################
-project(CASC VERSION 1.0.5 LANGUAGES CXX)
+project(CASC VERSION 1.0.5 
+
+DESCRIPTION "Simplicial complex data structure for arbitrary dimensions with stored data"
+HOMEPAGE_URL "https://ctlee.github.io/casc/"
+LANGUAGES CXX)
 
 # Require c++14 and standard libraries
 set(CMAKE_CXX_STANDARD 14)
@@ -82,22 +86,4 @@ endif(BUILD_CASCTESTS)
 #     add_subdirectory(examples)
 # endif(BUILD_CASCEXAMPLES)
 
-if(CASC_MASTER_PROJECT)
-    #####################################################################
-    # Target to generate Doxygen documentation
-    #####################################################################
-    find_package(Doxygen)
-    if(DOXYGEN_FOUND)
-        message(STATUS "Doxygen Executable: ${DOXYGEN_EXECUTABLE}")
-        message(STATUS "Build the documentation using `make docs`")
-        # Parse Doxyfile.in and replace CMake @macros@.
-        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-        add_custom_target(docs
-            ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMENT "Generating API documentation with Doxygen" VERBATIM
-        )
-    else()
-        message(STATUS "CMake could not find Doxygen. Please install Doxygen or help me find your Doxygen binary to build the documentation!")
-    endif(DOXYGEN_FOUND)
-endif(CASC_MASTER_PROJECT)
+add_subdirectory(docs)
