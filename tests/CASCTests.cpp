@@ -152,6 +152,31 @@ TEST(CASCTest, SimplexBooleanOps) {
   EXPECT_TRUE(mesh.leq(s1, s2));
 }
 
+// Check get name
+TEST(CASCTest, GetNames) {
+  TetMeshType mesh = TetMeshType();
+  mesh.insert<4>({1, 2, 3, 4});
+
+  auto s1 = mesh.get_simplex_up({1});
+  auto s2 = mesh.get_simplex_up({1, 2});
+  auto s3 = mesh.get_simplex_up({1, 2, 3});
+  auto s4 = mesh.get_simplex_up({1, 2, 3, 4});
+
+  std::set<TetMeshType::KeyType> sn{};
+  auto s3n = mesh.get_name(s3);
+  for (std::size_t i = 0; i < s3n.size(); ++i){
+    sn.emplace(s3n[i]);
+  }
+  EXPECT_EQ((std::set<TetMeshType::KeyType>{1,2}), sn);
+
+  sn.clear();
+  auto s4n = mesh.get_name(s4);
+  for (std::size_t i = 0; i < s4n.size(); ++i){
+    sn.emplace(s4n[i]);
+  }
+  EXPECT_EQ((std::set<TetMeshType::KeyType>{1,2,3,4}), sn);
+}
+
 // Verify that the removal functions are removing the correct things.
 TEST(CASCTest, Remove) {
   TetMeshType mesh = TetMeshType();
