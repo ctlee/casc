@@ -1,8 +1,6 @@
 # Colored Abstract Simplicial Complex (CASC) Library
 [![DOI](https://zenodo.org/badge/121550288.svg)](https://zenodo.org/badge/latestdoi/121550288)
-
-Master CI: [![Build Status](https://travis-ci.org/ctlee/casc.svg?branch=master)](https://travis-ci.org/ctlee/casc) 
-Development CI: [![Build Status](https://travis-ci.org/ctlee/casc.svg?branch=development)](https://travis-ci.org/ctlee/casc)
+[![Main Build Status](https://github.com/ctlee/casc/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/ctlee/casc/actions/workflows/ci.yaml) 
 
 CASC is a modern and header-only C++ library which provides a data structure 
 to represent arbitrary dimension abstract simplicial complexes with user-defined classes stored directly on the simplices at each dimension.
@@ -21,7 +19,7 @@ CASC is a pure template library defined in the headers.
 
 We use the CMake build system (version 3+), but only to build the documentation and unit-tests, and to automate installation. 
 
-Doxygen and Graphviz is used to generate the documentation.
+Doxygen and Graphviz are used to generate the documentation.
 
 To use CASC in your software all you will need is a working C++ compiler with full C++14 support.
 This includes:
@@ -54,15 +52,28 @@ make
 make tests  		# Run tests through make
 ./bin/casctests 	# Alternatively run the tests directly (more verbose)
 ```
-Additional examples provided with CASC can be built in a similar fashion by passing the `-DBUILD_CASCEXAMPLES=on` flag to CMake.
 
 ### Documentation
 A current version of the documentation is available online via [github pages](https://ctlee.github.io/casc). 
-You can also build the documentation locally if you have Doxygen and Graphviz on your system.
+You can also build the documentation locally if you have [Doxygen](http://www.stack.nl/~dimitri/doxygen/) and Graphviz on your system.
 CMake will automatically try to find a working Doxygen installation.
-If Doxygen is found then the documentation can be built using `make casc_doc`. 
-Otherwise CMake will report that it could not find Doxygen.
+If CMake is able to find your doxygen installation then the following sequence
+of commands will build the basic documentation.
 
+```
+cmake ..
+make docs
+```
+
+#### Documentation for Developers
+
+If you are contributing to or modifying the CASC library you may wish to
+document private class members or currently hidden metatemplate helper functions.
+Configure the repository with this extra cmake option to expose the details before building the documentation.
+
+```
+-DCASC_DOCS_ADVANCED=ON
+```
 ## Versioning & Contributing
 We use [Github](https://github.com/ctlee/CASC) for versioning. 
 For the versions available, please see the [releases](https://github.com/ctlee/CASC/releases/). 
@@ -73,11 +84,14 @@ If you find a bug or with to request additional functionality please file an iss
 Department of Mathematics  
 University of California, San Diego  
 
-**[Christopher Lee](https://github.com/ctlee)**  
+**[Christopher T. Lee](https://github.com/ctlee)**  
 Department of Chemistry & Biochemistry  
 University of California, San Diego  
 
 See also the list of [contributors](https://github.com/ctlee/CASC/contributors) who participated in this project.
+
+Please cite the above Zenodo DOI to acknowledge the software version and cite the following paper:<br/>
+[Lee, C. T.; Moody, J. B.; Amaro, R. E.; Mccammon, J. A.; Holst, M. J. The Implementation of the Colored Abstract Simplicial Complex and Its Application to Mesh Generation. ACM Trans. Math. Softw. 2019, 45 (3), 1–20.](https://doi.org/10.1145/3321515)
 
 ## License
 This project is licensed under the GNU Lesser General Public License v2.1 - 
@@ -86,3 +100,7 @@ please see the [COPYING.md](COPYING.md) file for details.
 ## Acknowledgments
 This project is supported by the National Institutes of Health under grant numbers P41-GM103426 ([NBCR](http://nbcr.ucsd.edu/)), T32-GM008326, and R01-GM31749. 
 It is also supported in part by the National Science Foundation under awards DMS-CM1620366 and DMS-FRG1262982.
+
+## Development Build Status
+
+[![Development Build Status](https://github.com/ctlee/casc/actions/workflows/ci.yaml/badge.svg?branch=development)](https://github.com/ctlee/casc/actions/workflows/ci.yaml)
