@@ -167,7 +167,7 @@ TEST(CASCTest, GetNames) {
   for (std::size_t i = 0; i < s3n.size(); ++i){
     sn.emplace(s3n[i]);
   }
-  EXPECT_EQ((std::set<TetMeshType::KeyType>{1,2}), sn);
+  EXPECT_EQ((std::set<TetMeshType::KeyType>{1,2,3}), sn);
 
   sn.clear();
   auto s4n = mesh.get_name(s4);
