@@ -191,8 +191,8 @@ template <typename Complex, std::size_t BaseLevel> struct InnerVisitor {
 
     if (pLevels->find(s) != pLevels->template end<OldLevel>()) {
       // std::cout << "InnerVisitor (found): " << s << std::endl;
-      auto old_name = F.get_name(s);
-      auto base_name = F.get_name(simplex);
+      std::array<KeyType, OldLevel> old_name = F.get_name(s);
+      std::array<KeyType, BaseLevel> base_name = F.get_name(simplex);
       using NewArrayType = std::array<KeyType, NewLevel>;
       NewArrayType new_name;
 
@@ -204,6 +204,11 @@ template <typename Complex, std::size_t BaseLevel> struct InnerVisitor {
 
       // Remove base_name from old_name and append to new_name
       while (i < NewLevel) {
+        if (k >= BaseLevel) {
+          // append to new_name and increment
+          new_name[i++] = old_name[j++];
+          continue;
+        }
         if (base_name[k] == old_name[j]) {
           // if equivalent than skip the value
           ++j;
