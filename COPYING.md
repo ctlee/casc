@@ -11,7 +11,7 @@ the GNU LGPLv2.1 is reproduced below.
 Version 2.1, February 1999
 
     Copyright (C) 1991, 1999 Free Software Foundation, Inc.
-    51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+    <https://fsf.org/>
     
     Everyone is permitted to copy and distribute verbatim copies
     of this license document, but changing it is not allowed.
@@ -491,8 +491,7 @@ notice is found.
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+    License along with this library; if not, see <https://www.gnu.org/licenses/>.
 
 Also add information on how to contact you by electronic and paper
 mail.
@@ -505,7 +504,7 @@ if necessary. Here is a sample; alter the names:
     the library `Frob' (a library for tweaking knobs) written
     by James Random Hacker.
 
-    signature of Ty Coon, 1 April 1990
-    Ty Coon, President of Vice
+    signature of Moe Ghoul, 1 April 1990
+    Moe Ghoul, President of Vice
 
 That's all there is to it!
